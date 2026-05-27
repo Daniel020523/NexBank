@@ -314,18 +314,6 @@
   <!-- PANEL 1 — LOGIN -->
   <div class="panel active" id="panel-login">
 
-    <!-- ⚠️ ONE-TIME SETUP REMINDER (remove after Supabase template is set) -->
-    <div class="setup-notice" id="setup-notice">
-      <strong>⚠️ One-time Supabase setup required</strong>
-      In your Supabase dashboard → <strong>Authentication → Email Templates → Magic Link</strong>,
-      set the email body to include: <code>{{ .Token }}</code><br>
-      e.g. <em>"Your NexBank code is: {{ .Token }}"</em><br>
-      This makes Supabase send the 6-digit code instead of a magic link.
-      <br><br>
-      <a href="#" onclick="document.getElementById('setup-notice').style.display='none'; return false;"
-         style="color:#ffaa00; font-weight:600; font-size:11px;">Dismiss (I've done this)</a>
-    </div>
-
     <div class="field-group">
       <label class="field-label" for="login-email">Email Address</label>
       <input class="field-input" id="login-email" type="email"
