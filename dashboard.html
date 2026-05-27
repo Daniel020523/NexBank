@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NexBank - Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0d14;
+    --surface: #111520;
+    --surface2: #171c2e;
+    --border: rgba(255,255,255,0.07);
+    --accent: #4f8bff;
+    --accent2: #7c5cfc;
+    --green: #22d07a;
+    --red: #ff5a5a;
+    --text: #f0f4ff;
+    --muted: #6b7a99;
+    --card-radius: 20px;
+  }
+
+  html, body {
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .phone {
+    width: 100%;
+    max-width: 390px;
+    min-height: 100vh;
+    background: var(--bg);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .ambient {
+    position: fixed;
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 340px;
+    height: 340px;
+    background: radial-gradient(circle, rgba(79,139,255,0.11) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 32px 24px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+  }
+  .header-left .greeting {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+  }
+  .header-left .username {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    margin-top: 2px;
+  }
+  .avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: #fff;
+    box-shadow: 0 0 20px rgba(79,139,255,0.45);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .content {
+    padding: 0 18px 110px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .section-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 6px 0;
+    margin-bottom: -2px;
+  }
+  .section-label h2 {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  /* ── BALANCE CARD ── */
+  .balance-card {
+    background: linear-gradient(145deg, #1a2240 0%, #111827 60%, #0f1a35 100%);
+    border: 1px solid rgba(79,139,255,0.18);
+    border-radius: var(--card-radius);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .balance-card .glow-tr {
+    position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(79,139,255,0.13) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .balance-card .glow-bl {
+    position: absolute; bottom: -40px; left: -20px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(124,92,252,0.09) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    position: relative; z-index: 1;
+  }
+  .account-name {
+    font-size: 12px; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em;
+  }
+  .card-chip {
+    width: 36px; height: 27px;
+    background: linear-gradient(135deg, #c8a84b, #f0d060, #a87c28);
+    border-radius: 5px; opacity: 0.82;
+  }
+
+  .balance-label {
+    font-size: 10.5px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.09em;
+    font-weight: 600; margin-bottom: 6px;
+    position: relative; z-index: 1;
+  }
+  
+  .balance-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+  }
+  .balance-amount {
+    font-size: 37px; font-weight: 700;
+    letter-spacing: -1.5px; color: var(--text); line-height: 1;
+    min-height: 37px;
+  }
+  .balance-amount .currency {
+    font-size: 16px; font-weight: 400;
+    opacity: 0.55; vertical-align: super; margin-right: 1px;
+  }
+  
+  .toggle-visibility-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    margin-left: -2px;
+    border-radius: 50px;
+    transition: color 0.18s, background-color 0.18s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .toggle-visibility-btn:hover {
+    color: var(--accent);
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  .toggle-visibility-btn svg {
+    width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2;
+  }
+
+  /* ── CREDIT CARD ── */
+  .credit-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 20px;
+    position: relative; overflow: hidden;
+  }
+
+  .credit-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .credit-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--accent); margin-bottom: 4px;
+  }
+  .credit-title { font-size: 15px; font-weight: 700; color: var(--text); }
+
+  .gauge-wrap { position: relative; width: 72px; height: 44px; flex-shrink: 0; }
+  .gauge-svg { width: 72px; height: 44px; }
+  .gauge-val {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    font-size: 13px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--text);
+  }
+
+  .credit-body {
+    margin-top: 14px; display: flex;
+    align-items: flex-end; justify-content: space-between; gap: 12px;
+  }
+  .score-num {
+    font-size: 38px; font-weight: 700; letter-spacing: -1px;
+    font-family: 'DM Mono', monospace; color: var(--text); line-height: 1;
+  }
+  .score-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 50px;
+    font-size: 11px; font-weight: 600; margin-top: 6px;
+    background: rgba(255,90,90,0.11); color: #ff8a8a;
+    border: 1px solid rgba(255,90,90,0.2);
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 390px;
+    background: rgba(10,13,20,0.93);
+    backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+    border-top: 1px solid var(--border);
+    padding: 10px 0 env(safe-area-inset-bottom, 16px);
+    display: flex; justify-content: space-around;
+    z-index: 100;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; padding: 6px 20px; border-radius: 14px;
+    transition: color 0.18s; text-decoration: none; color: var(--muted);
+    border: none; background: transparent;
+    font-family: 'Sora', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-item:hover { color: var(--text); }
+
+  .nav-icon {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; position: relative;
+  }
+  .nav-item.active .nav-icon::after {
+    content: ''; position: absolute; bottom: -3px;
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 7px var(--accent);
+  }
+  .nav-label { font-size: 10px; font-weight: 500; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .header { animation: fadeUp 0.38s ease both; }
+  .balance-card { animation: fadeUp 0.42s 0.08s ease both; }
+  .credit-card { animation: fadeUp 0.42s 0.14s ease both; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="ambient" aria-hidden="true"></div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="greeting">Welcome back,</div>
+      <div class="username">KASSANDRA</div>
+    </div>
+    <div class="avatar">K</div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+    <div class="section-label">
+      <h2>Accounts</h2>
+    </div>
+
+    <!-- BALANCE CARD -->
+    <div class="balance-card">
+      <div class="glow-tr" aria-hidden="true"></div>
+      <div class="glow-bl" aria-hidden="true"></div>
+      <div class="card-top">
+        <div class="account-name">Total Checking</div>
+        <div class="card-chip" aria-hidden="true"></div>
+      </div>
+      <div class="balance-label">Available Balance</div>
+      
+      <div class="balance-row">
+        <div class="balance-amount" id="balance-container"><span class="currency" aria-hidden="true">$</span>21,000.00</div>
+        <button class="toggle-visibility-btn" id="balance-toggle" aria-label="Hide balance layout" onclick="toggleBalanceVisibility(event)">
+          <svg id="eye-icon" viewBox="0 0 24 24">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:6px;">
+      <h2>Credit Journey</h2>
+    </div>
+
+    <!-- CREDIT SCORE CARD -->
+    <div class="credit-card">
+      <div class="credit-header">
+        <div>
+          <div class="credit-label">VantageScore® 3.0</div>
+          <div class="credit-title">Your Credit Score</div>
+        </div>
+        <div class="gauge-wrap" aria-hidden="true">
+          <svg class="gauge-svg" viewBox="0 0 72 44" focusable="false">
+            <path d="M8 40 A 30 30 0 0 1 64 40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M8 40 A 30 30 0 0 1 64 40" fill="none" stroke="url(#gaugeGrad)" stroke-width="5" stroke-linecap="round" stroke-dasharray="94" stroke-dashoffset="39"/>
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff5a5a"/>
+                <stop offset="50%" stop-color="#ffb347"/>
+                <stop offset="100%" stop-color="#22d07a"/>
+              </linearGradient>
+            </defs>
+            <circle cx="27" cy="14" r="3" fill="#f0f4ff" opacity="0.9"/>
+          </svg>
+          <div class="gauge-val">645</div>
+        </div>
+      </div>
+      <div class="credit-body">
+        <div>
+          <div class="score-num">645</div>
+          <div class="score-badge">Fair — Room to grow</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <a href="dashboard.html" class="nav-item active" aria-current="page">
+      <div class="nav-icon" aria-hidden="true">🏦</div>
+      <span class="nav-label">Accounts</span>
+    </a>
+    <a href="pay.html" class="nav-item">
+      <div class="nav-icon" aria-hidden="true">💸</div>
+      <span class="nav-label">Pay &amp; Transfer</span>
+    </a>
+    <a href="more.html" class="nav-item">
+      <div class="nav-icon" aria-hidden="true">☰</div>
+      <span class="nav-label">More</span>
+    </a>
+  </nav>
+</div>
+
+<script>
+  let isBalanceVisible = true;
+  function toggleBalanceVisibility(event) {
+    event.stopPropagation();
+    const balanceContainer = document.getElementById('balance-container');
+    const button = document.getElementById('balance-toggle');
+    const eyeIcon = document.getElementById('eye-icon');
+
+    if (isBalanceVisible) {
+      balanceContainer.innerHTML = '*****';
+      button.setAttribute('aria-label', 'Show balance layout');
+      eyeIcon.innerHTML = `
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+      `;
+      isBalanceVisible = false;
+    } else {
+      balanceContainer.innerHTML = '<span class="currency" aria-hidden="true">$</span>21,000.00';
+      button.setAttribute('aria-label', 'Hide balance layout');
+      eyeIcon.innerHTML = `
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      `;
+      isBalanceVisible = true;
+    }
+  }
+</script>
+</body>
+</html>
