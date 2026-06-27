@@ -1,451 +1,378 @@
-import { useState } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WhatsApp Inbox</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-const contacts = [
-  {
-    id: 1,
-    name: "Michael Johnson",
-    preview: "Thank you so much Citibank for processing my check, I just received it in the mail today and...",
-    time: "14:52",
-    unread: 3,
-    avatar: "MJ",
-    color: "#25D366",
-  },
-  {
-    id: 2,
-    name: "Sarah Williams",
-    preview: "I wanted to drop a quick note to say thank you Citibank, I got my check in the mail safely and...",
-    time: "14:48",
-    unread: 1,
-    avatar: "SW",
-    color: "#128C7E",
-  },
-  {
-    id: 3,
-    name: "David Rodriguez",
-    preview: "Awesome, my Citibank check arrived! Thank you so much for processing it so quickly, I really appreciate...",
-    time: "14:40",
-    unread: 2,
-    avatar: "DR",
-    color: "#075E54",
-  },
-  {
-    id: 4,
-    name: "Emily Thompson",
-    preview: "Got it! Thanks for the check, Citibank. I am so relieved it finally arrived in my mailbox this morning...",
-    time: "14:31",
-    unread: 1,
-    avatar: "ET",
-    color: "#34B7F1",
-  },
-  {
-    id: 5,
-    name: "Robert Garcia",
-    preview: "Thank you Citibank, the check is finally in the mail! I have been waiting for this to clear my account and...",
-    time: "14:20",
-    unread: 4,
-    avatar: "RG",
-    color: "#ECB22E",
-  },
-  {
-    id: 6,
-    name: "Jessica Chen",
-    preview: "Posted a video to show I finally received my Citibank check today, thank you so much for...",
-    time: "14:10",
-    unread: 1,
-    avatar: "JC",
-    color: "#E74C3C",
-  },
-  {
-    id: 7,
-    name: "William Davis",
-    preview: "Active today. Just wanted to confirm that my Citibank check arrived safely in the post today and...",
-    time: "13:55",
-    unread: 2,
-    avatar: "WD",
-    color: "#9B59B6",
-  },
-  {
-    id: 8,
-    name: "Amanda Miller",
-    preview: "Just received my Citibank check, thanks! It was such a relief to see it in the mailbox after waiting and...",
-    time: "13:40",
-    unread: 1,
-    avatar: "AM",
-    color: "#E67E22",
-  },
-  {
-    id: 9,
-    name: "Daniel Martinez",
-    preview: "Citibank check received safely, thank you! I wanted to let you know it arrived in perfect condition and...",
-    time: "13:22",
-    unread: 3,
-    avatar: "DM",
-    color: "#1ABC9C",
-  },
-];
+    body {
+      background: #0a1014;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
 
-export default function WhatsAppInbox() {
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("All");
+    #app {
+      max-width: 430px;
+      width: 100%;
+      height: 100vh;
+      background: #111B21;
+      display: flex;
+      flex-direction: column;
+      color: #E9EDEF;
+      overflow: hidden;
+      position: relative;
+    }
 
-  const filtered = contacts.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px 4px;
+      font-size: 12px;
+      color: #E9EDEF;
+    }
+    .status-bar .time { font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
 
-  return (
-    <div
-      style={{
-        maxWidth: 430,
-        margin: "0 auto",
-        height: "100vh",
-        backgroundColor: "#111B21",
-        fontFamily: "'Segoe UI', Helvetica, Arial, sans-serif",
-        display: "flex",
-        flexDirection: "column",
-        color: "#E9EDEF",
-        overflow: "hidden",
-      }}
-    >
-      {/* Status bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "10px 16px 4px",
-          fontSize: 12,
-          color: "#E9EDEF",
-        }}
-      >
-        <span style={{ fontWeight: 600 }}>14:56</span>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <span>●●●</span>
-          <span>LTE</span>
-          <span>🔋83</span>
-        </div>
-      </div>
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 16px 10px;
+    }
+    .header-title { font-size: 22px; font-weight: 700; color: #E9EDEF; }
+    .header-icons { display: flex; gap: 20px; align-items: center; cursor: pointer; }
 
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "6px 16px 10px",
-        }}
-      >
-        <span style={{ fontSize: 22, fontWeight: 700, color: "#E9EDEF" }}>
-          WhatsApp
-        </span>
-        <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-          {/* Camera icon */}
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M12 15.2A3.2 3.2 0 1 0 12 8.8a3.2 3.2 0 0 0 0 6.4Z"
-              fill="#E9EDEF"
-            />
-            <path
-              d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9Z"
-              stroke="#E9EDEF"
-              strokeWidth="1.5"
-              fill="none"
-            />
-          </svg>
-          {/* Three-dot menu */}
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#E9EDEF">
-            <circle cx="12" cy="5" r="1.5" />
-            <circle cx="12" cy="12" r="1.5" />
-            <circle cx="12" cy="19" r="1.5" />
-          </svg>
-        </div>
-      </div>
+    /* Search */
+    .search-wrap { padding: 0 12px 10px; }
+    .search-box {
+      background: #202C33;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      gap: 10px;
+    }
+    .search-box input {
+      background: none;
+      border: none;
+      outline: none;
+      color: #8696A0;
+      font-size: 15px;
+      flex: 1;
+      font-family: inherit;
+    }
+    .search-box input::placeholder { color: #8696A0; }
 
-      {/* Search bar */}
-      <div style={{ padding: "0 12px 10px" }}>
-        <div
-          style={{
-            backgroundColor: "#202C33",
-            borderRadius: 10,
-            display: "flex",
-            alignItems: "center",
-            padding: "8px 12px",
-            gap: 10,
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#8696A0">
-            <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z" stroke="#8696A0" strokeWidth="2" strokeLinecap="round" fill="none"/>
-          </svg>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Ask Meta AI or Search"
-            style={{
-              background: "none",
-              border: "none",
-              outline: "none",
-              color: "#8696A0",
-              fontSize: 15,
-              flex: 1,
-            }}
-          />
-        </div>
-      </div>
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 0 12px 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      background: #202C33;
+      color: #8696A0;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab-btn.active {
+      background: #00A884;
+      color: #111B21;
+    }
 
-      {/* Tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          padding: "0 12px 10px",
-          overflowX: "auto",
-        }}
-      >
-        {["All", "Unread", "Favourites", "Groups"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              padding: "5px 14px",
-              borderRadius: 20,
-              border: "none",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: 500,
-              whiteSpace: "nowrap",
-              backgroundColor: activeTab === tab ? "#00A884" : "#202C33",
-              color: activeTab === tab ? "#111B21" : "#8696A0",
-            }}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+    /* Chat list */
+    #chat-list {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #202C33 transparent;
+    }
+    #chat-list::-webkit-scrollbar { width: 4px; }
+    #chat-list::-webkit-scrollbar-thumb { background: #202C33; border-radius: 4px; }
 
-      {/* Chat list */}
-      <div style={{ flex: 1, overflowY: "auto" }}>
-        {filtered.map((contact, i) => (
-          <div key={contact.id}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "10px 16px",
-                gap: 12,
-                cursor: "pointer",
-                transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#202C33")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "transparent")
-              }
-            >
-              {/* Avatar */}
-              <div
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: "50%",
-                  backgroundColor: contact.color,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: "#fff",
-                  flexShrink: 0,
-                }}
-              >
-                {contact.avatar}
-              </div>
+    .chat-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .chat-item:hover { background: #202C33; }
 
-              {/* Content */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 3,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontWeight: 600,
-                      fontSize: 16,
-                      color: "#E9EDEF",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {contact.name}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 12,
-                      color: contact.unread ? "#00A884" : "#8696A0",
-                      flexShrink: 0,
-                      marginLeft: 8,
-                    }}
-                  >
-                    {contact.time}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 13,
-                      color: "#8696A0",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      flex: 1,
-                      paddingRight: 8,
-                    }}
-                  >
-                    {contact.preview}
-                  </span>
-                  {contact.unread > 0 && (
-                    <div
-                      style={{
-                        backgroundColor: "#00A884",
-                        borderRadius: "50%",
-                        minWidth: 20,
-                        height: 20,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: "#111B21",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {contact.unread}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            {/* Divider */}
-            {i < filtered.length - 1 && (
-              <div
-                style={{
-                  height: 1,
-                  backgroundColor: "#202C33",
-                  marginLeft: 78,
-                }}
-              />
-            )}
-          </div>
-        ))}
-      </div>
+    .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
 
-      {/* Fixed FAB */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 80,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          backgroundColor: "#00A884",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
-          cursor: "pointer",
-          zIndex: 10,
-        }}
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="#111B21">
-          <path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2Z" />
-        </svg>
-      </div>
+    .chat-content { flex: 1; min-width: 0; }
 
-      {/* Bottom Nav */}
-      <div
-        style={{
-          backgroundColor: "#111B21",
-          borderTop: "1px solid #202C33",
-          display: "flex",
-          justifyContent: "space-around",
-          padding: "8px 0 16px",
-        }}
-      >
-        {[
-          {
-            label: "Chats",
-            active: true,
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2Z" fill="#00A884"/>
-              </svg>
-            ),
-          },
-          {
-            label: "Updates",
-            active: false,
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="#8696A0" strokeWidth="1.5"/>
-                <path d="M12 8v4l3 3" stroke="#8696A0" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            ),
-          },
-          {
-            label: "Communities",
-            active: false,
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#8696A0" strokeWidth="1.5" strokeLinecap="round"/>
-                <circle cx="9" cy="7" r="4" stroke="#8696A0" strokeWidth="1.5"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="#8696A0" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="#8696A0" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            ),
-          },
-          {
-            label: "Calls",
-            active: false,
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92Z" stroke="#8696A0" strokeWidth="1.5"/>
-              </svg>
-            ),
-          },
-        ].map((tab) => (
-          <div
-            key={tab.label}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 3,
-              cursor: "pointer",
-            }}
-          >
-            {tab.icon}
-            <span
-              style={{
-                fontSize: 11,
-                color: tab.active ? "#00A884" : "#8696A0",
-                fontWeight: tab.active ? 600 : 400,
-              }}
-            >
-              {tab.label}
-            </span>
-          </div>
-        ))}
+    .chat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+    .chat-name {
+      font-weight: 600;
+      font-size: 16px;
+      color: #E9EDEF;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .chat-time {
+      font-size: 12px;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+    .chat-time.unread { color: #00A884; }
+    .chat-time.read { color: #8696A0; }
+
+    .chat-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chat-preview {
+      font-size: 13px;
+      color: #8696A0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      padding-right: 8px;
+    }
+    .badge {
+      background: #00A884;
+      border-radius: 50%;
+      min-width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #111B21;
+      flex-shrink: 0;
+    }
+
+    .divider {
+      height: 1px;
+      background: #202C33;
+      margin-left: 78px;
+    }
+
+    /* FAB */
+    .fab {
+      position: absolute;
+      bottom: 80px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #00A884;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      background: #111B21;
+      border-top: 1px solid #202C33;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 16px;
+      flex-shrink: 0;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+    }
+    .nav-label {
+      font-size: 11px;
+      color: #8696A0;
+    }
+    .nav-label.active {
+      color: #00A884;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span class="time">14:56</span>
+      <div class="status-icons">
+        <span>●●●</span>
+        <span>LTE</span>
+        <span>🔋83</span>
       </div>
     </div>
-  );
-}
+
+    <!-- Header -->
+    <div class="header">
+      <span class="header-title">WhatsApp</span>
+      <div class="header-icons">
+        <!-- Camera -->
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 15.2A3.2 3.2 0 1 0 12 8.8a3.2 3.2 0 0 0 0 6.4Z" fill="#E9EDEF"/>
+          <path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9Z" stroke="#E9EDEF" stroke-width="1.5" fill="none"/>
+        </svg>
+        <!-- Three dots -->
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#E9EDEF">
+          <circle cx="12" cy="5" r="1.5"/>
+          <circle cx="12" cy="12" r="1.5"/>
+          <circle cx="12" cy="19" r="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z" stroke="#8696A0" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input id="search-input" type="text" placeholder="Ask Meta AI or Search" oninput="filterChats()" />
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="setTab(this)">All</button>
+      <button class="tab-btn" onclick="setTab(this)">Unread</button>
+      <button class="tab-btn" onclick="setTab(this)">Favourites</button>
+      <button class="tab-btn" onclick="setTab(this)">Groups</button>
+    </div>
+
+    <!-- Chat list -->
+    <div id="chat-list"></div>
+
+    <!-- FAB -->
+    <div class="fab">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="#111B21">
+        <path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2Z"/>
+      </svg>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <div class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2Z" fill="#00A884"/>
+        </svg>
+        <span class="nav-label active">Chats</span>
+      </div>
+      <div class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#8696A0" stroke-width="1.5"/>
+          <path d="M12 8v4l3 3" stroke="#8696A0" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Updates</span>
+      </div>
+      <div class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#8696A0" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="9" cy="7" r="4" stroke="#8696A0" stroke-width="1.5"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="#8696A0" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="#8696A0" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Communities</span>
+      </div>
+      <div class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92Z" stroke="#8696A0" stroke-width="1.5"/>
+        </svg>
+        <span class="nav-label">Calls</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const contacts = [
+      { name: "Michael Johnson", preview: "Thank you so much Citibank for processing my check, I just received it in the mail today and...", time: "14:52", unread: 3, avatar: "MJ", color: "#25D366" },
+      { name: "Sarah Williams", preview: "I wanted to drop a quick note to say thank you Citibank, I got my check in the mail safely and...", time: "14:48", unread: 1, avatar: "SW", color: "#128C7E" },
+      { name: "David Rodriguez", preview: "Awesome, my Citibank check arrived! Thank you so much for processing it so quickly, I really appreciate...", time: "14:40", unread: 2, avatar: "DR", color: "#075E54" },
+      { name: "Emily Thompson", preview: "Got it! Thanks for the check, Citibank. I am so relieved it finally arrived in my mailbox this morning...", time: "14:31", unread: 1, avatar: "ET", color: "#34B7F1" },
+      { name: "Robert Garcia", preview: "Thank you Citibank, the check is finally in the mail! I have been waiting for this to clear my account and...", time: "14:20", unread: 4, avatar: "RG", color: "#ECB22E" },
+      { name: "Jessica Chen", preview: "Posted a video to show I finally received my Citibank check today, thank you so much for...", time: "14:10", unread: 1, avatar: "JC", color: "#E74C3C" },
+      { name: "William Davis", preview: "Active today. Just wanted to confirm that my Citibank check arrived safely in the post today and...", time: "13:55", unread: 2, avatar: "WD", color: "#9B59B6" },
+      { name: "Amanda Miller", preview: "Just received my Citibank check, thanks! It was such a relief to see it in the mailbox after waiting and...", time: "13:40", unread: 1, avatar: "AM", color: "#E67E22" },
+      { name: "Daniel Martinez", preview: "Citibank check received safely, thank you! I wanted to let you know it arrived in perfect condition and...", time: "13:22", unread: 3, avatar: "DM", color: "#1ABC9C" },
+    ];
+
+    function renderChats(list) {
+      const container = document.getElementById('chat-list');
+      container.innerHTML = '';
+      list.forEach((c, i) => {
+        const item = document.createElement('div');
+        item.innerHTML = `
+          <div class="chat-item">
+            <div class="avatar" style="background:${c.color}">${c.avatar}</div>
+            <div class="chat-content">
+              <div class="chat-top">
+                <span class="chat-name">${c.name}</span>
+                <span class="chat-time ${c.unread ? 'unread' : 'read'}">${c.time}</span>
+              </div>
+              <div class="chat-bottom">
+                <span class="chat-preview">${c.preview}</span>
+                ${c.unread ? `<div class="badge">${c.unread}</div>` : ''}
+              </div>
+            </div>
+          </div>
+          ${i < list.length - 1 ? '<div class="divider"></div>' : ''}
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function filterChats() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      renderChats(contacts.filter(c => c.name.toLowerCase().includes(q)));
+    }
+
+    function setTab(btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    renderChats(contacts);
+  </script>
+</body>
+</html>
