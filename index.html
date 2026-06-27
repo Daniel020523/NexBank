@@ -189,6 +189,23 @@
     }
 
     /* FAB */
+    .fab-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #FF3B30;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 10px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #111B21;
+    }
     .fab {
       position: absolute;
       bottom: 80px;
@@ -292,10 +309,11 @@
 
     <!-- Bottom Nav -->
     <div class="bottom-nav">
-      <div class="nav-item">
+      <div class="nav-item" style="position:relative;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
           <path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2Z" fill="#00A884"/>
         </svg>
+        <div class="fab-badge" style="top:-6px;right:-10px;">9+</div>
         <span class="nav-label active">Chats</span>
       </div>
       <div class="nav-item">
