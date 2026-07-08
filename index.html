@@ -1,96 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Withdrawal Status</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .container { background-color: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 450px; text-align: center; position: relative; overflow: hidden; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Received</title>
 
-        /* Header */
-        .icon-wrap { width: 80px; height: 80px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); border: 2px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; animation: pulse 2.4s ease-in-out infinite; }
-        .icon-wrap svg { width: 38px; height: 38px; }
-        @keyframes pulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.2); } 50%{ box-shadow: 0 0 0 14px rgba(245, 158, 11, 0); } }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
 
-        h2 { font-size: 22px; font-weight: 700; color: #f8fafc; margin-bottom: 6px; }
-        .subtitle { color: #94a3b8; font-size: 14px; line-height: 1.6; margin-bottom: 22px; }
+body{
+    background:#f3f5f9;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
 
-        .status-badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 20px; padding: 6px 16px; font-size: 12px; font-weight: 700; color: #f59e0b; letter-spacing: 0.06em; margin-bottom: 22px; }
-        .status-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; animation: blink 1.8s infinite; }
+.card{
+    width:90%;
+    max-width:420px;
+    background:#fff;
+    border-radius:18px;
+    padding:35px 25px;
+    text-align:center;
+    box-shadow:0 15px 35px rgba(0,0,0,.12);
+}
 
-        /* Info card */
-        .info-card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; text-align: left; }
-        .info-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid #1e293b; }
-        .info-row:last-child { border-bottom: none; padding-bottom: 0; }
-        .info-row:first-child { padding-top: 0; }
-        .info-label { font-size: 13px; color: #64748b; }
-        .info-value { font-size: 13px; color: #f8fafc; font-weight: 600; text-align: right; }
-        .info-value.amber { color: #f59e0b; }
+.success{
+    width:80px;
+    height:80px;
+    background:#16a34a;
+    color:#fff;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:42px;
+    margin:0 auto 20px;
+}
 
-        /* Reason box */
-        .reason-box { background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.25); border-radius: 10px; padding: 16px; text-align: left; }
-        .reason-box .r-title { font-size: 14px; font-weight: 700; color: #f59e0b; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-        .reason-box .r-desc { font-size: 13px; color: #94a3b8; line-height: 1.6; }
-    </style>
+h2{
+    color:#111827;
+    margin-bottom:12px;
+}
+
+.message{
+    color:#555;
+    font-size:17px;
+    line-height:1.6;
+}
+
+.balance-box{
+    margin:28px 0;
+    background:#f8fafc;
+    border-radius:14px;
+    padding:18px;
+}
+
+.balance-label{
+    color:#777;
+    font-size:14px;
+}
+
+.balance{
+    color:#16a34a;
+    font-size:38px;
+    font-weight:bold;
+    margin-top:8px;
+}
+
+button{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:12px;
+    background:#2563eb;
+    color:#fff;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.3s;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+</style>
 </head>
+
 <body>
-<div class="container">
 
-    <div class="icon-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-    </div>
+<div class="card">
 
-    <h2>Withdrawal Processing</h2>
-    <p class="subtitle">Your withdrawal request of <strong style="color:#f8fafc;">$694,536.50</strong> is currently under review by our operations team.</p>
+<div class="success">✓</div>
 
-    <div class="status-badge">⏳ PENDING</div>
+<h2>Payment Received</h2>
 
-    <div class="info-card">
-        <div class="info-row">
-            <span class="info-label">Withdrawal Amount</span>
-            <span class="info-value">$694,536.50</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Status</span>
-            <span class="info-value amber">Awaiting Review</span>
-        </div>
-    </div>
+<p class="message">
+<b>Lawrence Smith</b> sent you <b>$300.00</b>.
+</p>
 
-    <div class="reason-box">
-        <div class="r-title">🔍 Under Routine Audit</div>
-        <div class="r-desc">
-            Due to the standard compliance parameters associated with larger volume transactions, this payout is undergoing a routine safety check. No action is required on your part. Processing will continue automatically once the ledger validation clears.
-        </div>
-    </div>
+<div class="balance-box">
+<div class="balance-label">Available Balance</div>
+<div class="balance">$300.00</div>
+</div>
+
+<button onclick="proceed()">Proceed</button>
 
 </div>
 
 <script>
-    const SUPABASE_URL  = 'https://kmjmqrrmzdtovovzigxk.supabase.co';
-    const SUPABASE_ANON = 'sb_publishable_y8Ai2hQcJfHSU5ilkEFCSg_lmh1_leb';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
-    async function checkStatus() {
-        const wallet = localStorage.getItem('active_wallet');
-        if (!wallet) return;
-        try {
-            await supabaseClient
-                .from('crypto_transfers')
-                .select('id')
-                .eq('wallet_address', wallet)
-                .limit(1);
-        } catch (err) {
-            console.error('Connection error:', err);
-        }
-    }
-
-    window.onload = checkStatus;
+function proceed(){
+    alert("Proceed button clicked!");
+    // Replace this with your desired action.
+    // Example:
+    // window.location.href = "dashboard.html";
+}
 </script>
+
 </body>
 </html>
