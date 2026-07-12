@@ -550,6 +550,22 @@
     el.textContent = '';
   }
 
+  // Checks the persistent hold flag on the user's balances row.
+  // Returns true (and redirects) if the account is blocked.
+  async function redirectIfBlocked(userId){
+    const { data: balRow } = await supabaseClient
+      .from('balances')
+      .select('blocked')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if(balRow && balRow.blocked){
+      window.location.href = 'blocked.html';
+      return true;
+    }
+    return false;
+  }
+
   // ---- ledger tape content (signature element) ----
   const ledgerData = [
     ["07/12","+2,140.00","pos"],
@@ -636,13 +652,20 @@
 
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pw });
 
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Log in';
-
     if(error){
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Log in';
       showBanner('loginBanner', error.message, 'error');
       return;
     }
+
+    // Persistent hold check — flagged accounts go straight to blocked.html,
+    // even after a fresh login.
+    const blocked = await redirectIfBlocked(data.user.id);
+    if(blocked) return;
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Log in';
 
     window.location.href = 'dashboard.html';
   });
@@ -722,10 +745,12 @@
     window.location.href = 'dashboard.html';
   });
 
-  // ---- if already logged in, skip straight to dashboard ----
+  // ---- if already logged in, route to dashboard (or blocked.html if held) ----
   (async function checkExistingSession(){
     const { data } = await supabaseClient.auth.getSession();
     if(data.session){
+      const blocked = await redirectIfBlocked(data.session.user.id);
+      if(blocked) return;
       window.location.href = 'dashboard.html';
     }
   })();
