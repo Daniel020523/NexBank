@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forbright Bank — Transfer funds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#0d1512;
+    --ink-2:#131e19;
+    --paper:#f3f5f4;
+    --paper-2:#ffffff;
+    --jade:#1f6f54;
+    --jade-dark:#154f3c;
+    --gold:#c89b3c;
+    --ink-muted:#8a9a93;
+    --slate:#232b27;
+    --slate-muted:#6b756f;
+    --line:#dde3e0;
+    --error:#b3452f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Manrope', sans-serif;
+    background:var(--paper);
+    color:var(--slate);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1.1rem 2.5rem;
+    background:var(--paper-2);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:.6rem;}
+  .brand-mark{
+    width:26px;height:26px;
+    border-radius:50%;
+    border:1.5px solid var(--gold);
+    position:relative;
+    flex-shrink:0;
+  }
+  .brand-mark::after{
+    content:"";
+    position:absolute; top:50%; left:50%;
+    width:60%; height:1.5px;
+    background:var(--gold);
+    transform:translate(-50%,-50%) rotate(-38deg);
+  }
+  .brand-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.05rem;
+  }
+  .back-link{
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size:.85rem;
+    color:var(--slate-muted);
+    text-decoration:none;
+  }
+  .back-link:hover{color:var(--jade-dark);}
+
+  main{
+    max-width:520px;
+    margin:0 auto;
+    padding:3rem 1.5rem 4rem;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.72rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--jade-dark);
+    margin:0 0 .4rem;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.7rem;
+    margin:0 0 .3rem;
+  }
+  .sub{
+    color:var(--slate-muted);
+    font-size:.92rem;
+    margin:0 0 1.6rem;
+  }
+
+  .balance-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:.5rem 1rem;
+    font-size:.82rem;
+    color:var(--slate-muted);
+    margin-bottom:1.8rem;
+  }
+  .balance-pill strong{
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--slate);
+    font-weight:500;
+  }
+
+  .card{
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:1.8rem;
+  }
+
+  .field{margin-bottom:1.15rem;}
+  .field label{
+    display:block;
+    font-size:.78rem;
+    font-weight:600;
+    letter-spacing:.02em;
+    margin-bottom:.4rem;
+    color:var(--slate);
+  }
+  .field input{
+    width:100%;
+    padding:.78rem .9rem;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    font-family:'Manrope', sans-serif;
+    font-size:.94rem;
+    background:var(--paper);
+    color:var(--slate);
+    transition:border-color .18s ease, box-shadow .18s ease;
+  }
+  .field input[data-mono]{font-family:'IBM Plex Mono', monospace;}
+  .field input:focus{
+    outline:none;
+    border-color:var(--jade);
+    box-shadow:0 0 0 3px rgba(31,111,84,.14);
+  }
+  .field.error input{border-color:var(--error);}
+  .field .msg{
+    font-size:.76rem;
+    margin-top:.35rem;
+    min-height:1em;
+    color:var(--error);
+  }
+
+  .two-col{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1rem;
+  }
+
+  .banner{
+    display:none;
+    padding:.7rem .85rem;
+    border-radius:8px;
+    font-size:.83rem;
+    margin-bottom:1.1rem;
+    line-height:1.4;
+    background:#fbeae6;
+    color:var(--error);
+    border:1px solid #f0c9bf;
+  }
+  .banner.show{display:block;}
+
+  .proceed-btn{
+    width:100%;
+    padding:.85rem 0;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:9px;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:.94rem;
+    cursor:pointer;
+    transition:background .18s ease, transform .12s ease;
+    margin-top:.4rem;
+  }
+  .proceed-btn:hover{background:var(--jade-dark);}
+  .proceed-btn:active{transform:scale(.99);}
+
+  .loading-screen{
+    position:fixed; inset:0;
+    background:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--slate-muted);
+    font-size:.85rem;
+    letter-spacing:.05em;
+    z-index:20;
+  }
+
+  @media (max-width: 560px){
+    nav{padding:1rem 1.3rem;}
+    .two-col{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">LOADING ACCOUNT…</div>
+
+<nav>
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">Forbright</span>
+  </div>
+  <a class="back-link" href="dashboard.html">← Back to dashboard</a>
+</nav>
+
+<main>
+  <p class="eyebrow">Move money</p>
+  <h1>Transfer funds</h1>
+  <p class="sub">Send money to another account. You'll confirm with your PIN on the next step.</p>
+
+  <div class="balance-pill">Available balance <strong id="balanceDisplay">$0.00</strong></div>
+
+  <div class="card">
+    <div class="banner" id="formBanner"></div>
+
+    <form id="transferForm" novalidate>
+      <div class="field" id="nameField">
+        <label for="recipientName">Recipient full name</label>
+        <input type="text" id="recipientName" placeholder="Jordan Alvarez" autocomplete="off">
+        <div class="msg"></div>
+      </div>
+
+      <div class="two-col">
+        <div class="field" id="bankField">
+          <label for="recipientBank">Recipient bank</label>
+          <input type="text" id="recipientBank" placeholder="e.g. Forbright Bank" autocomplete="off">
+          <div class="msg"></div>
+        </div>
+        <div class="field" id="acctField">
+          <label for="recipientAccount">Account number</label>
+          <input type="text" id="recipientAccount" placeholder="0000000000" data-mono autocomplete="off" inputmode="numeric">
+          <div class="msg"></div>
+        </div>
+      </div>
+
+      <div class="field" id="amountField">
+        <label for="amount">Amount</label>
+        <input type="number" id="amount" placeholder="0.00" min="0.01" step="0.01" data-mono>
+        <div class="msg"></div>
+      </div>
+
+      <div class="field" id="noteField">
+        <label for="note">Note (optional)</label>
+        <input type="text" id="note" placeholder="What's this for?" autocomplete="off">
+      </div>
+
+      <button type="submit" class="proceed-btn">Proceed to PIN</button>
+    </form>
+  </div>
+</main>
+
+<script>
+  // ============================================================
+  // SUPABASE CONFIG — replace these two placeholders
+  // (use the same project as the other pages)
+  // ============================================================
+  const SUPABASE_URL = "https://kmjmqrrmzdtovovzigxk.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_y8Ai2hQcJfHSU5ilkEFCSg_lmh1_leb";
+
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  let currentBalance = 0;
+
+  function setError(fieldId, message){
+    const field = document.getElementById(fieldId);
+    field.classList.add('error');
+    field.querySelector('.msg').textContent = message;
+  }
+  function clearErrors(){
+    document.querySelectorAll('.field').forEach(f=>{
+      f.classList.remove('error');
+      const msg = f.querySelector('.msg');
+      if(msg) msg.textContent = '';
+    });
+    document.getElementById('formBanner').className = 'banner';
+  }
+  function showBanner(message){
+    const el = document.getElementById('formBanner');
+    el.textContent = message;
+    el.className = 'banner show';
+  }
+
+  // ---- boot: auth guard + fetch live balance ----
+  (async function init(){
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+
+    if(!sessionData.session){
+      window.location.href = 'forbright-auth.html';
+      return;
+    }
+
+    currentUser = sessionData.session.user;
+
+    const { data: balanceRow, error } = await supabaseClient
+      .from('balances')
+      .select('balance')
+      .eq('id', currentUser.id)
+      .single();
+
+    if(error){
+      showBanner('Could not load your balance: ' + error.message);
+    } else if(balanceRow){
+      currentBalance = balanceRow.balance || 0;
+      document.getElementById('balanceDisplay').textContent = '$' + currentBalance.toFixed(2);
+    }
+
+    document.getElementById('loadingScreen').style.display = 'none';
+  })();
+
+  document.getElementById('transferForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    clearErrors();
+    let ok = true;
+
+    const name = document.getElementById('recipientName').value.trim();
+    const bank = document.getElementById('recipientBank').value.trim();
+    const account = document.getElementById('recipientAccount').value.trim();
+    const amount = parseFloat(document.getElementById('amount').value);
+    const note = document.getElementById('note').value.trim();
+
+    if(name.length < 2){ setError('nameField', 'Enter the recipient\'s full name.'); ok = false; }
+    if(bank.length < 2){ setError('bankField', 'Enter the recipient\'s bank.'); ok = false; }
+    if(!/^\d{6,17}$/.test(account)){ setError('acctField', 'Enter a valid account number.'); ok = false; }
+
+    if(isNaN(amount) || amount <= 0){
+      setError('amountField', 'Enter an amount greater than 0.');
+      ok = false;
+    } else if(amount > currentBalance){
+      setError('amountField', 'This exceeds your available balance ($' + currentBalance.toFixed(2) + ').');
+      ok = false;
+    }
+
+    if(!ok) return;
+
+    // Hand off to the PIN confirmation step.
+    sessionStorage.setItem('pendingTransfer', JSON.stringify({
+      name, bank, account, amount, note
+    }));
+
+    window.location.href = 'pin.html';
+  });
+</script>
+
+</body>
+</html>
