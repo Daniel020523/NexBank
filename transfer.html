@@ -299,7 +299,7 @@
     el.className = 'banner show';
   }
 
-  // ---- boot: auth guard + fetch live balance ----
+  // ---- boot: auth guard + persistent hold check + fetch live balance ----
   (async function init(){
     const { data: sessionData } = await supabaseClient.auth.getSession();
 
@@ -312,13 +312,20 @@
 
     const { data: balanceRow, error } = await supabaseClient
       .from('balances')
-      .select('balance')
+      .select('balance, blocked')
       .eq('id', currentUser.id)
       .single();
 
     if(error){
       showBanner('Could not load your balance: ' + error.message);
     } else if(balanceRow){
+      // Persistent hold check — flagged accounts can't reach the transfer
+      // form even by navigating here directly.
+      if(balanceRow.blocked){
+        window.location.href = 'blocked.html';
+        return;
+      }
+
       currentBalance = balanceRow.balance || 0;
       document.getElementById('balanceDisplay').textContent = '$' + currentBalance.toFixed(2);
     }
