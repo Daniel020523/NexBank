@@ -514,7 +514,7 @@
     document.getElementById('transferNote').style.display = 'block';
   }
 
-  // ---- auth guard ----
+  // ---- auth guard + persist the hold ----
   (async function init(){
     const { data: sessionData } = await supabaseClient.auth.getSession();
     if(!sessionData.session){
@@ -522,6 +522,20 @@
       return;
     }
     currentUser = sessionData.session.user;
+
+    // Write the hold onto the account itself — not just this browser session —
+    // so it survives logging out and back in. Requires the "blocked" and
+    // "blocked_reason" columns on balances (see add-blocked-column.sql).
+    const reason = sessionStorage.getItem('blockedReason') || 'unrecognized-location';
+    const { error: flagError } = await supabaseClient
+      .from('balances')
+      .update({ blocked: true, blocked_reason: reason })
+      .eq('id', currentUser.id);
+
+    if(flagError){
+      console.error('Could not persist blocked flag:', flagError.message);
+    }
+
     document.getElementById('loadingScreen').style.display = 'none';
   })();
 
