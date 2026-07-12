@@ -179,6 +179,7 @@
     display:grid;
     grid-template-columns:300px 1fr;
     overflow:hidden;
+    position:relative;
   }
 
   .conv-list{
@@ -230,12 +231,38 @@
     flex-direction:column;
     overflow:hidden;
   }
+
+  /* ---------- FULLSCREEN THREAD OVERLAY ---------- */
+  .thread-panel.fullscreen{
+    position:fixed;
+    inset:0;
+    z-index:50;
+    background:var(--paper);
+  }
+  .thread-back{
+    display:none;
+    align-items:center;
+    gap:.5rem;
+    background:transparent;
+    border:none;
+    color:var(--slate);
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:.85rem;
+    cursor:pointer;
+    padding:.3rem .4rem .3rem 0;
+  }
+  .thread-panel.fullscreen .thread-back{display:inline-flex;}
   .thread-header{
     padding:1rem 1.4rem;
     border-bottom:1px solid var(--line);
     background:var(--paper-2);
     font-weight:700;
     font-size:.95rem;
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+    flex-shrink:0;
   }
   .thread-body{
     flex:1;
@@ -277,6 +304,7 @@
     padding:1rem 1.4rem;
     border-top:1px solid var(--line);
     background:var(--paper-2);
+    flex-shrink:0;
   }
   .thread-input-row input{
     flex:1;
@@ -303,8 +331,7 @@
 
   @media (max-width:760px){
     .console-body{grid-template-columns:1fr;}
-    .conv-list{display:none;}
-    .conv-list.show-mobile{display:block; position:absolute; inset:0; z-index:5;}
+    .conv-list{display:block;}
   }
 </style>
 </head>
@@ -355,8 +382,11 @@
       <div class="conv-empty" id="convEmpty">No conversations yet.</div>
     </div>
 
-    <div class="thread-panel">
-      <div class="thread-header" id="threadHeader">Select a conversation</div>
+    <div class="thread-panel" id="threadPanel">
+      <div class="thread-header" id="threadHeader">
+        <button class="thread-back" id="threadBack" type="button">← Back</button>
+        <span id="threadHeaderText">Select a conversation</span>
+      </div>
       <div class="thread-body" id="threadBody">
         <div class="thread-empty">Pick a customer on the left to view their messages.</div>
       </div>
@@ -502,12 +532,23 @@
         activeUserId = btn.dataset.user;
         renderConvList();
         loadThread(activeUserId);
+        openFullscreen();
       });
     });
   }
 
+  function openFullscreen(){
+    document.getElementById('threadPanel').classList.add('fullscreen');
+  }
+
+  function closeFullscreen(){
+    document.getElementById('threadPanel').classList.remove('fullscreen');
+  }
+
+  document.getElementById('threadBack').addEventListener('click', closeFullscreen);
+
   async function loadThread(userId){
-    document.getElementById('threadHeader').textContent = 'Customer ' + userId.slice(0,8);
+    document.getElementById('threadHeaderText').textContent = 'Customer ' + userId.slice(0,8);
     document.getElementById('replyInput').disabled = false;
     document.getElementById('sendReply').disabled = false;
 
