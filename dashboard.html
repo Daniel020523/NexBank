@@ -328,7 +328,7 @@
 
     <div class="balance-actions">
       <button class="btn-add" id="showAddForm">+ Add funds</button>
-      <button class="btn-withdraw" id="showWithdrawForm">− Withdraw</button>
+      <button class="btn-withdraw" id="goTransfer">→ Transfer</button>
     </div>
 
     <!-- Add funds inline form -->
@@ -339,17 +339,6 @@
       <div class="form-row">
         <button class="confirm-btn" id="confirmAdd">Add funds</button>
         <button class="cancel-btn" data-cancel="addForm">Cancel</button>
-      </div>
-    </div>
-
-    <!-- Withdraw inline form -->
-    <div class="amount-form" id="withdrawForm">
-      <label for="withdrawAmount">Amount to withdraw</label>
-      <input type="number" id="withdrawAmount" placeholder="0.00" min="0.01" step="0.01">
-      <p class="err" id="withdrawErr"></p>
-      <div class="form-row">
-        <button class="confirm-btn" id="confirmWithdraw">Withdraw</button>
-        <button class="cancel-btn" data-cancel="withdrawForm">Cancel</button>
       </div>
     </div>
   </div>
@@ -398,12 +387,12 @@
   }
 
   function toggleForm(id){
-    document.getElementById('addForm').classList.remove('open');
-    document.getElementById('withdrawForm').classList.remove('open');
-    document.getElementById(id).classList.add('open');
+    document.getElementById(id).classList.toggle('open');
   }
   document.getElementById('showAddForm').addEventListener('click', ()=> toggleForm('addForm'));
-  document.getElementById('showWithdrawForm').addEventListener('click', ()=> toggleForm('withdrawForm'));
+  document.getElementById('goTransfer').addEventListener('click', ()=>{
+    window.location.href = 'transfer.html';
+  });
   document.querySelectorAll('[data-cancel]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       document.getElementById(btn.dataset.cancel).classList.remove('open');
@@ -495,29 +484,6 @@
     }
   });
 
-  document.getElementById('confirmWithdraw').addEventListener('click', async ()=>{
-    const input = document.getElementById('withdrawAmount');
-    const err = document.getElementById('withdrawErr');
-    const value = parseFloat(input.value);
-
-    if(isNaN(value) || value <= 0){
-      err.textContent = 'Enter an amount greater than 0.';
-      return;
-    }
-    if(value > currentBalance){
-      err.textContent = 'Insufficient balance.';
-      return;
-    }
-    err.textContent = '';
-
-    const ok = await applyTransaction(-value, 'Withdrawal');
-    if(ok){
-      input.value = '';
-      document.getElementById('withdrawForm').classList.remove('open');
-      showToast('Withdrew $' + value.toFixed(2) + ' from your balance.');
-    }
-  });
-
   // ---- sign out ----
   document.getElementById('signOutBtn').addEventListener('click', async ()=>{
     await supabaseClient.auth.signOut();
@@ -559,6 +525,12 @@
     await loadTransactions(currentUser.id);
 
     document.getElementById('loadingScreen').style.display = 'none';
+
+    const transferNote = sessionStorage.getItem('transferSuccess');
+    if(transferNote){
+      showToast(transferNote);
+      sessionStorage.removeItem('transferSuccess');
+    }
   })();
 </script>
 
