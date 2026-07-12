@@ -1,127 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment Received</title>
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
-}
-
-body{
-    background:#f3f5f9;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-
-.card{
-    width:90%;
-    max-width:420px;
-    background:#fff;
-    border-radius:18px;
-    padding:35px 25px;
-    text-align:center;
-    box-shadow:0 15px 35px rgba(0,0,0,.12);
-}
-
-.success{
-    width:80px;
-    height:80px;
-    background:#16a34a;
-    color:#fff;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:42px;
-    margin:0 auto 20px;
-}
-
-h2{
-    color:#111827;
-    margin-bottom:12px;
-}
-
-.message{
-    color:#555;
-    font-size:17px;
-    line-height:1.6;
-}
-
-.balance-box{
-    margin:28px 0;
-    background:#f8fafc;
-    border-radius:14px;
-    padding:18px;
-}
-
-.balance-label{
-    color:#777;
-    font-size:14px;
-}
-
-.balance{
-    color:#16a34a;
-    font-size:38px;
-    font-weight:bold;
-    margin-top:8px;
-}
-
-button{
-    width:100%;
-    padding:16px;
-    border:none;
-    border-radius:12px;
-    background:#2563eb;
-    color:#fff;
-    font-size:18px;
-    font-weight:bold;
-    cursor:pointer;
-    transition:.3s;
-}
-
-button:hover{
-    background:#1d4ed8;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdrawal Status</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background-color: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 450px; text-align: center; }
+        
+        .icon-wrap { width: 80px; height: 80px; border-radius: 50%; background: rgba(74, 222, 128, 0.1); border: 2px solid rgba(74, 222, 128, 0.35); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        h2 { font-size: 22px; font-weight: 700; color: #f8fafc; margin-bottom: 6px; }
+        .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 22px; }
+        
+        .status-badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 20px; padding: 6px 16px; font-size: 12px; font-weight: 700; color: #4ade80; margin-bottom: 22px; }
+        
+        .info-card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; text-align: left; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1e293b; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #64748b; font-size: 13px; }
+        .info-value { font-weight: 600; font-size: 13px; color: #f8fafc; }
+    </style>
 </head>
-
 <body>
+<div class="container">
+    <div class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" width="40" height="40" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    </div>
 
-<div class="card">
+    <h2>Withdrawal Details</h2>
+    <p class="subtitle">Your transaction has been finalized successfully.</p>
+    <div class="status-badge">✅ SUCCESSFUL</div>
 
-<div class="success">✓</div>
-
-<h2>Payment Received</h2>
-
-<p class="message">
-<b>Lawrence Smith</b> sent you <b>$300.00</b>.
-</p>
-
-<div class="balance-box">
-<div class="balance-label">Available Balance</div>
-<div class="balance">$300.00</div>
+    <div class="info-card">
+        <div class="info-row"><span class="info-label">Name</span><span class="info-value">Cathy Marianne</span></div>
+        <div class="info-row"><span class="info-label">Status</span><span class="info-value" style="color:#4ade80;">Successful</span></div>
+        <div class="info-row"><span class="info-label">Amount</span><span class="info-value">$694,536.50</span></div>
+        <div class="info-row"><span class="info-label">Date</span><span class="info-value">July 10, 2026   13:42 PM</span></div>
+    </div>
 </div>
-
-<button onclick="proceed()">Proceed</button>
-
-</div>
-
-<script>
-function proceed(){
-    alert("Proceed button clicked!");
-    // Replace this with your desired action.
-    // Example:
-    // window.location.href = "dashboard.html";
-}
-</script>
-
 </body>
 </html>
