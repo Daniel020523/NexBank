@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forbright Bank — Confirm PIN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#0d1512;
+    --ink-2:#131e19;
+    --paper:#f3f5f4;
+    --paper-2:#ffffff;
+    --jade:#1f6f54;
+    --jade-dark:#154f3c;
+    --gold:#c89b3c;
+    --ink-muted:#8a9a93;
+    --slate:#232b27;
+    --slate-muted:#6b756f;
+    --line:#dde3e0;
+    --error:#b3452f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Manrope', sans-serif;
+    background:var(--paper);
+    color:var(--slate);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1.1rem 2.5rem;
+    background:var(--paper-2);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:.6rem;}
+  .brand-mark{
+    width:26px;height:26px;
+    border-radius:50%;
+    border:1.5px solid var(--gold);
+    position:relative;
+    flex-shrink:0;
+  }
+  .brand-mark::after{
+    content:"";
+    position:absolute; top:50%; left:50%;
+    width:60%; height:1.5px;
+    background:var(--gold);
+    transform:translate(-50%,-50%) rotate(-38deg);
+  }
+  .brand-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.05rem;
+  }
+  .back-link{
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size:.85rem;
+    color:var(--slate-muted);
+    text-decoration:none;
+  }
+  .back-link:hover{color:var(--jade-dark);}
+
+  main{
+    max-width:440px;
+    margin:0 auto;
+    padding:3rem 1.5rem 4rem;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.72rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--jade-dark);
+    margin:0 0 .4rem;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.7rem;
+    margin:0 0 .3rem;
+  }
+  .sub{
+    color:var(--slate-muted);
+    font-size:.92rem;
+    margin:0 0 1.6rem;
+  }
+
+  .summary-card{
+    background:linear-gradient(160deg, var(--ink) 0%, var(--ink-2) 100%);
+    color:var(--paper);
+    border-radius:16px;
+    padding:1.5rem 1.7rem;
+    margin-bottom:1.6rem;
+  }
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:.5rem 0;
+    border-bottom:1px solid rgba(243,245,244,.12);
+    font-size:.88rem;
+  }
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row .label{color:var(--ink-muted);}
+  .summary-row .value{font-family:'IBM Plex Mono', monospace; text-align:right;}
+  .summary-amount{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.9rem;
+    margin:0 0 .2rem;
+  }
+
+  .card{
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:1.8rem;
+  }
+
+  .field{margin-bottom:.5rem;}
+  .field label{
+    display:block;
+    font-size:.78rem;
+    font-weight:600;
+    letter-spacing:.02em;
+    margin-bottom:.5rem;
+    color:var(--slate);
+  }
+  .pin-input{
+    width:100%;
+    padding:.85rem .9rem;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:1.4rem;
+    letter-spacing:.5em;
+    text-align:center;
+    background:var(--paper);
+    color:var(--slate);
+    transition:border-color .18s ease, box-shadow .18s ease;
+  }
+  .pin-input:focus{
+    outline:none;
+    border-color:var(--jade);
+    box-shadow:0 0 0 3px rgba(31,111,84,.14);
+  }
+  .field.error .pin-input{border-color:var(--error);}
+  .msg{
+    font-size:.78rem;
+    margin-top:.5rem;
+    min-height:1em;
+    color:var(--error);
+    text-align:center;
+  }
+
+  .confirm-btn{
+    width:100%;
+    padding:.85rem 0;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:9px;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:.94rem;
+    cursor:pointer;
+    transition:background .18s ease, transform .12s ease;
+    margin-top:.9rem;
+  }
+  .confirm-btn:hover{background:var(--jade-dark);}
+  .confirm-btn:active{transform:scale(.99);}
+  .confirm-btn:disabled{opacity:.6; cursor:not-allowed;}
+
+  .loading-screen{
+    position:fixed; inset:0;
+    background:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--slate-muted);
+    font-size:.85rem;
+    letter-spacing:.05em;
+    z-index:20;
+  }
+
+  @media (max-width: 560px){
+    nav{padding:1rem 1.3rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">LOADING TRANSFER…</div>
+
+<nav>
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">Forbright</span>
+  </div>
+  <a class="back-link" href="transfer.html">← Edit transfer</a>
+</nav>
+
+<main>
+  <p class="eyebrow">Confirm & send</p>
+  <h1>Enter your PIN</h1>
+  <p class="sub">Confirm this transfer with your 4-digit account PIN.</p>
+
+  <div class="summary-card">
+    <p class="summary-amount" id="summaryAmount">$0.00</p>
+    <div class="summary-row"><span class="label">To</span><span class="value" id="summaryName">—</span></div>
+    <div class="summary-row"><span class="label">Bank</span><span class="value" id="summaryBank">—</span></div>
+    <div class="summary-row"><span class="label">Account</span><span class="value" id="summaryAccount">—</span></div>
+  </div>
+
+  <div class="card">
+    <form id="pinForm" novalidate>
+      <div class="field" id="pinField">
+        <label for="pin">Account PIN</label>
+        <input type="password" id="pin" class="pin-input" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
+      </div>
+      <p class="msg" id="pinMsg"></p>
+      <button type="submit" class="confirm-btn" id="confirmBtn">Confirm transfer</button>
+    </form>
+  </div>
+</main>
+
+<script>
+  // ============================================================
+  // SUPABASE CONFIG — replace these two placeholders
+  // (use the same project as the other pages)
+  // ============================================================
+  const SUPABASE_URL = "https://kmjmqrrmzdtovovzigxk.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_y8Ai2hQcJfHSU5ilkEFCSg_lmh1_leb";
+
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  let pendingTransfer = null;
+
+  function maskAccount(acct){
+    if(acct.length <= 4) return acct;
+    return '••••' + acct.slice(-4);
+  }
+
+  function setPinError(message){
+    document.getElementById('pinField').classList.add('error');
+    document.getElementById('pinMsg').textContent = message;
+  }
+  function clearPinError(){
+    document.getElementById('pinField').classList.remove('error');
+    document.getElementById('pinMsg').textContent = '';
+  }
+
+  (async function init(){
+    // Must have a pending transfer from transfer.html
+    const raw = sessionStorage.getItem('pendingTransfer');
+    if(!raw){
+      window.location.href = 'transfer.html';
+      return;
+    }
+    pendingTransfer = JSON.parse(raw);
+
+    document.getElementById('summaryAmount').textContent = '$' + pendingTransfer.amount.toFixed(2);
+    document.getElementById('summaryName').textContent = pendingTransfer.name;
+    document.getElementById('summaryBank').textContent = pendingTransfer.bank;
+    document.getElementById('summaryAccount').textContent = maskAccount(pendingTransfer.account);
+
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    if(!sessionData.session){
+      window.location.href = 'forbright-auth.html';
+      return;
+    }
+    currentUser = sessionData.session.user;
+
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('pin').focus();
+  })();
+
+  document.getElementById('pinForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    clearPinError();
+
+    const enteredPin = document.getElementById('pin').value.trim();
+    if(!/^\d{4}$/.test(enteredPin)){
+      setPinError('Enter your 4-digit PIN.');
+      return;
+    }
+
+    const confirmBtn = document.getElementById('confirmBtn');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Confirming…';
+
+    // Re-fetch the live balance + stored pin — never trust cached values
+    // when moving money. Requires a "pin" column on balances (see setup.sql).
+    const { data: row, error } = await supabaseClient
+      .from('balances')
+      .select('balance, pin')
+      .eq('id', currentUser.id)
+      .single();
+
+    if(error){
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Confirm transfer';
+      setPinError('Could not verify your account: ' + error.message);
+      return;
+    }
+
+    if(String(row.pin) !== enteredPin){
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Confirm transfer';
+      setPinError('Incorrect PIN. Try again.');
+      document.getElementById('pin').value = '';
+      document.getElementById('pin').focus();
+      return;
+    }
+
+    if(pendingTransfer.amount > row.balance){
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Confirm transfer';
+      setPinError('This exceeds your available balance ($' + row.balance.toFixed(2) + ').');
+      return;
+    }
+
+    const newBalance = row.balance - pendingTransfer.amount;
+
+    const { error: updateError } = await supabaseClient
+      .from('balances')
+      .update({ balance: newBalance })
+      .eq('id', currentUser.id);
+
+    if(updateError){
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Confirm transfer';
+      setPinError('Could not complete transfer: ' + updateError.message);
+      return;
+    }
+
+    const note = 'Transfer to ' + pendingTransfer.name + ' (' + maskAccount(pendingTransfer.account) + ')' +
+      (pendingTransfer.note ? ' — ' + pendingTransfer.note : '');
+
+    await supabaseClient.from('transactions').insert({
+      user_id: currentUser.id,
+      amount: -pendingTransfer.amount,
+      note
+    });
+
+    sessionStorage.removeItem('pendingTransfer');
+    sessionStorage.setItem('transferSuccess', 'Sent $' + pendingTransfer.amount.toFixed(2) + ' to ' + pendingTransfer.name + '.');
+
+    window.location.href = 'dashboard.html';
+  });
+</script>
+
+</body>
+</html>
