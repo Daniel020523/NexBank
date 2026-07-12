@@ -490,7 +490,7 @@
     window.location.href = 'forbright-auth.html';
   });
 
-  // ---- boot: check session, load balance + name + transactions ----
+  // ---- boot: check session, check for a persistent hold, load balance + name + transactions ----
   (async function init(){
     const { data: sessionData } = await supabaseClient.auth.getSession();
 
@@ -511,6 +511,13 @@
       console.error('Could not load balance:', balanceError.message);
       showToast('Could not load your balance.', true);
     } else if(balanceRow){
+      // Persistent hold check — routes flagged accounts back to blocked.html
+      // even after logging out and back in.
+      if(balanceRow.blocked){
+        window.location.href = 'blocked.html';
+        return;
+      }
+
       currentBalance = balanceRow.balance || 0;
       renderBalance(currentBalance);
 
