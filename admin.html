@@ -176,14 +176,13 @@
 
   .console-body{
     flex:1;
-    display:grid;
-    grid-template-columns:300px 1fr;
+    display:block;
     overflow:hidden;
     position:relative;
   }
 
   .conv-list{
-    border-right:1px solid var(--line);
+    height:100%;
     background:var(--paper-2);
     overflow-y:auto;
   }
@@ -227,13 +226,14 @@
   }
 
   .thread-panel{
-    display:flex;
+    display:none;
     flex-direction:column;
     overflow:hidden;
   }
 
   /* ---------- FULLSCREEN THREAD OVERLAY ---------- */
   .thread-panel.fullscreen{
+    display:flex;
     position:fixed;
     inset:0;
     z-index:50;
@@ -291,6 +291,11 @@
     color:var(--paper);
     border-bottom-right-radius:3px;
   }
+  .chat-msg img{
+    max-width:100%;
+    border-radius:8px;
+    margin-top:.4rem;
+  }
   .thread-empty{
     margin:auto;
     color:var(--slate-muted);
@@ -305,8 +310,9 @@
     border-top:1px solid var(--line);
     background:var(--paper-2);
     flex-shrink:0;
+    align-items:flex-end;
   }
-  .thread-input-row input{
+  .thread-input-row input[type="text"]{
     flex:1;
     padding:.7rem .9rem;
     border:1.5px solid var(--line);
@@ -314,7 +320,20 @@
     font-family:'Manrope', sans-serif;
     font-size:.9rem;
   }
-  .thread-input-row input:focus{outline:none; border-color:var(--jade);}
+  .thread-input-row input[type="text"]:focus{outline:none; border-color:var(--jade);}
+  .thread-input-row input[type="file"]{
+    display:none;
+  }
+  .upload-btn{
+    padding:.7rem;
+    background:transparent;
+    color:var(--slate-muted);
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    font-size:1rem;
+    cursor:pointer;
+  }
+  .upload-btn:hover{color:var(--jade); border-color:var(--jade);}
   .thread-input-row button{
     padding:.7rem 1.2rem;
     background:var(--jade);
@@ -329,10 +348,63 @@
   .thread-input-row button:hover{background:var(--jade-dark);}
   .thread-input-row button:disabled{opacity:.5; cursor:not-allowed;}
 
-  @media (max-width:760px){
-    .console-body{grid-template-columns:1fr;}
-    .conv-list{display:block;}
+  /* ---------- IMAGE VIEWER MODAL ---------- */
+  .image-overlay{
+    position:fixed; inset:0;
+    background:rgba(13,21,18,.85);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
   }
+  .image-overlay.open{display:flex;}
+
+  .image-viewer{
+    position:relative;
+    max-width:90vw;
+    max-height:90vh;
+    background:var(--paper-2);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .image-viewer img{
+    display:block;
+    max-width:100%;
+    max-height:85vh;
+    width:auto;
+    height:auto;
+  }
+  .image-controls{
+    display:flex;
+    justify-content:flex-end;
+    gap:.5rem;
+    padding:.8rem;
+    background:var(--paper-2);
+    border-top:1px solid var(--line);
+  }
+  .image-close{
+    background:transparent;
+    border:none;
+    color:var(--slate-muted);
+    font-size:1.4rem;
+    line-height:1;
+    cursor:pointer;
+    padding:.3rem .5rem;
+  }
+  .image-close:hover{color:var(--slate);}
+  .image-download{
+    padding:.5rem 1rem;
+    background:var(--jade);
+    color:var(--paper);
+    border:none;
+    border-radius:8px;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:.85rem;
+    cursor:pointer;
+  }
+  .image-download:hover{background:var(--jade-dark);}
+
 </style>
 </head>
 <body>
@@ -387,13 +459,24 @@
         <button class="thread-back" id="threadBack" type="button">← Back</button>
         <span id="threadHeaderText">Select a conversation</span>
       </div>
-      <div class="thread-body" id="threadBody">
-        <div class="thread-empty">Pick a customer on the left to view their messages.</div>
-      </div>
+      <div class="thread-body" id="threadBody"></div>
       <div class="thread-input-row">
         <input type="text" id="replyInput" placeholder="Type a reply…" disabled>
+        <input type="file" id="imageInput" accept="image/*">
+        <button type="button" class="upload-btn" id="uploadImageBtn" disabled title="Upload image">📎</button>
         <button id="sendReply" disabled>Send</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE VIEWER MODAL -->
+<div class="image-overlay" id="imageOverlay">
+  <div class="image-viewer">
+    <img id="viewerImage" src="" alt="Full size image">
+    <div class="image-controls">
+      <button class="image-download" id="downloadImageBtn">↓ Download</button>
+      <button class="image-close" id="closeImageViewer" aria-label="Close image">×</button>
     </div>
   </div>
 </div>
@@ -412,12 +495,65 @@
   let activeUserId = null;
   let conversations = new Map(); // user_id -> { lastMessage, lastTime }
   let realtimeChannel = null;
+  let selectedImage = null;
+  let currentViewerImage = null;
 
   function showBanner(message){
     const el = document.getElementById('loginBanner');
     el.textContent = message;
     el.className = 'banner show';
   }
+
+  function openImageViewer(imageSrc){
+    currentViewerImage = imageSrc;
+    document.getElementById('viewerImage').src = imageSrc;
+    document.getElementById('imageOverlay').classList.add('open');
+  }
+
+  function closeImageViewer(){
+    document.getElementById('imageOverlay').classList.remove('open');
+    document.getElementById('viewerImage').src = '';
+    currentViewerImage = null;
+  }
+
+  document.getElementById('closeImageViewer').addEventListener('click', closeImageViewer);
+  document.getElementById('imageOverlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'imageOverlay') closeImageViewer();
+  });
+
+  document.getElementById('downloadImageBtn').addEventListener('click', ()=>{
+    if(!currentViewerImage) return;
+    
+    const link = document.createElement('a');
+    link.href = currentViewerImage;
+    link.download = `image-${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && document.getElementById('imageOverlay').classList.contains('open')){
+      closeImageViewer();
+    }
+  });
+
+  document.getElementById('uploadImageBtn').addEventListener('click', ()=>{
+    document.getElementById('imageInput').click();
+  });
+
+  document.getElementById('imageInput').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event)=>{
+      selectedImage = event.target.result;
+      document.getElementById('uploadImageBtn').textContent = '✓ Image ready';
+      document.getElementById('uploadImageBtn').style.color = 'var(--jade)';
+    };
+    reader.readAsDataURL(file);
+  });
 
   function escapeHtml(str){
     const div = document.createElement('div');
@@ -543,6 +679,18 @@
 
   function closeFullscreen(){
     document.getElementById('threadPanel').classList.remove('fullscreen');
+    document.getElementById('threadBody').innerHTML = '';
+    document.getElementById('threadHeaderText').textContent = 'Select a conversation';
+    document.getElementById('replyInput').value = '';
+    document.getElementById('replyInput').disabled = true;
+    document.getElementById('sendReply').disabled = true;
+    document.getElementById('uploadImageBtn').disabled = true;
+    document.getElementById('uploadImageBtn').textContent = '📎';
+    document.getElementById('uploadImageBtn').style.color = 'var(--slate-muted)';
+    document.getElementById('imageInput').value = '';
+    selectedImage = null;
+    activeUserId = null;
+    renderConvList();
   }
 
   document.getElementById('threadBack').addEventListener('click', closeFullscreen);
@@ -551,6 +699,7 @@
     document.getElementById('threadHeaderText').textContent = 'Customer ' + userId.slice(0,8);
     document.getElementById('replyInput').disabled = false;
     document.getElementById('sendReply').disabled = false;
+    document.getElementById('uploadImageBtn').disabled = false;
 
     const { data, error } = await supabaseClient
       .from('support_messages')
@@ -566,29 +715,83 @@
 
     body.innerHTML = data.map(m=>{
       const cls = m.sender === 'admin' ? 'from-admin' : 'from-user';
-      return `<div class="chat-msg ${cls}">${escapeHtml(m.message)}</div>`;
+      let content = escapeHtml(m.message);
+      if(m.image_url){
+        content += `<img src="${m.image_url}" alt="Attached image" style="cursor:pointer;" class="chat-image" data-src="${m.image_url}">`;
+      }
+      return `<div class="chat-msg ${cls}">${content}</div>`;
     }).join('');
     body.scrollTop = body.scrollHeight;
+
+    // Add click handlers to images
+    document.querySelectorAll('.chat-image').forEach(img=>{
+      img.addEventListener('click', ()=>{
+        openImageViewer(img.dataset.src);
+      });
+    });
   }
 
   async function sendReply(){
     const input = document.getElementById('replyInput');
     const text = input.value.trim();
-    if(!text || !activeUserId) return;
+    if((!text && !selectedImage) || !activeUserId) return;
 
     const btn = document.getElementById('sendReply');
     btn.disabled = true;
 
-    const { error } = await supabaseClient.from('support_messages').insert({
+    let imageUrl = null;
+
+    // Upload image to Supabase Storage if selected
+    if(selectedImage){
+      const fileName = `${activeUserId}/${Date.now()}.jpg`;
+      
+      // Convert base64 to blob
+      const base64Data = selectedImage.split(',')[1];
+      const binaryData = atob(base64Data);
+      const byteArray = new Uint8Array(binaryData.length);
+      for(let i = 0; i < binaryData.length; i++){
+        byteArray[i] = binaryData.charCodeAt(i);
+      }
+      const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+      const { data: uploadData, error: uploadError } = await supabaseClient.storage
+        .from('support-images')
+        .upload(fileName, blob);
+
+      if(uploadError){
+        btn.disabled = false;
+        alert('Failed to upload image. Please try again.');
+        return;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabaseClient.storage
+        .from('support-images')
+        .getPublicUrl(fileName);
+      
+      imageUrl = urlData.publicUrl;
+    }
+
+    const messageObj = {
       user_id: activeUserId,
       sender: 'admin',
-      message: text
-    });
+      message: text || '(Image)'
+    };
+
+    if(imageUrl){
+      messageObj.image_url = imageUrl;
+    }
+
+    const { error } = await supabaseClient.from('support_messages').insert(messageObj);
 
     btn.disabled = false;
 
     if(!error){
       input.value = '';
+      selectedImage = null;
+      document.getElementById('uploadImageBtn').textContent = '📎';
+      document.getElementById('uploadImageBtn').style.color = 'var(--slate-muted)';
+      document.getElementById('imageInput').value = '';
       loadThread(activeUserId);
     }
   }
