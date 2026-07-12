@@ -1,46 +1,731 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Withdrawal Status</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .container { background-color: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 450px; text-align: center; }
-        
-        .icon-wrap { width: 80px; height: 80px; border-radius: 50%; background: rgba(74, 222, 128, 0.1); border: 2px solid rgba(74, 222, 128, 0.35); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
-        h2 { font-size: 22px; font-weight: 700; color: #f8fafc; margin-bottom: 6px; }
-        .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 22px; }
-        
-        .status-badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 20px; padding: 6px 16px; font-size: 12px; font-weight: 700; color: #4ade80; margin-bottom: 22px; }
-        
-        .info-card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; text-align: left; }
-        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1e293b; }
-        .info-row:last-child { border-bottom: none; }
-        .info-label { color: #64748b; font-size: 13px; }
-        .info-value { font-weight: 600; font-size: 13px; color: #f8fafc; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forbright Bank — Log in or open an account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#0d1512;
+    --ink-2:#131e19;
+    --paper:#f3f5f4;
+    --paper-2:#ffffff;
+    --jade:#1f6f54;
+    --jade-dark:#154f3c;
+    --gold:#c89b3c;
+    --ink-muted:#8a9a93;
+    --slate:#232b27;
+    --slate-muted:#6b756f;
+    --line:#dde3e0;
+    --error:#b3452f;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+
+  body{
+    font-family:'Manrope', sans-serif;
+    background:var(--paper);
+    color:var(--slate);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .shell{
+    display:grid;
+    grid-template-columns:minmax(0,42%) minmax(0,58%);
+    min-height:100vh;
+  }
+
+  /* ---------- INK PANEL ---------- */
+  .ink{
+    background:linear-gradient(180deg,var(--ink) 0%,var(--ink-2) 100%);
+    color:var(--paper);
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:3rem 3rem 2.5rem;
+    overflow:hidden;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+    z-index:2;
+    position:relative;
+  }
+  .brand-mark{
+    width:30px;height:30px;
+    border-radius:50%;
+    border:1.5px solid var(--gold);
+    position:relative;
+    flex-shrink:0;
+  }
+  .brand-mark::after{
+    content:"";
+    position:absolute;
+    top:50%;left:50%;
+    width:60%;height:1.5px;
+    background:var(--gold);
+    transform:translate(-50%,-50%) rotate(-38deg);
+  }
+  .brand-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.15rem;
+    letter-spacing:.02em;
+  }
+
+  .ink-hero{
+    z-index:2;
+    position:relative;
+    margin-top:2.5rem;
+  }
+  .ink-hero .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:0 0 1rem;
+  }
+  .ink-hero h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(2rem, 3.4vw, 2.9rem);
+    line-height:1.12;
+    margin:0 0 1rem;
+    max-width:11ch;
+  }
+  .ink-hero h1 em{
+    font-style:italic;
+    font-weight:500;
+    color:var(--gold);
+  }
+  .ink-hero p{
+    color:var(--ink-muted);
+    font-size:.98rem;
+    line-height:1.6;
+    max-width:34ch;
+    margin:0;
+  }
+
+  /* ledger tape — signature element */
+  .ledger{
+    position:absolute;
+    top:0; right:-1rem; bottom:0;
+    width:180px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    justify-content:flex-start;
+    padding-top:1rem;
+    opacity:.55;
+    -webkit-mask-image:linear-gradient(180deg, transparent 0%, black 18%, black 82%, transparent 100%);
+    mask-image:linear-gradient(180deg, transparent 0%, black 18%, black 82%, transparent 100%);
+    pointer-events:none;
+  }
+  .ledger-track{
+    display:flex;
+    flex-direction:column;
+    gap:.9rem;
+    animation:scrollTape 22s linear infinite;
+  }
+  .ledger-row{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.78rem;
+    white-space:nowrap;
+    color:var(--ink-muted);
+    display:flex;
+    gap:.6rem;
+  }
+  .ledger-row.pos{color:#6fbf9a;}
+  .ledger-row.neg{color:#c9847a;}
+  @keyframes scrollTape{
+    from{transform:translateY(0);}
+    to{transform:translateY(-50%);}
+  }
+
+  .ink-foot{
+    z-index:2;
+    position:relative;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.72rem;
+    color:var(--ink-muted);
+    letter-spacing:.03em;
+  }
+
+  /* ---------- FORM PANEL ---------- */
+  .formside{
+    background:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:2.5rem;
+  }
+
+  .card{
+    width:100%;
+    max-width:400px;
+  }
+
+  .tabs{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:4px;
+    background:var(--paper-2);
+    margin-bottom:2.2rem;
+  }
+  .tab{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:.62rem 0;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size:.88rem;
+    color:var(--slate-muted);
+    border-radius:7px;
+    cursor:pointer;
+    transition:background .25s ease, color .25s ease;
+  }
+  .tab.active{
+    background:var(--ink);
+    color:var(--paper);
+  }
+
+  .card h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.55rem;
+    margin:0 0 .35rem;
+  }
+  .card .sub{
+    color:var(--slate-muted);
+    font-size:.92rem;
+    margin:0 0 1.8rem;
+  }
+
+  .field{
+    margin-bottom:1.15rem;
+  }
+  .field label{
+    display:block;
+    font-size:.78rem;
+    font-weight:600;
+    letter-spacing:.02em;
+    margin-bottom:.4rem;
+    color:var(--slate);
+  }
+  .input-wrap{
+    position:relative;
+  }
+  .field input{
+    width:100%;
+    padding:.78rem .9rem;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    font-family:'Manrope', sans-serif;
+    font-size:.94rem;
+    background:var(--paper-2);
+    color:var(--slate);
+    transition:border-color .18s ease, box-shadow .18s ease;
+  }
+  .field input::placeholder{color:#a7afab;}
+  .field input:focus{
+    outline:none;
+    border-color:var(--jade);
+    box-shadow:0 0 0 3px rgba(31,111,84,.14);
+  }
+  .field input:focus-visible{
+    outline:2px solid var(--jade);
+    outline-offset:1px;
+  }
+  .field.error input{border-color:var(--error);}
+  .field .msg{
+    font-size:.76rem;
+    margin-top:.35rem;
+    min-height:1em;
+  }
+  .field.error .msg{color:var(--error);}
+
+  .toggle-pw{
+    position:absolute;
+    right:.7rem;
+    top:50%;
+    transform:translateY(-50%);
+    background:none;
+    border:none;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.72rem;
+    letter-spacing:.04em;
+    color:var(--slate-muted);
+    cursor:pointer;
+    padding:.2rem .3rem;
+  }
+  .toggle-pw:hover{color:var(--jade);}
+
+  .row-between{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:.82rem;
+    margin:.2rem 0 1.4rem;
+  }
+  .row-between a{
+    color:var(--jade-dark);
+    text-decoration:none;
+    font-weight:600;
+  }
+  .row-between a:hover{text-decoration:underline;}
+
+  .remember{
+    display:flex;
+    align-items:center;
+    gap:.45rem;
+    color:var(--slate-muted);
+  }
+  .remember input{accent-color:var(--jade);}
+
+  .submit{
+    width:100%;
+    padding:.85rem 0;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:9px;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:.94rem;
+    cursor:pointer;
+    transition:background .18s ease, transform .12s ease;
+  }
+  .submit:hover{background:var(--jade-dark);}
+  .submit:active{transform:scale(.99);}
+  .submit:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:.8rem;
+    margin:1.6rem 0;
+    color:var(--slate-muted);
+    font-size:.78rem;
+  }
+  .divider::before, .divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .alt-actions{
+    display:flex;
+    gap:.7rem;
+  }
+  .alt-btn{
+    flex:1;
+    padding:.68rem 0;
+    border:1.5px solid var(--line);
+    background:var(--paper-2);
+    border-radius:9px;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size:.85rem;
+    color:var(--slate);
+    cursor:pointer;
+    transition:border-color .18s ease;
+  }
+  .alt-btn:hover{border-color:var(--jade);}
+
+  .switch-line{
+    text-align:center;
+    margin-top:1.7rem;
+    font-size:.87rem;
+    color:var(--slate-muted);
+  }
+  .switch-line button{
+    background:none;
+    border:none;
+    color:var(--jade-dark);
+    font-weight:700;
+    cursor:pointer;
+    font-family:'Manrope', sans-serif;
+    font-size:.87rem;
+    padding:0;
+  }
+  .switch-line button:hover{text-decoration:underline;}
+
+  .panel{display:none;}
+  .panel.visible{display:block; animation:fadeUp .32s ease;}
+  @keyframes fadeUp{
+    from{opacity:0; transform:translateY(6px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .banner{
+    display:none;
+    padding:.7rem .85rem;
+    border-radius:8px;
+    font-size:.83rem;
+    margin-bottom:1.1rem;
+    line-height:1.4;
+  }
+  .banner.show{display:block;}
+  .banner.error{background:#fbeae6; color:var(--error); border:1px solid #f0c9bf;}
+  .banner.success{background:#e9f4ef; color:var(--jade-dark); border:1px solid #c7e3d5;}
+
+  .strength{
+    display:flex;
+    gap:4px;
+    margin-top:.5rem;
+  }
+  .strength span{
+    height:3px;
+    flex:1;
+    border-radius:2px;
+    background:var(--line);
+    transition:background .2s ease;
+  }
+
+  @media (max-width: 860px){
+    .shell{grid-template-columns:1fr;}
+    .ink{
+      padding:2.2rem 1.6rem 1.8rem;
+      min-height:220px;
+    }
+    .ink-hero{margin-top:1.2rem;}
+    .ink-hero h1{font-size:1.6rem; max-width:16ch;}
+    .ledger{display:none;}
+    .formside{padding:2rem 1.4rem 3rem;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .ledger-track{animation:none;}
+    .panel.visible{animation:none;}
+  }
+</style>
 </head>
 <body>
-<div class="container">
-    <div class="icon-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" width="40" height="40" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
+
+<div class="shell">
+
+  <!-- INK PANEL -->
+  <div class="ink">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Forbright</span>
     </div>
 
-    <h2>Withdrawal Details</h2>
-    <p class="subtitle">Your transaction has been finalized successfully.</p>
-    <div class="status-badge">✅ SUCCESSFUL</div>
-
-    <div class="info-card">
-        <div class="info-row"><span class="info-label">Name</span><span class="info-value">Cathy Marianne</span></div>
-        <div class="info-row"><span class="info-label">Status</span><span class="info-value" style="color:#4ade80;">Successful</span></div>
-        <div class="info-row"><span class="info-label">Amount</span><span class="info-value">$694,536.50</span></div>
-        <div class="info-row"><span class="info-label">Date</span><span class="info-value">July 10, 2026   13:42 PM</span></div>
+    <div class="ink-hero">
+      <p class="eyebrow">Personal &amp; business banking</p>
+      <h1>Banking, <em>brought into the light.</em></h1>
+      <p>Forbright gives your money a clear line — real-time transfers, transparent fees, and statements that read like they were written for humans.</p>
     </div>
+
+    <div class="ledger" aria-hidden="true">
+      <div class="ledger-track" id="ledgerTrack"></div>
+    </div>
+
+    <div class="ink-foot">FORBRIGHT TRUST · MEMBER FDIC · EST. 2014</div>
+  </div>
+
+  <!-- FORM PANEL -->
+  <div class="formside">
+    <div class="card">
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" id="tabLogin" role="tab" aria-selected="true">Log in</button>
+        <button class="tab" id="tabSignup" role="tab" aria-selected="false">Open an account</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="panel visible" id="panelLogin">
+        <h2>Welcome back</h2>
+        <p class="sub">Log in to check your balance and send a transfer.</p>
+
+        <form id="formLogin" novalidate>
+          <div class="banner error" id="loginBanner"></div>
+          <div class="field" id="loginEmailField">
+            <label for="loginEmail">Email address</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" required>
+            <div class="msg"></div>
+          </div>
+
+          <div class="field" id="loginPwField">
+            <label for="loginPw">Password</label>
+            <div class="input-wrap">
+              <input type="password" id="loginPw" placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" class="toggle-pw" data-target="loginPw">SHOW</button>
+            </div>
+            <div class="msg"></div>
+          </div>
+
+          <div class="row-between">
+            <label class="remember"><input type="checkbox"> Keep me logged in</label>
+            <a href="#">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="submit">Log in</button>
+        </form>
+
+        <div class="divider">or continue with</div>
+        <div class="alt-actions">
+          <button class="alt-btn" type="button">Google</button>
+          <button class="alt-btn" type="button">Passkey</button>
+        </div>
+
+        <p class="switch-line">New to Forbright? <button type="button" id="goSignup">Open an account</button></p>
+      </div>
+
+      <!-- SIGNUP -->
+      <div class="panel" id="panelSignup">
+        <h2>Open your account</h2>
+        <p class="sub">Takes about three minutes. No paperwork.</p>
+
+        <form id="formSignup" novalidate>
+          <div class="banner error" id="signupBanner"></div>
+          <div class="field" id="signupNameField">
+            <label for="signupName">Full name</label>
+            <input type="text" id="signupName" placeholder="Jordan Alvarez" autocomplete="name" required>
+            <div class="msg"></div>
+          </div>
+
+          <div class="field" id="signupEmailField">
+            <label for="signupEmail">Email address</label>
+            <input type="email" id="signupEmail" placeholder="you@example.com" autocomplete="email" required>
+            <div class="msg"></div>
+          </div>
+
+          <div class="field" id="signupPwField">
+            <label for="signupPw">Create a password</label>
+            <div class="input-wrap">
+              <input type="password" id="signupPw" placeholder="At least 8 characters" autocomplete="new-password" required minlength="8">
+              <button type="button" class="toggle-pw" data-target="signupPw">SHOW</button>
+            </div>
+            <div class="strength" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="msg"></div>
+          </div>
+
+          <button type="submit" class="submit">Create account</button>
+        </form>
+
+        <p class="switch-line">Already banking with us? <button type="button" id="goLogin">Log in</button></p>
+      </div>
+
+    </div>
+  </div>
+
 </div>
+
+<script>
+  // ============================================================
+  // SUPABASE CONFIG — replace these two placeholders
+  // ============================================================
+  const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
+  const SUPABASE_ANON_KEY = "YOUR-SUPABASE-ANON-PUBLIC-KEY";
+
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function showBanner(id, message, type){
+    const el = document.getElementById(id);
+    el.textContent = message;
+    el.className = 'banner show ' + (type || 'error');
+  }
+  function hideBanner(id){
+    const el = document.getElementById(id);
+    el.className = 'banner';
+    el.textContent = '';
+  }
+
+  // ---- ledger tape content (signature element) ----
+  const ledgerData = [
+    ["07/12","+2,140.00","pos"],
+    ["07/11","-86.40","neg"],
+    ["07/11","-412.00","neg"],
+    ["07/10","+950.00","pos"],
+    ["07/09","-19.99","neg"],
+    ["07/08","+3,300.00","pos"],
+    ["07/07","-540.12","neg"],
+    ["07/06","-72.50","neg"],
+    ["07/05","+1,020.00","pos"],
+    ["07/04","-215.30","neg"],
+  ];
+  const track = document.getElementById('ledgerTrack');
+  if(track){
+    const rowsHtml = ledgerData.map(r =>
+      `<div class="ledger-row ${r[2]}"><span>${r[0]}</span><span>${r[1]}</span></div>`
+    ).join('');
+    track.innerHTML = rowsHtml + rowsHtml; // duplicated for seamless loop
+  }
+
+  // ---- tab switching ----
+  const tabLogin = document.getElementById('tabLogin');
+  const tabSignup = document.getElementById('tabSignup');
+  const panelLogin = document.getElementById('panelLogin');
+  const panelSignup = document.getElementById('panelSignup');
+
+  function showLogin(){
+    tabLogin.classList.add('active'); tabLogin.setAttribute('aria-selected','true');
+    tabSignup.classList.remove('active'); tabSignup.setAttribute('aria-selected','false');
+    panelSignup.classList.remove('visible');
+    panelLogin.classList.add('visible');
+  }
+  function showSignup(){
+    tabSignup.classList.add('active'); tabSignup.setAttribute('aria-selected','true');
+    tabLogin.classList.remove('active'); tabLogin.setAttribute('aria-selected','false');
+    panelLogin.classList.remove('visible');
+    panelSignup.classList.add('visible');
+  }
+  tabLogin.addEventListener('click', showLogin);
+  tabSignup.addEventListener('click', showSignup);
+  document.getElementById('goSignup').addEventListener('click', showSignup);
+  document.getElementById('goLogin').addEventListener('click', showLogin);
+
+  // ---- show/hide password ----
+  document.querySelectorAll('.toggle-pw').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const input = document.getElementById(btn.dataset.target);
+      const isPw = input.type === 'password';
+      input.type = isPw ? 'text' : 'password';
+      btn.textContent = isPw ? 'HIDE' : 'SHOW';
+    });
+  });
+
+  // ---- simple validation helpers ----
+  function setError(fieldId, message){
+    const field = document.getElementById(fieldId);
+    field.classList.add('error');
+    field.querySelector('.msg').textContent = message;
+  }
+  function clearError(fieldId){
+    const field = document.getElementById(fieldId);
+    field.classList.remove('error');
+    field.querySelector('.msg').textContent = '';
+  }
+  function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  // ---- login submit ----
+  document.getElementById('formLogin').addEventListener('submit', async function(e){
+    e.preventDefault();
+    let ok = true;
+    clearError('loginEmailField'); clearError('loginPwField'); hideBanner('loginBanner');
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const pw = document.getElementById('loginPw').value;
+
+    if(!isValidEmail(email)){ setError('loginEmailField','Enter a valid email address.'); ok = false; }
+    if(pw.length < 1){ setError('loginPwField','Enter your password.'); ok = false; }
+    if(!ok) return;
+
+    const submitBtn = e.target.querySelector('.submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Logging in…';
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pw });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Log in';
+
+    if(error){
+      showBanner('loginBanner', error.message, 'error');
+      return;
+    }
+
+    window.location.href = 'dashboard.html';
+  });
+
+  // ---- signup submit + password strength ----
+  const signupPw = document.getElementById('signupPw');
+  const strengthBars = document.querySelectorAll('#panelSignup .strength span');
+
+  function scorePassword(pw){
+    let score = 0;
+    if(pw.length >= 8) score++;
+    if(/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if(/\d/.test(pw)) score++;
+    if(/[^A-Za-z0-9]/.test(pw)) score++;
+    return score;
+  }
+  const strengthColors = ['#c9847a','#c9847a','#c89b3c','#6fbf9a','#1f6f54'];
+
+  signupPw.addEventListener('input', ()=>{
+    const score = scorePassword(signupPw.value);
+    strengthBars.forEach((bar, i)=>{
+      bar.style.background = i < score ? strengthColors[score] : 'var(--line)';
+    });
+  });
+
+  document.getElementById('formSignup').addEventListener('submit', async function(e){
+    e.preventDefault();
+    let ok = true;
+    clearError('signupNameField'); clearError('signupEmailField'); clearError('signupPwField'); hideBanner('signupBanner');
+
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const pw = signupPw.value;
+
+    if(name.length < 2){ setError('signupNameField','Enter your full name.'); ok = false; }
+    if(!isValidEmail(email)){ setError('signupEmailField','Enter a valid email address.'); ok = false; }
+    if(pw.length < 8){ setError('signupPwField','Use at least 8 characters.'); ok = false; }
+    if(!ok) return;
+
+    const submitBtn = e.target.querySelector('.submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating account…';
+
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password: pw,
+      options: { data: { full_name: name } }
+    });
+
+    if(error){
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create account';
+      showBanner('signupBanner', error.message, 'error');
+      return;
+    }
+
+    // Create the matching balances row for this new user.
+    // Requires a "balances" table — see setup.sql for schema + RLS policies.
+    if(data.user){
+      await supabaseClient.from('balances').insert({
+        id: data.user.id,
+        full_name: name,
+        balance: 0
+      });
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Create account';
+
+    // If your Supabase project has "Confirm email" turned ON, there will be
+    // no active session yet — the user needs to click the emailed link first.
+    if(!data.session){
+      showBanner('signupBanner', 'Account created. Check your email to confirm, then log in.', 'success');
+      return;
+    }
+
+    window.location.href = 'dashboard.html';
+  });
+
+  // ---- if already logged in, skip straight to dashboard ----
+  (async function checkExistingSession(){
+    const { data } = await supabaseClient.auth.getSession();
+    if(data.session){
+      window.location.href = 'dashboard.html';
+    }
+  })();
+</script>
+
 </body>
 </html>
