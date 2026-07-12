@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forbright Bank — Account security hold</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#0d1512;
+    --ink-2:#131e19;
+    --paper:#f3f5f4;
+    --paper-2:#ffffff;
+    --jade:#1f6f54;
+    --jade-dark:#154f3c;
+    --gold:#c89b3c;
+    --ink-muted:#8a9a93;
+    --slate:#232b27;
+    --slate-muted:#6b756f;
+    --line:#dde3e0;
+    --error:#b3452f;
+    --error-bg:#fbeae6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Manrope', sans-serif;
+    background:var(--paper);
+    color:var(--slate);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1.1rem 2.5rem;
+    background:var(--paper-2);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:.6rem;}
+  .brand-mark{
+    width:26px;height:26px;
+    border-radius:50%;
+    border:1.5px solid var(--gold);
+    position:relative;
+    flex-shrink:0;
+  }
+  .brand-mark::after{
+    content:"";
+    position:absolute; top:50%; left:50%;
+    width:60%; height:1.5px;
+    background:var(--gold);
+    transform:translate(-50%,-50%) rotate(-38deg);
+  }
+  .brand-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.05rem;
+  }
+  .signout-btn{
+    padding:.5rem 1rem;
+    border:1.5px solid var(--line);
+    background:var(--paper-2);
+    border-radius:8px;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size:.82rem;
+    color:var(--slate);
+    cursor:pointer;
+  }
+  .signout-btn:hover{border-color:var(--error); color:var(--error);}
+
+  main{
+    max-width:560px;
+    margin:0 auto;
+    padding:3rem 1.5rem 4rem;
+  }
+
+  .hold-icon{
+    width:52px; height:52px;
+    border-radius:50%;
+    background:var(--error-bg);
+    color:var(--error);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.5rem;
+    margin-bottom:1.4rem;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.72rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--error);
+    margin:0 0 .5rem;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.75rem;
+    margin:0 0 .8rem;
+    line-height:1.2;
+  }
+  .lede{
+    color:var(--slate-muted);
+    font-size:.98rem;
+    line-height:1.6;
+    margin:0 0 1.8rem;
+  }
+
+  .detail-card{
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:1.3rem 1.5rem;
+    margin-bottom:1.4rem;
+  }
+  .detail-row{
+    display:flex;
+    justify-content:space-between;
+    padding:.5rem 0;
+    border-bottom:1px solid var(--line);
+    font-size:.86rem;
+  }
+  .detail-row:last-child{border-bottom:none;}
+  .detail-row .label{color:var(--slate-muted);}
+  .detail-row .value{font-family:'IBM Plex Mono', monospace; font-weight:500;}
+
+  .transfer-note{
+    font-size:.84rem;
+    color:var(--slate-muted);
+    background:var(--paper);
+    border:1px dashed var(--line);
+    border-radius:10px;
+    padding:.9rem 1rem;
+    margin-bottom:1.8rem;
+    line-height:1.5;
+  }
+  .transfer-note strong{color:var(--slate);}
+
+  .actions{display:flex; flex-direction:column; gap:.7rem;}
+  .support-btn{
+    width:100%;
+    padding:.85rem 0;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:9px;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:.94rem;
+    cursor:pointer;
+    transition:background .18s ease, transform .12s ease;
+  }
+  .support-btn:hover{background:var(--jade-dark);}
+  .support-btn:active{transform:scale(.99);}
+
+  .secondary-link{
+    text-align:center;
+    font-size:.85rem;
+    color:var(--slate-muted);
+    text-decoration:none;
+  }
+  .secondary-link:hover{color:var(--jade-dark);}
+
+  /* ---------- chat drawer ---------- */
+  .chat-overlay{
+    position:fixed; inset:0;
+    background:rgba(13,21,18,.45);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:30;
+  }
+  .chat-overlay.open{display:flex;}
+  @media (min-width:640px){
+    .chat-overlay{align-items:center;}
+  }
+
+  .chat-panel{
+    background:var(--paper-2);
+    width:100%;
+    max-width:420px;
+    height:min(600px, 88vh);
+    border-radius:16px 16px 0 0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  @media (min-width:640px){
+    .chat-panel{border-radius:16px;}
+  }
+
+  .chat-header{
+    background:var(--ink);
+    color:var(--paper);
+    padding:1rem 1.2rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .chat-header .title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1rem;
+  }
+  .chat-header .sub{
+    font-size:.74rem;
+    color:var(--ink-muted);
+    margin-top:.15rem;
+  }
+  .chat-close{
+    background:none;
+    border:none;
+    color:var(--ink-muted);
+    font-size:1.3rem;
+    line-height:1;
+    cursor:pointer;
+    padding:.2rem .4rem;
+  }
+  .chat-close:hover{color:var(--paper);}
+
+  .chat-body{
+    flex:1;
+    overflow-y:auto;
+    padding:1rem 1.1rem;
+    display:flex;
+    flex-direction:column;
+    gap:.6rem;
+    background:var(--paper);
+  }
+  .chat-msg{
+    max-width:78%;
+    padding:.6rem .85rem;
+    border-radius:12px;
+    font-size:.88rem;
+    line-height:1.4;
+  }
+  .chat-msg.from-user{
+    align-self:flex-end;
+    background:var(--jade);
+    color:var(--paper);
+    border-bottom-right-radius:3px;
+  }
+  .chat-msg.from-admin{
+    align-self:flex-start;
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    color:var(--slate);
+    border-bottom-left-radius:3px;
+  }
+  .chat-empty{
+    color:var(--slate-muted);
+    font-size:.85rem;
+    text-align:center;
+    padding:1.5rem 0;
+  }
+
+  .chat-input-row{
+    display:flex;
+    gap:.6rem;
+    padding:.9rem 1rem;
+    border-top:1px solid var(--line);
+    background:var(--paper-2);
+  }
+  .chat-input-row input{
+    flex:1;
+    padding:.65rem .85rem;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    font-family:'Manrope', sans-serif;
+    font-size:.88rem;
+  }
+  .chat-input-row input:focus{
+    outline:none;
+    border-color:var(--jade);
+  }
+  .chat-input-row button{
+    padding:.65rem 1.1rem;
+    background:var(--jade);
+    color:var(--paper);
+    border:none;
+    border-radius:9px;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:.86rem;
+    cursor:pointer;
+  }
+  .chat-input-row button:hover{background:var(--jade-dark);}
+  .chat-input-row button:disabled{opacity:.5; cursor:not-allowed;}
+
+  .loading-screen{
+    position:fixed; inset:0;
+    background:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--slate-muted);
+    font-size:.85rem;
+    letter-spacing:.05em;
+    z-index:20;
+  }
+
+  @media (max-width:560px){
+    nav{padding:1rem 1.3rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">LOADING…</div>
+
+<nav>
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">Forbright</span>
+  </div>
+  <button class="signout-btn" id="signOutBtn">Log out</button>
+</nav>
+
+<main>
+  <div class="hold-icon" aria-hidden="true">!</div>
+  <p class="eyebrow">Security hold</p>
+  <h1>We've paused this transfer</h1>
+  <p class="lede">We noticed this session signing in from a location we don't recognize on your account, so we've placed a temporary hold on outgoing transfers until we can confirm it's really you.</p>
+
+  <div class="detail-card">
+    <div class="detail-row"><span class="label">Reason</span><span class="value">Unrecognized location</span></div>
+    <div class="detail-row"><span class="label">Status</span><span class="value">Under review</span></div>
+    <div class="detail-row"><span class="label">Flagged</span><span class="value" id="flaggedTime">—</span></div>
+  </div>
+
+  <div class="transfer-note" id="transferNote" style="display:none;">
+    The transfer of <strong id="noteAmount"></strong> to <strong id="noteName"></strong> was not sent and no funds have left your account.
+  </div>
+
+  <div class="actions">
+    <button class="support-btn" id="openChat">Contact customer support</button>
+    <a class="secondary-link" href="dashboard.html">← Back to dashboard</a>
+  </div>
+</main>
+
+<!-- CHAT DRAWER -->
+<div class="chat-overlay" id="chatOverlay">
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div>
+        <div class="title">Forbright Support</div>
+        <div class="sub" id="chatStatus">Connecting…</div>
+      </div>
+      <button class="chat-close" id="closeChat" aria-label="Close chat">×</button>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <div class="chat-empty">Loading conversation…</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Type a message…" autocomplete="off">
+      <button id="sendChat">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // SUPABASE CONFIG — replace these two placeholders
+  // (use the same project as the other pages)
+  // ============================================================
+  const SUPABASE_URL = "https://kmjmqrrmzdtovovzigxk.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_y8Ai2hQcJfHSU5ilkEFCSg_lmh1_leb";
+
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  let chatChannel = null;
+
+  document.getElementById('flaggedTime').textContent = new Date().toLocaleString(undefined, {
+    month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+
+  // ---- show blocked transfer details if we arrived from pin.html ----
+  const blockedTransferRaw = sessionStorage.getItem('blockedTransfer');
+  if(blockedTransferRaw){
+    const t = JSON.parse(blockedTransferRaw);
+    document.getElementById('noteAmount').textContent = '$' + t.amount.toFixed(2);
+    document.getElementById('noteName').textContent = t.name;
+    document.getElementById('transferNote').style.display = 'block';
+  }
+
+  // ---- auth guard ----
+  (async function init(){
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    if(!sessionData.session){
+      window.location.href = 'forbright-auth.html';
+      return;
+    }
+    currentUser = sessionData.session.user;
+    document.getElementById('loadingScreen').style.display = 'none';
+  })();
+
+  document.getElementById('signOutBtn').addEventListener('click', async ()=>{
+    await supabaseClient.auth.signOut();
+    window.location.href = 'forbright-auth.html';
+  });
+
+  // ---- chat drawer ----
+  function renderMessages(rows){
+    const body = document.getElementById('chatBody');
+    if(!rows || rows.length === 0){
+      body.innerHTML = '<div class="chat-empty">No messages yet — say hello and a support agent will jump in.</div>';
+      return;
+    }
+    body.innerHTML = rows.map(m=>{
+      const cls = m.sender === 'user' ? 'from-user' : 'from-admin';
+      return `<div class="chat-msg ${cls}">${escapeHtml(m.message)}</div>`;
+    }).join('');
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function loadMessages(){
+    const { data, error } = await supabaseClient
+      .from('support_messages')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: true });
+
+    if(error){
+      document.getElementById('chatBody').innerHTML = '<div class="chat-empty">Could not load conversation.</div>';
+      return;
+    }
+    renderMessages(data);
+  }
+
+  function subscribeToReplies(){
+    if(chatChannel) return;
+    chatChannel = supabaseClient
+      .channel('support-thread-' + currentUser.id)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'support_messages',
+        filter: 'user_id=eq.' + currentUser.id
+      }, () => {
+        loadMessages();
+      })
+      .subscribe((status)=>{
+        document.getElementById('chatStatus').textContent =
+          status === 'SUBSCRIBED' ? 'A support agent will reply here shortly' : 'Connecting…';
+      });
+  }
+
+  document.getElementById('openChat').addEventListener('click', async ()=>{
+    document.getElementById('chatOverlay').classList.add('open');
+    await loadMessages();
+    subscribeToReplies();
+  });
+
+  document.getElementById('closeChat').addEventListener('click', ()=>{
+    document.getElementById('chatOverlay').classList.remove('open');
+  });
+
+  async function sendMessage(){
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if(!text) return;
+
+    const sendBtn = document.getElementById('sendChat');
+    sendBtn.disabled = true;
+
+    const { error } = await supabaseClient.from('support_messages').insert({
+      user_id: currentUser.id,
+      sender: 'user',
+      message: text
+    });
+
+    sendBtn.disabled = false;
+
+    if(!error){
+      input.value = '';
+      loadMessages();
+    }
+  }
+
+  document.getElementById('sendChat').addEventListener('click', sendMessage);
+  document.getElementById('chatInput').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') sendMessage();
+  });
+</script>
+
+</body>
+</html>
