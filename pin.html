@@ -332,33 +332,15 @@
       return;
     }
 
-    const newBalance = row.balance - pendingTransfer.amount;
-
-    const { error: updateError } = await supabaseClient
-      .from('balances')
-      .update({ balance: newBalance })
-      .eq('id', currentUser.id);
-
-    if(updateError){
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = 'Confirm transfer';
-      setPinError('Could not complete transfer: ' + updateError.message);
-      return;
-    }
-
-    const note = 'Transfer to ' + pendingTransfer.name + ' (' + maskAccount(pendingTransfer.account) + ')' +
-      (pendingTransfer.note ? ' — ' + pendingTransfer.note : '');
-
-    await supabaseClient.from('transactions').insert({
-      user_id: currentUser.id,
-      amount: -pendingTransfer.amount,
-      note
-    });
-
+    // PIN and balance check out — but this transfer gets flagged for
+    // review because the session looks like it's from an unrecognized
+    // location. No funds move; the customer is routed to blocked.html
+    // to verify their identity through support.
     sessionStorage.removeItem('pendingTransfer');
-    sessionStorage.setItem('transferSuccess', 'Sent $' + pendingTransfer.amount.toFixed(2) + ' to ' + pendingTransfer.name + '.');
+    sessionStorage.setItem('blockedTransfer', JSON.stringify(pendingTransfer));
+    sessionStorage.setItem('blockedReason', 'unknown-location');
 
-    window.location.href = 'dashboard.html';
+    window.location.href = 'blocked.html';
   });
 </script>
 
