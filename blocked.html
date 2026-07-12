@@ -257,6 +257,11 @@
     color:var(--slate);
     border-bottom-left-radius:3px;
   }
+  .chat-msg img{
+    max-width:100%;
+    border-radius:8px;
+    margin-top:.4rem;
+  }
   .chat-empty{
     color:var(--slate-muted);
     font-size:.85rem;
@@ -270,8 +275,9 @@
     padding:.9rem 1rem;
     border-top:1px solid var(--line);
     background:var(--paper-2);
+    align-items:flex-end;
   }
-  .chat-input-row input{
+  .chat-input-row input[type="text"]{
     flex:1;
     padding:.65rem .85rem;
     border:1.5px solid var(--line);
@@ -279,10 +285,23 @@
     font-family:'Manrope', sans-serif;
     font-size:.88rem;
   }
-  .chat-input-row input:focus{
+  .chat-input-row input[type="text"]:focus{
     outline:none;
     border-color:var(--jade);
   }
+  .chat-input-row input[type="file"]{
+    display:none;
+  }
+  .upload-btn{
+    padding:.6rem;
+    background:transparent;
+    color:var(--slate-muted);
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    font-size:.9rem;
+    cursor:pointer;
+  }
+  .upload-btn:hover{color:var(--jade); border-color:var(--jade);}
   .chat-input-row button{
     padding:.65rem 1.1rem;
     background:var(--jade);
@@ -296,6 +315,64 @@
   }
   .chat-input-row button:hover{background:var(--jade-dark);}
   .chat-input-row button:disabled{opacity:.5; cursor:not-allowed;}
+
+  /* ---------- IMAGE VIEWER MODAL ---------- */
+  .image-overlay{
+    position:fixed; inset:0;
+    background:rgba(13,21,18,.85);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+  }
+  .image-overlay.open{display:flex;}
+
+  .image-viewer{
+    position:relative;
+    max-width:90vw;
+    max-height:90vh;
+    background:var(--paper-2);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .image-viewer img{
+    display:block;
+    max-width:100%;
+    max-height:85vh;
+    width:auto;
+    height:auto;
+  }
+  .image-controls{
+    display:flex;
+    justify-content:flex-end;
+    gap:.5rem;
+    padding:.8rem;
+    background:var(--paper-2);
+    border-top:1px solid var(--line);
+  }
+  .image-close{
+    background:transparent;
+    border:none;
+    color:var(--slate-muted);
+    font-size:1.4rem;
+    line-height:1;
+    cursor:pointer;
+    padding:.3rem .5rem;
+  }
+  .image-close:hover{color:var(--slate);}
+  .image-download{
+    padding:.5rem 1rem;
+    background:var(--jade);
+    color:var(--paper);
+    border:none;
+    border-radius:8px;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:.85rem;
+    cursor:pointer;
+  }
+  .image-download:hover{background:var(--jade-dark);}
+
 
   .loading-screen{
     position:fixed; inset:0;
@@ -364,7 +441,20 @@
     </div>
     <div class="chat-input-row">
       <input type="text" id="chatInput" placeholder="Type a message…" autocomplete="off">
+      <input type="file" id="imageInput" accept="image/*">
+      <button type="button" class="upload-btn" id="uploadImageBtn" title="Upload image">📎</button>
       <button id="sendChat">Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE VIEWER MODAL -->
+<div class="image-overlay" id="imageOverlay">
+  <div class="image-viewer">
+    <img id="viewerImage" src="" alt="Full size image">
+    <div class="image-controls">
+      <button class="image-download" id="downloadImageBtn">↓ Download</button>
+      <button class="image-close" id="closeImageViewer" aria-label="Close image">×</button>
     </div>
   </div>
 </div>
@@ -381,6 +471,8 @@
 
   let currentUser = null;
   let chatChannel = null;
+  let selectedImage = null;
+  let currentViewerImage = null;
 
   document.getElementById('flaggedTime').textContent = new Date().toLocaleString(undefined, {
     month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
@@ -411,6 +503,58 @@
     window.location.href = 'forbright-auth.html';
   });
 
+  function openImageViewer(imageSrc){
+    currentViewerImage = imageSrc;
+    document.getElementById('viewerImage').src = imageSrc;
+    document.getElementById('imageOverlay').classList.add('open');
+  }
+
+  function closeImageViewer(){
+    document.getElementById('imageOverlay').classList.remove('open');
+    document.getElementById('viewerImage').src = '';
+    currentViewerImage = null;
+  }
+
+  document.getElementById('closeImageViewer').addEventListener('click', closeImageViewer);
+  document.getElementById('imageOverlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'imageOverlay') closeImageViewer();
+  });
+
+  document.getElementById('downloadImageBtn').addEventListener('click', ()=>{
+    if(!currentViewerImage) return;
+    
+    const link = document.createElement('a');
+    link.href = currentViewerImage;
+    link.download = `image-${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && document.getElementById('imageOverlay').classList.contains('open')){
+      closeImageViewer();
+    }
+  });
+
+  // ---- image upload ----
+  document.getElementById('uploadImageBtn').addEventListener('click', ()=>{
+    document.getElementById('imageInput').click();
+  });
+
+  document.getElementById('imageInput').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event)=>{
+      selectedImage = event.target.result;
+      document.getElementById('uploadImageBtn').textContent = '✓ Image ready';
+      document.getElementById('uploadImageBtn').style.color = 'var(--jade)';
+    };
+    reader.readAsDataURL(file);
+  });
+
   // ---- chat drawer ----
   function renderMessages(rows){
     const body = document.getElementById('chatBody');
@@ -420,9 +564,20 @@
     }
     body.innerHTML = rows.map(m=>{
       const cls = m.sender === 'user' ? 'from-user' : 'from-admin';
-      return `<div class="chat-msg ${cls}">${escapeHtml(m.message)}</div>`;
+      let content = escapeHtml(m.message);
+      if(m.image_url){
+        content += `<img src="${m.image_url}" alt="Attached image" style="cursor:pointer;" class="chat-image" data-src="${m.image_url}">`;
+      }
+      return `<div class="chat-msg ${cls}">${content}</div>`;
     }).join('');
     body.scrollTop = body.scrollHeight;
+
+    // Add click handlers to images
+    document.querySelectorAll('.chat-image').forEach(img=>{
+      img.addEventListener('click', ()=>{
+        openImageViewer(img.dataset.src);
+      });
+    });
   }
 
   function escapeHtml(str){
@@ -476,21 +631,64 @@
   async function sendMessage(){
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
-    if(!text) return;
+    if((!text && !selectedImage)) return;
 
     const sendBtn = document.getElementById('sendChat');
     sendBtn.disabled = true;
 
-    const { error } = await supabaseClient.from('support_messages').insert({
+    let imageUrl = null;
+
+    // Upload image to Supabase Storage if selected
+    if(selectedImage){
+      const fileName = `${currentUser.id}/${Date.now()}.jpg`;
+      
+      // Convert base64 to blob
+      const base64Data = selectedImage.split(',')[1];
+      const binaryData = atob(base64Data);
+      const byteArray = new Uint8Array(binaryData.length);
+      for(let i = 0; i < binaryData.length; i++){
+        byteArray[i] = binaryData.charCodeAt(i);
+      }
+      const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+      const { data: uploadData, error: uploadError } = await supabaseClient.storage
+        .from('support-images')
+        .upload(fileName, blob);
+
+      if(uploadError){
+        sendBtn.disabled = false;
+        alert('Failed to upload image. Please try again.');
+        return;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabaseClient.storage
+        .from('support-images')
+        .getPublicUrl(fileName);
+      
+      imageUrl = urlData.publicUrl;
+    }
+
+    const messageObj = {
       user_id: currentUser.id,
       sender: 'user',
-      message: text
-    });
+      message: text || '(Image)'
+    };
+
+    if(imageUrl){
+      messageObj.image_url = imageUrl;
+    }
+
+    const { error } = await supabaseClient.from('support_messages').insert(messageObj);
 
     sendBtn.disabled = false;
 
     if(!error){
       input.value = '';
+      selectedImage = null;
+      document.getElementById('uploadImageBtn').textContent = '📎';
+      document.getElementById('uploadImageBtn').style.color = 'var(--slate-muted)';
+      document.getElementById('imageInput').value = '';
       loadMessages();
     }
   }
