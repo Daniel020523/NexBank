@@ -283,6 +283,19 @@
     }
     currentUser = sessionData.session.user;
 
+    // Persistent hold check — a flagged account can't reach PIN entry
+    // even by navigating here directly with a leftover pendingTransfer.
+    const { data: balRow } = await supabaseClient
+      .from('balances')
+      .select('blocked')
+      .eq('id', currentUser.id)
+      .maybeSingle();
+
+    if(balRow && balRow.blocked){
+      window.location.href = 'blocked.html';
+      return;
+    }
+
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('pin').focus();
   })();
@@ -335,7 +348,8 @@
     // PIN and balance check out — but this transfer gets flagged for
     // review because the session looks like it's from an unrecognized
     // location. No funds move; the customer is routed to blocked.html
-    // to verify their identity through support.
+    // to verify their identity through support. blocked.html will persist
+    // this hold onto the account itself.
     sessionStorage.removeItem('pendingTransfer');
     sessionStorage.setItem('blockedTransfer', JSON.stringify(pendingTransfer));
     sessionStorage.setItem('blockedReason', 'unknown-location');
