@@ -2,412 +2,565 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>NexBank - Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forbright Bank — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #0a0d14;
-    --surface: #111520;
-    --surface2: #171c2e;
-    --border: rgba(255,255,255,0.07);
-    --accent: #4f8bff;
-    --accent2: #7c5cfc;
-    --green: #22d07a;
-    --red: #ff5a5a;
-    --text: #f0f4ff;
-    --muted: #6b7a99;
-    --card-radius: 20px;
+  :root{
+    --ink:#0d1512;
+    --ink-2:#131e19;
+    --paper:#f3f5f4;
+    --paper-2:#ffffff;
+    --jade:#1f6f54;
+    --jade-dark:#154f3c;
+    --gold:#c89b3c;
+    --ink-muted:#8a9a93;
+    --slate:#232b27;
+    --slate-muted:#6b756f;
+    --line:#dde3e0;
+    --error:#b3452f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Manrope', sans-serif;
+    background:var(--paper);
+    color:var(--slate);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
   }
 
-  html, body {
-    height: 100%;
-    overscroll-behavior: none;
+  /* ---------- NAV ---------- */
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1.1rem 2.5rem;
+    background:var(--paper-2);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:.6rem;}
+  .brand-mark{
+    width:26px;height:26px;
+    border-radius:50%;
+    border:1.5px solid var(--gold);
+    position:relative;
+    flex-shrink:0;
+  }
+  .brand-mark::after{
+    content:"";
+    position:absolute; top:50%; left:50%;
+    width:60%; height:1.5px;
+    background:var(--gold);
+    transform:translate(-50%,-50%) rotate(-38deg);
+  }
+  .brand-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.05rem;
+  }
+  .nav-right{display:flex; align-items:center; gap:1.2rem;}
+  .nav-user{font-size:.88rem; color:var(--slate-muted);}
+  .nav-user strong{color:var(--slate); font-weight:700;}
+  .signout-btn{
+    padding:.5rem 1rem;
+    border:1.5px solid var(--line);
+    background:var(--paper-2);
+    border-radius:8px;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size:.82rem;
+    color:var(--slate);
+    cursor:pointer;
+    transition:border-color .18s ease;
+  }
+  .signout-btn:hover{border-color:var(--error); color:var(--error);}
+
+  /* ---------- LAYOUT ---------- */
+  main{
+    max-width:1080px;
+    margin:0 auto;
+    padding:2.5rem 2.5rem 4rem;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1.6rem;
+    align-items:start;
   }
 
-  body {
-    font-family: 'Sora', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  .greeting{
+    grid-column:1 / -1;
+    margin-bottom:.2rem;
+  }
+  .greeting .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.72rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--jade-dark);
+    margin:0 0 .3rem;
+  }
+  .greeting h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.7rem;
+    margin:0;
   }
 
-  .phone {
-    width: 100%;
-    max-width: 390px;
-    min-height: 100vh;
-    background: var(--bg);
-    position: relative;
-    overflow-x: hidden;
+  /* ---------- BALANCE CARD (ink) ---------- */
+  .balance-card{
+    background:linear-gradient(160deg, var(--ink) 0%, var(--ink-2) 100%);
+    color:var(--paper);
+    border-radius:16px;
+    padding:2rem;
+    position:relative;
+    overflow:hidden;
+  }
+  .balance-card .label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.74rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+    margin:0 0 .6rem;
+  }
+  .balance-amount{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:2.6rem;
+    letter-spacing:-.01em;
+    margin:0 0 .3rem;
+  }
+  .balance-amount .cents{font-size:1.5rem; color:var(--ink-muted);}
+  .acct-number{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.82rem;
+    color:var(--ink-muted);
+    margin:0 0 1.8rem;
+  }
+  .balance-actions{
+    display:flex;
+    gap:.7rem;
+  }
+  .balance-actions button{
+    flex:1;
+    padding:.7rem 0;
+    border-radius:9px;
+    border:none;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:.86rem;
+    cursor:pointer;
+    transition:transform .12s ease, background .18s ease;
+  }
+  .btn-add{background:var(--gold); color:var(--ink);}
+  .btn-add:hover{background:#d9ac52;}
+  .btn-withdraw{background:transparent; color:var(--paper); border:1.5px solid rgba(243,245,244,.35) !important;}
+  .btn-withdraw:hover{border-color:var(--paper) !important;}
+  .balance-actions button:active{transform:scale(.98);}
+
+  /* inline amount form inside balance card */
+  .amount-form{
+    margin-top:1.4rem;
+    display:none;
+    border-top:1px solid rgba(243,245,244,.14);
+    padding-top:1.2rem;
+  }
+  .amount-form.open{display:block;}
+  .amount-form label{
+    display:block;
+    font-size:.76rem;
+    color:var(--ink-muted);
+    margin-bottom:.4rem;
+  }
+  .amount-form input{
+    width:100%;
+    padding:.68rem .8rem;
+    border-radius:8px;
+    border:1.5px solid rgba(243,245,244,.2);
+    background:rgba(243,245,244,.06);
+    color:var(--paper);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.95rem;
+    margin-bottom:.8rem;
+  }
+  .amount-form input::placeholder{color:var(--ink-muted);}
+  .amount-form input:focus{outline:none; border-color:var(--gold);}
+  .amount-form .form-row{display:flex; gap:.6rem;}
+  .amount-form .confirm-btn{
+    flex:1;
+    background:var(--jade);
+    color:var(--paper);
+    border:none;
+    border-radius:8px;
+    padding:.65rem 0;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:.85rem;
+    cursor:pointer;
+  }
+  .amount-form .confirm-btn:hover{background:#25805f;}
+  .amount-form .cancel-btn{
+    background:transparent;
+    color:var(--ink-muted);
+    border:1.5px solid rgba(243,245,244,.2);
+    border-radius:8px;
+    padding:.65rem 1rem;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size:.85rem;
+    cursor:pointer;
+  }
+  .amount-form .err{
+    font-size:.78rem;
+    color:#e79a89;
+    margin:-.4rem 0 .7rem;
+    min-height:1em;
   }
 
-  .ambient {
-    position: fixed;
-    top: -120px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 340px;
-    height: 340px;
-    background: radial-gradient(circle, rgba(79,139,255,0.11) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
+  /* ---------- ACTIVITY CARD ---------- */
+  .activity-card{
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:1.8rem;
+  }
+  .activity-card h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.15rem;
+    margin:0 0 1rem;
+  }
+  .txn-list{
+    list-style:none;
+    margin:0; padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:.2rem;
+    max-height:360px;
+    overflow-y:auto;
+  }
+  .txn-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:.75rem .1rem;
+    border-bottom:1px solid var(--line);
+  }
+  .txn-row:last-child{border-bottom:none;}
+  .txn-left{display:flex; flex-direction:column; gap:.15rem;}
+  .txn-note{font-size:.88rem; font-weight:600; color:var(--slate);}
+  .txn-date{font-family:'IBM Plex Mono', monospace; font-size:.72rem; color:var(--slate-muted);}
+  .txn-amt{font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:.92rem;}
+  .txn-amt.pos{color:var(--jade-dark);}
+  .txn-amt.neg{color:var(--error);}
+  .empty-state{
+    color:var(--slate-muted);
+    font-size:.88rem;
+    padding:1.5rem 0;
+    text-align:center;
   }
 
-  /* ── HEADER ── */
-  .header {
-    padding: 32px 24px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-    z-index: 10;
+  .toast{
+    position:fixed;
+    bottom:1.5rem; left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:var(--paper);
+    padding:.8rem 1.3rem;
+    border-radius:9px;
+    font-size:.86rem;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:10;
   }
-  .header-left .greeting {
-    font-size: 20px;
-    font-weight: 500;
-    color: var(--muted);
-    letter-spacing: -0.3px;
-    line-height: 1.2;
-  }
-  .header-left .username {
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.5px;
-    margin-top: 2px;
-  }
-  .avatar {
-    width: 42px; height: 42px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 700; color: #fff;
-    box-shadow: 0 0 20px rgba(79,139,255,0.45);
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    flex-shrink: 0;
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast.error{background:var(--error);}
+
+  .loading-screen{
+    position:fixed; inset:0;
+    background:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--slate-muted);
+    font-size:.85rem;
+    letter-spacing:.05em;
+    z-index:20;
   }
 
-  /* ── MAIN CONTENT ── */
-  .content {
-    padding: 0 18px 110px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    position: relative;
-    z-index: 10;
+  @media (max-width: 780px){
+    nav{padding:1rem 1.3rem;}
+    main{grid-template-columns:1fr; padding:1.8rem 1.3rem 3rem;}
+    .nav-user{display:none;}
   }
-
-  .section-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 6px 0;
-    margin-bottom: -2px;
-  }
-  .section-label h2 {
-    font-size: 10.5px;
-    font-weight: 700;
-    color: var(--muted);
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-  }
-
-  /* ── BALANCE CARD ── */
-  .balance-card {
-    background: linear-gradient(145deg, #1a2240 0%, #111827 60%, #0f1a35 100%);
-    border: 1px solid rgba(79,139,255,0.18);
-    border-radius: var(--card-radius);
-    padding: 24px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .balance-card .glow-tr {
-    position: absolute; top: -60px; right: -60px;
-    width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(79,139,255,0.13) 0%, transparent 65%);
-    pointer-events: none;
-  }
-  .balance-card .glow-bl {
-    position: absolute; bottom: -40px; left: -20px;
-    width: 160px; height: 160px;
-    background: radial-gradient(circle, rgba(124,92,252,0.09) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    position: relative; z-index: 1;
-  }
-  .account-name {
-    font-size: 12px; font-weight: 600;
-    color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em;
-  }
-  .card-chip {
-    width: 36px; height: 27px;
-    background: linear-gradient(135deg, #c8a84b, #f0d060, #a87c28);
-    border-radius: 5px; opacity: 0.82;
-  }
-
-  .balance-label {
-    font-size: 10.5px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.09em;
-    font-weight: 600; margin-bottom: 6px;
-    position: relative; z-index: 1;
-  }
-  
-  .balance-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    position: relative;
-    z-index: 2;
-  }
-  .balance-amount {
-    font-size: 37px; font-weight: 700;
-    letter-spacing: -1.5px; color: var(--text); line-height: 1;
-    min-height: 37px;
-  }
-  .balance-amount .currency {
-    font-size: 16px; font-weight: 400;
-    opacity: 0.55; vertical-align: super; margin-right: 1px;
-  }
-  
-  .toggle-visibility-btn {
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px;
-    margin-left: -2px;
-    border-radius: 50px;
-    transition: color 0.18s, background-color 0.18s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .toggle-visibility-btn:hover {
-    color: var(--accent);
-    background-color: rgba(255, 255, 255, 0.05);
-  }
-  .toggle-visibility-btn svg {
-    width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2;
-  }
-
-  /* ── CREDIT CARD ── */
-  .credit-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--card-radius);
-    padding: 20px;
-    position: relative; overflow: hidden;
-  }
-
-  .credit-header { display: flex; justify-content: space-between; align-items: flex-start; }
-  .credit-label {
-    font-size: 10px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.1em;
-    color: var(--accent); margin-bottom: 4px;
-  }
-  .credit-title { font-size: 15px; font-weight: 700; color: var(--text); }
-
-  .gauge-wrap { position: relative; width: 72px; height: 44px; flex-shrink: 0; }
-  .gauge-svg { width: 72px; height: 44px; }
-  .gauge-val {
-    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    font-size: 13px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--text);
-  }
-
-  .credit-body {
-    margin-top: 14px; display: flex;
-    align-items: flex-end; justify-content: space-between; gap: 12px;
-  }
-  .score-num {
-    font-size: 38px; font-weight: 700; letter-spacing: -1px;
-    font-family: 'DM Mono', monospace; color: var(--text); line-height: 1;
-  }
-  .score-badge {
-    display: inline-block; padding: 3px 10px; border-radius: 50px;
-    font-size: 11px; font-weight: 600; margin-top: 6px;
-    background: rgba(255,90,90,0.11); color: #ff8a8a;
-    border: 1px solid rgba(255,90,90,0.2);
-  }
-
-  /* ── BOTTOM NAV ── */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 100%; max-width: 390px;
-    background: rgba(10,13,20,0.93);
-    backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
-    border-top: 1px solid var(--border);
-    padding: 10px 0 env(safe-area-inset-bottom, 16px);
-    display: flex; justify-content: space-around;
-    z-index: 100;
-  }
-  .nav-item {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    cursor: pointer; padding: 6px 20px; border-radius: 14px;
-    transition: color 0.18s; text-decoration: none; color: var(--muted);
-    border: none; background: transparent;
-    font-family: 'Sora', sans-serif;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .nav-item.active { color: var(--accent); }
-  .nav-item:hover { color: var(--text); }
-
-  .nav-icon {
-    width: 24px; height: 24px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; position: relative;
-  }
-  .nav-item.active .nav-icon::after {
-    content: ''; position: absolute; bottom: -3px;
-    width: 4px; height: 4px; border-radius: 50%;
-    background: var(--accent); box-shadow: 0 0 7px var(--accent);
-  }
-  .nav-label { font-size: 10px; font-weight: 500; }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .header { animation: fadeUp 0.38s ease both; }
-  .balance-card { animation: fadeUp 0.42s 0.08s ease both; }
-  .credit-card { animation: fadeUp 0.42s 0.14s ease both; }
 </style>
 </head>
 <body>
-<div class="phone">
-  <div class="ambient" aria-hidden="true"></div>
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="header-left">
-      <div class="greeting">Welcome back,</div>
-      <div class="username">KASSANDRA</div>
-    </div>
-    <div class="avatar">K</div>
-  </header>
+<div class="loading-screen" id="loadingScreen">LOADING ACCOUNT…</div>
 
-  <!-- MAIN CONTENT -->
-  <main class="content">
-    <div class="section-label">
-      <h2>Accounts</h2>
-    </div>
+<nav>
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">Forbright</span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-user" id="navUser"></span>
+    <button class="signout-btn" id="signOutBtn">Log out</button>
+  </div>
+</nav>
 
-    <!-- BALANCE CARD -->
-    <div class="balance-card">
-      <div class="glow-tr" aria-hidden="true"></div>
-      <div class="glow-bl" aria-hidden="true"></div>
-      <div class="card-top">
-        <div class="account-name">Total Checking</div>
-        <div class="card-chip" aria-hidden="true"></div>
-      </div>
-      <div class="balance-label">Available Balance</div>
-      
-      <div class="balance-row">
-        <div class="balance-amount" id="balance-container"><span class="currency" aria-hidden="true">$</span>21,000.00</div>
-        <button class="toggle-visibility-btn" id="balance-toggle" aria-label="Hide balance layout" onclick="toggleBalanceVisibility(event)">
-          <svg id="eye-icon" viewBox="0 0 24 24">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
-      </div>
+<main>
+  <div class="greeting">
+    <p class="eyebrow">Account overview</p>
+    <h1 id="greetingText">Welcome back</h1>
+  </div>
+
+  <!-- BALANCE CARD -->
+  <div class="balance-card">
+    <p class="label">Available balance</p>
+    <p class="balance-amount" id="balanceAmount">$0<span class="cents">.00</span></p>
+    <p class="acct-number" id="acctNumber">Account •••• ----</p>
+
+    <div class="balance-actions">
+      <button class="btn-add" id="showAddForm">+ Add funds</button>
+      <button class="btn-withdraw" id="showWithdrawForm">− Withdraw</button>
     </div>
 
-    <div class="section-label" style="margin-top:6px;">
-      <h2>Credit Journey</h2>
-    </div>
-
-    <!-- CREDIT SCORE CARD -->
-    <div class="credit-card">
-      <div class="credit-header">
-        <div>
-          <div class="credit-label">VantageScore® 3.0</div>
-          <div class="credit-title">Your Credit Score</div>
-        </div>
-        <div class="gauge-wrap" aria-hidden="true">
-          <svg class="gauge-svg" viewBox="0 0 72 44" focusable="false">
-            <path d="M8 40 A 30 30 0 0 1 64 40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="5" stroke-linecap="round"/>
-            <path d="M8 40 A 30 30 0 0 1 64 40" fill="none" stroke="url(#gaugeGrad)" stroke-width="5" stroke-linecap="round" stroke-dasharray="94" stroke-dashoffset="39"/>
-            <defs>
-              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#ff5a5a"/>
-                <stop offset="50%" stop-color="#ffb347"/>
-                <stop offset="100%" stop-color="#22d07a"/>
-              </linearGradient>
-            </defs>
-            <circle cx="27" cy="14" r="3" fill="#f0f4ff" opacity="0.9"/>
-          </svg>
-          <div class="gauge-val">645</div>
-        </div>
-      </div>
-      <div class="credit-body">
-        <div>
-          <div class="score-num">645</div>
-          <div class="score-badge">Fair — Room to grow</div>
-        </div>
+    <!-- Add funds inline form -->
+    <div class="amount-form" id="addForm">
+      <label for="addAmount">Amount to add</label>
+      <input type="number" id="addAmount" placeholder="0.00" min="0.01" step="0.01">
+      <p class="err" id="addErr"></p>
+      <div class="form-row">
+        <button class="confirm-btn" id="confirmAdd">Add funds</button>
+        <button class="cancel-btn" data-cancel="addForm">Cancel</button>
       </div>
     </div>
-  </main>
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav" aria-label="Main navigation">
-    <a href="dashboard.html" class="nav-item active" aria-current="page">
-      <div class="nav-icon" aria-hidden="true">🏦</div>
-      <span class="nav-label">Accounts</span>
-    </a>
-    <a href="pay.html" class="nav-item">
-      <div class="nav-icon" aria-hidden="true">💸</div>
-      <span class="nav-label">Pay &amp; Transfer</span>
-    </a>
-    <a href="more.html" class="nav-item">
-      <div class="nav-icon" aria-hidden="true">☰</div>
-      <span class="nav-label">More</span>
-    </a>
-  </nav>
-</div>
+    <!-- Withdraw inline form -->
+    <div class="amount-form" id="withdrawForm">
+      <label for="withdrawAmount">Amount to withdraw</label>
+      <input type="number" id="withdrawAmount" placeholder="0.00" min="0.01" step="0.01">
+      <p class="err" id="withdrawErr"></p>
+      <div class="form-row">
+        <button class="confirm-btn" id="confirmWithdraw">Withdraw</button>
+        <button class="cancel-btn" data-cancel="withdrawForm">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY CARD -->
+  <div class="activity-card">
+    <h2>Recent activity</h2>
+    <ul class="txn-list" id="txnList">
+      <li class="empty-state">No transactions yet.</li>
+    </ul>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
 
 <script>
-  let isBalanceVisible = true;
-  function toggleBalanceVisibility(event) {
-    event.stopPropagation();
-    const balanceContainer = document.getElementById('balance-container');
-    const button = document.getElementById('balance-toggle');
-    const eyeIcon = document.getElementById('eye-icon');
+  // ============================================================
+  // SUPABASE CONFIG — replace these two placeholders
+  // (use the same project as forbright-auth.html)
+  // ============================================================
+  const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
+  const SUPABASE_ANON_KEY = "YOUR-SUPABASE-ANON-PUBLIC-KEY";
 
-    if (isBalanceVisible) {
-      balanceContainer.innerHTML = '*****';
-      button.setAttribute('aria-label', 'Show balance layout');
-      eyeIcon.innerHTML = `
-        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-        <line x1="1" y1="1" x2="23" y2="23"/>
-      `;
-      isBalanceVisible = false;
-    } else {
-      balanceContainer.innerHTML = '<span class="currency" aria-hidden="true">$</span>21,000.00';
-      button.setAttribute('aria-label', 'Hide balance layout');
-      eyeIcon.innerHTML = `
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-        <circle cx="12" cy="12" r="3"/>
-      `;
-      isBalanceVisible = true;
-    }
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  let currentBalance = 0;
+
+  function formatMoney(n){
+    const parts = Math.abs(n).toFixed(2).split('.');
+    const whole = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return { whole, cents: parts[1], negative: n < 0 };
   }
+
+  function renderBalance(n){
+    const f = formatMoney(n);
+    document.getElementById('balanceAmount').innerHTML =
+      (f.negative ? '−' : '') + '$' + f.whole + '<span class="cents">.' + f.cents + '</span>';
+  }
+
+  function showToast(message, isError){
+    const t = document.getElementById('toast');
+    t.textContent = message;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(()=>{ t.className = 'toast'; }, 2600);
+  }
+
+  function toggleForm(id){
+    document.getElementById('addForm').classList.remove('open');
+    document.getElementById('withdrawForm').classList.remove('open');
+    document.getElementById(id).classList.add('open');
+  }
+  document.getElementById('showAddForm').addEventListener('click', ()=> toggleForm('addForm'));
+  document.getElementById('showWithdrawForm').addEventListener('click', ()=> toggleForm('withdrawForm'));
+  document.querySelectorAll('[data-cancel]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.getElementById(btn.dataset.cancel).classList.remove('open');
+    });
+  });
+
+  // ---- render transaction list ----
+  function renderTransactions(rows){
+    const list = document.getElementById('txnList');
+    if(!rows || rows.length === 0){
+      list.innerHTML = '<li class="empty-state">No transactions yet.</li>';
+      return;
+    }
+    list.innerHTML = rows.map(r=>{
+      const isPos = r.amount >= 0;
+      const f = formatMoney(r.amount);
+      const date = new Date(r.created_at).toLocaleDateString(undefined, { month:'2-digit', day:'2-digit' });
+      return `<li class="txn-row">
+        <div class="txn-left">
+          <span class="txn-note">${r.note || (isPos ? 'Deposit' : 'Withdrawal')}</span>
+          <span class="txn-date">${date}</span>
+        </div>
+        <span class="txn-amt ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : '−'}$${f.whole}.${f.cents}</span>
+      </li>`;
+    }).join('');
+  }
+
+  // ---- load transactions from Supabase ----
+  // Requires a "transactions" table — see setup.sql for schema + RLS policies.
+  async function loadTransactions(userId){
+    const { data, error } = await supabaseClient
+      .from('transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if(error){
+      console.error('Could not load transactions:', error.message);
+      return;
+    }
+    renderTransactions(data);
+  }
+
+  // ---- update balance in Supabase ----
+  async function applyTransaction(amount, note){
+    const newBalance = currentBalance + amount;
+
+    const { error: updateError } = await supabaseClient
+      .from('balances')
+      .update({ balance: newBalance })
+      .eq('id', currentUser.id);
+
+    if(updateError){
+      showToast('Could not update balance: ' + updateError.message, true);
+      return false;
+    }
+
+    const { error: insertError } = await supabaseClient
+      .from('transactions')
+      .insert({ user_id: currentUser.id, amount, note });
+
+    if(insertError){
+      console.error('Balance updated but transaction log failed:', insertError.message);
+    }
+
+    currentBalance = newBalance;
+    renderBalance(currentBalance);
+    loadTransactions(currentUser.id);
+    return true;
+  }
+
+  document.getElementById('confirmAdd').addEventListener('click', async ()=>{
+    const input = document.getElementById('addAmount');
+    const err = document.getElementById('addErr');
+    const value = parseFloat(input.value);
+
+    if(isNaN(value) || value <= 0){
+      err.textContent = 'Enter an amount greater than 0.';
+      return;
+    }
+    err.textContent = '';
+
+    const ok = await applyTransaction(value, 'Funds added');
+    if(ok){
+      input.value = '';
+      document.getElementById('addForm').classList.remove('open');
+      showToast('Added $' + value.toFixed(2) + ' to your balance.');
+    }
+  });
+
+  document.getElementById('confirmWithdraw').addEventListener('click', async ()=>{
+    const input = document.getElementById('withdrawAmount');
+    const err = document.getElementById('withdrawErr');
+    const value = parseFloat(input.value);
+
+    if(isNaN(value) || value <= 0){
+      err.textContent = 'Enter an amount greater than 0.';
+      return;
+    }
+    if(value > currentBalance){
+      err.textContent = 'Insufficient balance.';
+      return;
+    }
+    err.textContent = '';
+
+    const ok = await applyTransaction(-value, 'Withdrawal');
+    if(ok){
+      input.value = '';
+      document.getElementById('withdrawForm').classList.remove('open');
+      showToast('Withdrew $' + value.toFixed(2) + ' from your balance.');
+    }
+  });
+
+  // ---- sign out ----
+  document.getElementById('signOutBtn').addEventListener('click', async ()=>{
+    await supabaseClient.auth.signOut();
+    window.location.href = 'forbright-auth.html';
+  });
+
+  // ---- boot: check session, load balance + name + transactions ----
+  (async function init(){
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+
+    if(!sessionData.session){
+      window.location.href = 'forbright-auth.html';
+      return;
+    }
+
+    currentUser = sessionData.session.user;
+
+    const { data: balanceRow, error: balanceError } = await supabaseClient
+      .from('balances')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    if(balanceError){
+      console.error('Could not load balance:', balanceError.message);
+      showToast('Could not load your balance.', true);
+    } else if(balanceRow){
+      currentBalance = balanceRow.balance || 0;
+      renderBalance(currentBalance);
+
+      const name = balanceRow.full_name || currentUser.email;
+      document.getElementById('greetingText').textContent = 'Welcome back, ' + name.split(' ')[0];
+      document.getElementById('navUser').innerHTML = '<strong>' + name + '</strong>';
+    }
+
+    document.getElementById('acctNumber').textContent =
+      'Account •••• ' + currentUser.id.slice(0, 4).toUpperCase();
+
+    await loadTransactions(currentUser.id);
+
+    document.getElementById('loadingScreen').style.display = 'none';
+  })();
 </script>
+
 </body>
 </html>
