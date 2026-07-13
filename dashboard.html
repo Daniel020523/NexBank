@@ -434,11 +434,9 @@
     list.innerHTML = rows.map(r=>{
       const isPos = r.amount >= 0;
       const f = formatMoney(r.amount);
-      const date = new Date(r.created_at).toLocaleDateString(undefined, { month:'2-digit', day:'2-digit' });
       return `<li class="txn-row">
         <div class="txn-left">
-          <span class="txn-note">${r.note || (isPos ? 'Deposit' : 'Withdrawal')}</span>
-          <span class="txn-date">${date}</span>
+          <span class="txn-note">${isPos ? 'Transfer received' : 'Transfer sent'}</span>
         </div>
         <span class="txn-amt ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : '−'}$${f.whole}.${f.cents}</span>
       </li>`;
@@ -451,16 +449,6 @@
   // toward more "sent" (outgoing/negative) entries than "received" ones,
   // like a typical spending pattern. Purely cosmetic — never written to
   // the database.
-  const SAMPLE_SENT_NOTES = [
-    'Grocery Store', 'Coffee Shop', 'Rent Payment', 'Electric Bill',
-    'Online Purchase', 'Gas Station', 'Restaurant', 'Gym Membership',
-    'Streaming Subscription', 'Phone Bill', 'Pharmacy', 'Ride Share'
-  ];
-  const SAMPLE_RECEIVED_NOTES = [
-    'Paycheck Deposit', 'Refund', 'Transfer Received', 'Interest Payment',
-    'Reimbursement'
-  ];
-
   function generateSampleTransactions(count = 12){
     const now = Date.now();
     const rows = [];
@@ -471,15 +459,12 @@
       const amount = isSent
         ? -Math.round((Math.random() * 180 + 4) * 100) / 100
         : Math.round((Math.random() * 900 + 40) * 100) / 100;
-      const note = isSent
-        ? SAMPLE_SENT_NOTES[Math.floor(Math.random() * SAMPLE_SENT_NOTES.length)]
-        : SAMPLE_RECEIVED_NOTES[Math.floor(Math.random() * SAMPLE_RECEIVED_NOTES.length)];
       const daysAgo = Math.floor(Math.random() * 24);
       const jitterMs = Math.floor(Math.random() * 86400000);
 
       rows.push({
         amount,
-        note,
+        note: isSent ? 'Transfer sent' : 'Transfer received',
         created_at: new Date(now - daysAgo * 86400000 - jitterMs).toISOString()
       });
     }
