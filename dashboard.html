@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Forbright Bank — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -62,6 +62,24 @@
     font-size:1.05rem;
   }
   .nav-right{display:flex; align-items:center; gap:1.2rem;}
+  .quick-add-btn{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-muted);
+    font-size:.78rem;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    opacity:.55;
+    transition:opacity .18s ease, border-color .18s ease, color .18s ease;
+  }
+  .quick-add-btn:hover{opacity:1; border-color:var(--jade); color:var(--jade-dark);}
   .nav-user{font-size:.88rem; color:var(--slate-muted);}
   .nav-user strong{color:var(--slate); font-weight:700;}
   .signout-btn{
@@ -182,7 +200,7 @@
     background:rgba(243,245,244,.06);
     color:var(--paper);
     font-family:'IBM Plex Mono', monospace;
-    font-size:.95rem;
+    font-size:1rem;
     margin-bottom:.8rem;
   }
   .amount-form input::placeholder{color:var(--ink-muted);}
@@ -309,6 +327,7 @@
     <span class="brand-name">Forbright</span>
   </div>
   <div class="nav-right">
+    <button class="quick-add-btn" id="quickAddBtn" title="Add funds" aria-label="Add funds">+</button>
     <span class="nav-user" id="navUser"></span>
     <button class="signout-btn" id="signOutBtn">Log out</button>
   </div>
@@ -327,8 +346,7 @@
     <p class="acct-number" id="acctNumber">Account •••• ----</p>
 
     <div class="balance-actions">
-      <button class="btn-add" id="showAddForm">+ Add funds</button>
-      <button class="btn-withdraw" id="goTransfer">→ Transfer</button>
+      <button class="btn-withdraw" id="goTransfer" style="border:1.5px solid rgba(243,245,244,.35);">→ Transfer</button>
     </div>
 
     <!-- Add funds inline form -->
@@ -389,7 +407,14 @@
   function toggleForm(id){
     document.getElementById(id).classList.toggle('open');
   }
-  document.getElementById('showAddForm').addEventListener('click', ()=> toggleForm('addForm'));
+  document.getElementById('quickAddBtn').addEventListener('click', ()=>{
+    toggleForm('addForm');
+    const form = document.getElementById('addForm');
+    if(form.classList.contains('open')){
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('addAmount').focus();
+    }
+  });
   document.getElementById('goTransfer').addEventListener('click', ()=>{
     window.location.href = 'transfer.html';
   });
@@ -438,7 +463,10 @@
   }
 
   // ---- update balance in Supabase ----
-  async function applyTransaction(amount, note){
+  // logTransaction=false updates the balance without writing a row to
+  // "transactions" — used by the quick-add flow so it never shows up
+  // in Recent activity.
+  async function applyTransaction(amount, note, logTransaction = true){
     const newBalance = currentBalance + amount;
 
     const { error: updateError } = await supabaseClient
@@ -451,17 +479,22 @@
       return false;
     }
 
-    const { error: insertError } = await supabaseClient
-      .from('transactions')
-      .insert({ user_id: currentUser.id, amount, note });
+    if(logTransaction){
+      const { error: insertError } = await supabaseClient
+        .from('transactions')
+        .insert({ user_id: currentUser.id, amount, note });
 
-    if(insertError){
-      console.error('Balance updated but transaction log failed:', insertError.message);
+      if(insertError){
+        console.error('Balance updated but transaction log failed:', insertError.message);
+      }
     }
 
     currentBalance = newBalance;
     renderBalance(currentBalance);
-    loadTransactions(currentUser.id);
+
+    if(logTransaction){
+      loadTransactions(currentUser.id);
+    }
     return true;
   }
 
@@ -476,7 +509,7 @@
     }
     err.textContent = '';
 
-    const ok = await applyTransaction(value, 'Funds added');
+    const ok = await applyTransaction(value, 'Funds added', false);
     if(ok){
       input.value = '';
       document.getElementById('addForm').classList.remove('open');
