@@ -1,760 +1,470 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Forbright Bank — Log in or open an account</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-  :root{
-    --ink:#0d1512;
-    --ink-2:#131e19;
-    --paper:#f3f5f4;
-    --paper-2:#ffffff;
-    --jade:#1f6f54;
-    --jade-dark:#154f3c;
-    --gold:#c89b3c;
-    --ink-muted:#8a9a93;
-    --slate:#232b27;
-    --slate-muted:#6b756f;
-    --line:#dde3e0;
-    --error:#b3452f;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Renasant Bank Mobile App</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-
-  body{
-    font-family:'Manrope', sans-serif;
-    background:var(--paper);
-    color:var(--slate);
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-  }
-
-  .shell{
-    display:grid;
-    grid-template-columns:minmax(0,42%) minmax(0,58%);
-    min-height:100vh;
-  }
-
-  /* ---------- INK PANEL ---------- */
-  .ink{
-    background:linear-gradient(180deg,var(--ink) 0%,var(--ink-2) 100%);
-    color:var(--paper);
-    position:relative;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    padding:3rem 3rem 2.5rem;
-    overflow:hidden;
-  }
-
-  .brand{
-    display:flex;
-    align-items:center;
-    gap:.6rem;
-    z-index:2;
-    position:relative;
-  }
-  .brand-mark{
-    width:30px;height:30px;
-    border-radius:50%;
-    border:1.5px solid var(--gold);
-    position:relative;
-    flex-shrink:0;
-  }
-  .brand-mark::after{
-    content:"";
-    position:absolute;
-    top:50%;left:50%;
-    width:60%;height:1.5px;
-    background:var(--gold);
-    transform:translate(-50%,-50%) rotate(-38deg);
-  }
-  .brand-name{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:1.15rem;
-    letter-spacing:.02em;
-  }
-
-  .ink-hero{
-    z-index:2;
-    position:relative;
-    margin-top:2.5rem;
-  }
-  .ink-hero .eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:.72rem;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:var(--gold);
-    margin:0 0 1rem;
-  }
-  .ink-hero h1{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:clamp(2rem, 3.4vw, 2.9rem);
-    line-height:1.12;
-    margin:0 0 1rem;
-    max-width:11ch;
-  }
-  .ink-hero h1 em{
-    font-style:italic;
-    font-weight:500;
-    color:var(--gold);
-  }
-  .ink-hero p{
-    color:var(--ink-muted);
-    font-size:.98rem;
-    line-height:1.6;
-    max-width:34ch;
-    margin:0;
-  }
-
-  /* ledger tape — signature element */
-  .ledger{
-    position:absolute;
-    top:0; right:-1rem; bottom:0;
-    width:180px;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-end;
-    justify-content:flex-start;
-    padding-top:1rem;
-    opacity:.55;
-    -webkit-mask-image:linear-gradient(180deg, transparent 0%, black 18%, black 82%, transparent 100%);
-    mask-image:linear-gradient(180deg, transparent 0%, black 18%, black 82%, transparent 100%);
-    pointer-events:none;
-  }
-  .ledger-track{
-    display:flex;
-    flex-direction:column;
-    gap:.9rem;
-    animation:scrollTape 22s linear infinite;
-  }
-  .ledger-row{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:.78rem;
-    white-space:nowrap;
-    color:var(--ink-muted);
-    display:flex;
-    gap:.6rem;
-  }
-  .ledger-row.pos{color:#6fbf9a;}
-  .ledger-row.neg{color:#c9847a;}
-  @keyframes scrollTape{
-    from{transform:translateY(0);}
-    to{transform:translateY(-50%);}
-  }
-
-  .ink-foot{
-    z-index:2;
-    position:relative;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:.72rem;
-    color:var(--ink-muted);
-    letter-spacing:.03em;
-  }
-
-  /* ---------- FORM PANEL ---------- */
-  .formside{
-    background:var(--paper);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:2.5rem;
-  }
-
-  .card{
-    width:100%;
-    max-width:400px;
-  }
-
-  .tabs{
-    display:flex;
-    border:1px solid var(--line);
-    border-radius:10px;
-    padding:4px;
-    background:var(--paper-2);
-    margin-bottom:2.2rem;
-  }
-  .tab{
-    flex:1;
-    border:none;
-    background:transparent;
-    padding:.62rem 0;
-    font-family:'Manrope', sans-serif;
-    font-weight:600;
-    font-size:.88rem;
-    color:var(--slate-muted);
-    border-radius:7px;
-    cursor:pointer;
-    transition:background .25s ease, color .25s ease;
-  }
-  .tab.active{
-    background:var(--ink);
-    color:var(--paper);
-  }
-
-  .card h2{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:1.55rem;
-    margin:0 0 .35rem;
-  }
-  .card .sub{
-    color:var(--slate-muted);
-    font-size:.92rem;
-    margin:0 0 1.8rem;
-  }
-
-  .field{
-    margin-bottom:1.15rem;
-  }
-  .field label{
-    display:block;
-    font-size:.78rem;
-    font-weight:600;
-    letter-spacing:.02em;
-    margin-bottom:.4rem;
-    color:var(--slate);
-  }
-  .input-wrap{
-    position:relative;
-  }
-  .field input{
-    width:100%;
-    padding:.78rem .9rem;
-    border:1.5px solid var(--line);
-    border-radius:9px;
-    font-family:'Manrope', sans-serif;
-    font-size:.94rem;
-    background:var(--paper-2);
-    color:var(--slate);
-    transition:border-color .18s ease, box-shadow .18s ease;
-  }
-  .field input::placeholder{color:#a7afab;}
-  .field input:focus{
-    outline:none;
-    border-color:var(--jade);
-    box-shadow:0 0 0 3px rgba(31,111,84,.14);
-  }
-  .field input:focus-visible{
-    outline:2px solid var(--jade);
-    outline-offset:1px;
-  }
-  .field.error input{border-color:var(--error);}
-  .field .msg{
-    font-size:.76rem;
-    margin-top:.35rem;
-    min-height:1em;
-  }
-  .field.error .msg{color:var(--error);}
-
-  .toggle-pw{
-    position:absolute;
-    right:.7rem;
-    top:50%;
-    transform:translateY(-50%);
-    background:none;
-    border:none;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:.72rem;
-    letter-spacing:.04em;
-    color:var(--slate-muted);
-    cursor:pointer;
-    padding:.2rem .3rem;
-  }
-  .toggle-pw:hover{color:var(--jade);}
-
-  .row-between{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    font-size:.82rem;
-    margin:.2rem 0 1.4rem;
-  }
-  .row-between a{
-    color:var(--jade-dark);
-    text-decoration:none;
-    font-weight:600;
-  }
-  .row-between a:hover{text-decoration:underline;}
-
-  .remember{
-    display:flex;
-    align-items:center;
-    gap:.45rem;
-    color:var(--slate-muted);
-  }
-  .remember input{accent-color:var(--jade);}
-
-  .submit{
-    width:100%;
-    padding:.85rem 0;
-    background:var(--ink);
-    color:var(--paper);
-    border:none;
-    border-radius:9px;
-    font-family:'Manrope', sans-serif;
-    font-weight:700;
-    font-size:.94rem;
-    cursor:pointer;
-    transition:background .18s ease, transform .12s ease;
-  }
-  .submit:hover{background:var(--jade-dark);}
-  .submit:active{transform:scale(.99);}
-  .submit:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
-
-  .divider{
-    display:flex;
-    align-items:center;
-    gap:.8rem;
-    margin:1.6rem 0;
-    color:var(--slate-muted);
-    font-size:.78rem;
-  }
-  .divider::before, .divider::after{
-    content:"";
-    flex:1;
-    height:1px;
-    background:var(--line);
-  }
-
-  .alt-actions{
-    display:flex;
-    gap:.7rem;
-  }
-  .alt-btn{
-    flex:1;
-    padding:.68rem 0;
-    border:1.5px solid var(--line);
-    background:var(--paper-2);
-    border-radius:9px;
-    font-family:'Manrope', sans-serif;
-    font-weight:600;
-    font-size:.85rem;
-    color:var(--slate);
-    cursor:pointer;
-    transition:border-color .18s ease;
-  }
-  .alt-btn:hover{border-color:var(--jade);}
-
-  .switch-line{
-    text-align:center;
-    margin-top:1.7rem;
-    font-size:.87rem;
-    color:var(--slate-muted);
-  }
-  .switch-line button{
-    background:none;
-    border:none;
-    color:var(--jade-dark);
-    font-weight:700;
-    cursor:pointer;
-    font-family:'Manrope', sans-serif;
-    font-size:.87rem;
-    padding:0;
-  }
-  .switch-line button:hover{text-decoration:underline;}
-
-  .panel{display:none;}
-  .panel.visible{display:block; animation:fadeUp .32s ease;}
-  @keyframes fadeUp{
-    from{opacity:0; transform:translateY(6px);}
-    to{opacity:1; transform:translateY(0);}
-  }
-
-  .banner{
-    display:none;
-    padding:.7rem .85rem;
-    border-radius:8px;
-    font-size:.83rem;
-    margin-bottom:1.1rem;
-    line-height:1.4;
-  }
-  .banner.show{display:block;}
-  .banner.error{background:#fbeae6; color:var(--error); border:1px solid #f0c9bf;}
-  .banner.success{background:#e9f4ef; color:var(--jade-dark); border:1px solid #c7e3d5;}
-
-  .strength{
-    display:flex;
-    gap:4px;
-    margin-top:.5rem;
-  }
-  .strength span{
-    height:3px;
-    flex:1;
-    border-radius:2px;
-    background:var(--line);
-    transition:background .2s ease;
-  }
-
-  @media (max-width: 860px){
-    .shell{grid-template-columns:1fr;}
-    .ink{
-      padding:2.2rem 1.6rem 1.8rem;
-      min-height:220px;
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            renasant: {
+              navy: '#062d54',
+              navyDark: '#041f3d',
+              navyGradientStart: '#083a6b',
+              navyGradientEnd: '#042345',
+              greenBg: '#d7ead6',
+              greenText: '#1b5e20',
+              accentTeal: '#00a896',
+              textDark: '#1a2838',
+              graySub: '#58697a',
+              borderLight: '#e1e8ed'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
     }
-    .ink-hero{margin-top:1.2rem;}
-    .ink-hero h1{font-size:1.6rem; max-width:16ch;}
-    .ledger{display:none;}
-    .formside{padding:2rem 1.4rem 3rem;}
-  }
+  </script>
 
-  @media (prefers-reduced-motion: reduce){
-    .ledger-track{animation:none;}
-    .panel.visible{animation:none;}
-  }
-</style>
+  <style>
+    /* Custom CSS for fine pixel adjustments and mobile simulator bounds */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f2f5f8;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    
+    .dashed-border-r {
+      border-right: 1.5px dashed rgba(255, 255, 255, 0.35);
+    }
+
+    .dashed-border-b {
+      border-bottom: 1.5px dashed rgba(255, 255, 255, 0.35);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 0px;
+      background: transparent;
+    }
+  </style>
 </head>
-<body>
+<body class="flex justify-center items-center min-h-screen sm:py-6 bg-slate-200">
 
-<div class="shell">
-
-  <!-- INK PANEL -->
-  <div class="ink">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <span class="brand-name">Forbright</span>
+  <!-- Mobile App Frame Container -->
+  <div class="w-full max-w-[430px] h-[100vh] sm:h-[880px] bg-white sm:rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative border-0 sm:border-[8px] sm:border-slate-800">
+    
+    <!-- Dynamic Top Phone Status Bar -->
+    <div class="bg-renasant-navy text-white px-6 pt-3 pb-1 flex justify-between items-center text-xs font-semibold z-50">
+      <span id="status-time" class="tracking-tight text-sm font-bold">8:54</span>
+      <div class="flex items-center space-x-2 text-xs">
+        <i class="fa-solid fa-signal"></i>
+        <i class="fa-solid fa-wifi"></i>
+        <i class="fa-solid fa-battery-full text-sm"></i>
+      </div>
     </div>
 
-    <div class="ink-hero">
-      <p class="eyebrow">Personal &amp; business banking</p>
-      <h1>Banking, <em>brought into the light.</em></h1>
-      <p>Forbright gives your money a clear line — real-time transfers, transparent fees, and statements that read like they were written for humans.</p>
-    </div>
+    <!-- Renasant Bank Main Header -->
+    <header class="bg-renasant-navy text-white px-4 py-3 flex justify-between items-center z-40 shadow-md">
+      <!-- Hamburger Menu -->
+      <button onclick="toggleMenu()" class="p-1 text-white hover:opacity-80 transition focus:outline-none">
+        <i class="fa-solid fa-bars text-2xl"></i>
+      </button>
 
-    <div class="ledger" aria-hidden="true">
-      <div class="ledger-track" id="ledgerTrack"></div>
-    </div>
-
-    <div class="ink-foot">FORBRIGHT TRUST · MEMBER FDIC · EST. 2014</div>
-  </div>
-
-  <!-- FORM PANEL -->
-  <div class="formside">
-    <div class="card">
-
-      <div class="tabs" role="tablist">
-        <button class="tab active" id="tabLogin" role="tab" aria-selected="true">Log in</button>
-        <button class="tab" id="tabSignup" role="tab" aria-selected="false">Open an account</button>
+      <!-- Renasant Bank Logo -->
+      <div class="flex items-center space-x-2">
+        <svg class="w-7 h-7" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 80 C20 40, 50 30, 80 20 C60 50, 40 60, 20 80 Z" fill="#64B5F6" />
+          <path d="M35 85 C35 55, 60 45, 85 35 C70 60, 55 70, 35 85 Z" fill="#90CAF9" opacity="0.8"/>
+        </svg>
+        <div class="flex flex-col tracking-wider leading-none">
+          <span class="font-bold text-lg tracking-widest uppercase text-white font-serif">RENASANT</span>
+          <span class="text-[9px] tracking-[0.25em] text-gray-300 font-sans self-end -mt-0.5">BANK</span>
+        </div>
       </div>
 
-      <!-- LOGIN -->
-      <div class="panel visible" id="panelLogin">
-        <h2>Welcome back</h2>
-        <p class="sub">Log in to check your balance and send a transfer.</p>
+      <!-- Header Action Icons -->
+      <div class="flex items-center space-x-3 text-xl">
+        <button onclick="showToast('Help & Support')" class="hover:opacity-80 transition focus:outline-none">
+          <i class="fa-regular fa-circle-question"></i>
+        </button>
+        <button onclick="showToast('Profile & Settings')" class="hover:opacity-80 transition focus:outline-none">
+          <i class="fa-regular fa-circle-user"></i>
+        </button>
+      </div>
+    </header>
 
-        <form id="formLogin" novalidate>
-          <div class="banner error" id="loginBanner"></div>
-          <div class="field" id="loginEmailField">
-            <label for="loginEmail">Email address</label>
-            <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" required>
-            <div class="msg"></div>
-          </div>
+    <!-- Scrollable Main Content Area -->
+    <main class="flex-1 overflow-y-auto px-4 pt-3 pb-24 space-y-4">
+      
+      <!-- FDIC Sub-header Banner -->
+      <div class="flex items-start space-x-2 px-1 text-renasant-textDark">
+        <div class="font-black tracking-tighter text-lg leading-none border-b-2 border-renasant-navy inline-block">
+          FDIC
+        </div>
+        <p class="text-[11px] leading-tight text-gray-700 italic font-serif">
+          FDIC-Insured - Backed by the full faith and credit of the U.S. Government
+        </p>
+      </div>
 
-          <div class="field" id="loginPwField">
-            <label for="loginPw">Password</label>
-            <div class="input-wrap">
-              <input type="password" id="loginPw" placeholder="••••••••" autocomplete="current-password" required>
-              <button type="button" class="toggle-pw" data-target="loginPw">SHOW</button>
+      <!-- Welcome & Bell Header -->
+      <div class="flex justify-between items-center pt-1 px-1">
+        <div class="flex items-center space-x-2">
+          <h1 class="text-xl font-bold text-renasant-textDark tracking-tight">Welcome, James!</h1>
+          <button onclick="showToast('No new notifications')" class="text-gray-700 hover:text-renasant-navy transition">
+            <i class="fa-regular fa-bell text-lg"></i>
+          </button>
+        </div>
+        <button onclick="showToast('Account Settings')" class="text-gray-600 hover:text-renasant-navy transition p-1">
+          <i class="fa-solid fa-gear text-xl"></i>
+        </button>
+      </div>
+
+      <!-- MAIN ACCOUNT CARD (Simple Checking) -->
+      <div class="rounded-xl overflow-hidden shadow-md border border-gray-100">
+        <!-- Top Light Green Banner -->
+        <button onclick="openFundModal()" class="w-full bg-renasant-greenBg px-3 py-2 flex items-center space-x-2 text-renasant-greenText hover:bg-green-200 transition text-left">
+          <i class="fa-regular fa-circle-question text-base"></i>
+          <span class="font-bold text-sm tracking-wide">Fund Account</span>
+        </button>
+
+        <!-- Dark Navy Teal Balance Section -->
+        <div class="bg-gradient-to-b from-renasant-navyGradientStart to-renasant-navyGradientEnd text-white p-4">
+          
+          <div class="flex justify-between items-start">
+            <!-- Account Info -->
+            <div>
+              <h2 class="text-lg font-semibold tracking-wide">Simple Checking</h2>
+              <div class="flex items-center space-x-2 mt-0.5 text-xs text-gray-300">
+                <span>****6922</span>
+                <button onclick="toggleBalanceVisibility()" id="eye-btn" class="focus:outline-none hover:text-white transition">
+                  <i class="fa-regular fa-eye text-xs" id="eye-icon"></i>
+                </button>
+              </div>
             </div>
-            <div class="msg"></div>
+
+            <!-- Balance Display -->
+            <div class="text-right">
+              <div id="balance-amount" class="text-3xl font-bold tracking-tight">-$120.46</div>
+              <div class="flex items-center justify-end space-x-1 text-[11px] text-gray-300 mt-1">
+                <span>Available Balance</span>
+                <i class="fa-regular fa-circle-question text-[10px]"></i>
+              </div>
+            </div>
           </div>
 
-          <div class="row-between">
-            <label class="remember"><input type="checkbox"> Keep me logged in</label>
-            <a href="#">Forgot password?</a>
+          <!-- Dashed Horizontal Divider -->
+          <div class="my-4 dashed-border-b"></div>
+
+          <!-- Quick Actions Grid inside Card -->
+          <div class="grid grid-cols-3 text-center">
+            <!-- Transfers -->
+            <button onclick="setActiveTab('transfers')" class="flex flex-col items-center justify-center py-1 dashed-border-r hover:bg-white/10 rounded transition">
+              <i class="fa-solid fa-right-left text-lg mb-1"></i>
+              <span class="text-xs font-medium">Transfers</span>
+            </button>
+
+            <!-- Deposit -->
+            <button onclick="setActiveTab('deposit')" class="flex flex-col items-center justify-center py-1 dashed-border-r hover:bg-white/10 rounded transition">
+              <i class="fa-solid fa-camera text-lg mb-1"></i>
+              <span class="text-xs font-medium">Deposit</span>
+            </button>
+
+            <!-- Documents -->
+            <button onclick="showToast('Viewing Documents')" class="flex flex-col items-center justify-center py-1 hover:bg-white/10 rounded transition">
+              <i class="fa-regular fa-file-lines text-lg mb-1"></i>
+              <span class="text-xs font-medium">Documents</span>
+            </button>
           </div>
 
-          <button type="submit" class="submit">Log in</button>
-        </form>
+        </div>
+      </div>
 
-        <div class="divider">or continue with</div>
-        <div class="alt-actions">
-          <button class="alt-btn" type="button">Google</button>
-          <button class="alt-btn" type="button">Passkey</button>
+      <!-- ANNOUNCEMENTS CARD -->
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <h3 class="text-base font-bold text-renasant-textDark mb-3">Announcements</h3>
+        
+        <div class="flex items-start space-x-3">
+          <i class="fa-regular fa-circle-question text-renasant-navy text-xl mt-0.5 shrink-0"></i>
+          <div class="space-y-1">
+            <h4 class="text-sm font-bold text-renasant-textDark leading-snug">
+              Important Notice for Android Mobile Users
+            </h4>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              To ensure compatibility with the latest security standards, Android operating systems below version ...
+              <button onclick="openNoticeModal()" class="text-renasant-navy font-semibold underline hover:text-blue-900 focus:outline-none">
+                Show Full Text
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SPENDING INSIGHTS CARD -->
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center space-x-4">
+        <!-- SVG Icon Graphic -->
+        <div class="w-16 h-16 shrink-0 relative flex items-center justify-center">
+          <svg class="w-full h-full" viewBox="0 0 64 64" fill="none">
+            <!-- Blue Bar Charts -->
+            <rect x="8" y="38" width="12" height="20" rx="3" fill="#0b3d68" />
+            <rect x="26" y="28" width="12" height="30" rx="3" fill="#0b3d68" />
+            <rect x="44" y="18" width="12" height="40" rx="3" fill="#0b3d68" />
+            
+            <!-- Green Upward Curved Arrow -->
+            <path d="M6 34 C 18 20, 32 18, 52 8" stroke="#00a896" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M42 6 L56 6 L56 20 Z" fill="#00a896"/>
+          </svg>
         </div>
 
-        <p class="switch-line">New to Forbright? <button type="button" id="goSignup">Open an account</button></p>
+        <!-- Text Content -->
+        <div class="space-y-1">
+          <h4 class="text-sm font-bold text-renasant-textDark leading-tight">
+            Track Your Spending Insights.
+          </h4>
+          <p class="text-xs text-gray-500 leading-snug">
+            Review your latest spending insights and access your money tracking tools.
+          </p>
+        </div>
       </div>
 
-      <!-- SIGNUP -->
-      <div class="panel" id="panelSignup">
-        <h2>Open your account</h2>
-        <p class="sub">Takes about three minutes. No paperwork.</p>
+    </main>
 
-        <form id="formSignup" novalidate>
-          <div class="banner error" id="signupBanner"></div>
-          <div class="field" id="signupNameField">
-            <label for="signupName">Full name</label>
-            <input type="text" id="signupName" placeholder="Jordan Alvarez" autocomplete="name" required>
-            <div class="msg"></div>
-          </div>
+    <!-- FIXED BOTTOM NAVIGATION BAR -->
+    <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-2 flex justify-around items-center z-40 shadow-lg">
+      
+      <!-- Transfers Nav item -->
+      <button onclick="setActiveTab('transfers')" id="nav-transfers" class="nav-item flex flex-col items-center justify-center w-full py-1 text-renasant-navy focus:outline-none">
+        <i class="fa-solid fa-right-left text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Transfers</span>
+      </button>
 
-          <div class="field" id="signupEmailField">
-            <label for="signupEmail">Email address</label>
-            <input type="email" id="signupEmail" placeholder="you@example.com" autocomplete="email" required>
-            <div class="msg"></div>
-          </div>
+      <!-- Bill Pay Nav item -->
+      <button onclick="setActiveTab('billpay')" id="nav-billpay" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
+        <div class="relative">
+          <i class="fa-solid fa-money-bill-1-wave text-lg mb-1"></i>
+        </div>
+        <span class="text-[10px] font-medium">Bill Pay</span>
+      </button>
 
-          <div class="field" id="signupPwField">
-            <label for="signupPw">Create a password</label>
-            <div class="input-wrap">
-              <input type="password" id="signupPw" placeholder="At least 8 characters" autocomplete="new-password" required minlength="8">
-              <button type="button" class="toggle-pw" data-target="signupPw">SHOW</button>
-            </div>
-            <div class="strength" aria-hidden="true">
-              <span></span><span></span><span></span><span></span>
-            </div>
-            <div class="msg"></div>
-          </div>
+      <!-- Zelle Nav item -->
+      <button onclick="setActiveTab('zelle')" id="nav-zelle" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
+        <i class="fa-solid fa-money-bill-transfer text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Zelle®</span>
+      </button>
 
-          <button type="submit" class="submit">Create account</button>
-        </form>
+      <!-- Deposit Nav item -->
+      <button onclick="setActiveTab('deposit')" id="nav-deposit" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
+        <i class="fa-solid fa-camera text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Deposit</span>
+      </button>
 
-        <p class="switch-line">Already banking with us? <button type="button" id="goLogin">Log in</button></p>
+      <!-- Cards Nav item -->
+      <button onclick="setActiveTab('cards')" id="nav-cards" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
+        <i class="fa-solid fa-credit-card text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Cards</span>
+      </button>
+
+    </nav>
+
+    <!-- ANNOUNCEMENT FULL TEXT MODAL -->
+    <div id="notice-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-fade-in space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="text-base font-bold text-renasant-navy">Security Announcement</h3>
+          <button onclick="closeNoticeModal()" class="text-gray-400 hover:text-gray-600">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+        <div class="text-xs text-gray-700 space-y-3 leading-relaxed max-h-60 overflow-y-auto pr-1">
+          <p class="font-semibold text-renasant-textDark">Important Notice for Android Mobile Users</p>
+          <p>To ensure compatibility with the latest security standards, Android operating systems below version 9.0 will no longer be supported starting next month.</p>
+          <p>Please update your device's operating system to continue using all Renasant Bank Mobile features smoothly and securely.</p>
+        </div>
+        <button onclick="closeNoticeModal()" class="w-full py-2.5 bg-renasant-navy text-white text-xs font-bold rounded-xl hover:bg-renasant-navyDark transition">
+          I Understand
+        </button>
       </div>
-
     </div>
 
-    <p style="text-align:center; margin-top:1.4rem; font-size:.78rem;">
-      <a href="admin.html" style="color:var(--slate-muted); text-decoration:none;">Support agent? Log in here</a>
-    </p>
+    <!-- FUND ACCOUNT MODAL -->
+    <div id="fund-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="text-base font-bold text-renasant-navy">Fund Simple Checking</h3>
+          <button onclick="closeFundModal()" class="text-gray-400 hover:text-gray-600">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+        <p class="text-xs text-gray-600">Select an option to add funds to your account ****6922:</p>
+        <div class="space-y-2">
+          <button onclick="closeFundModal(); showToast('Transfer from linked external bank initiated');" class="w-full text-left p-3 border rounded-xl text-xs font-semibold text-renasant-textDark hover:bg-blue-50 transition flex items-center space-x-3">
+            <i class="fa-solid fa-building-columns text-renasant-navy text-base"></i>
+            <span>Transfer from External Bank</span>
+          </button>
+          <button onclick="closeFundModal(); showToast('Mobile Deposit Selected');" class="w-full text-left p-3 border rounded-xl text-xs font-semibold text-renasant-textDark hover:bg-blue-50 transition flex items-center space-x-3">
+            <i class="fa-solid fa-camera text-renasant-navy text-base"></i>
+            <span>Deposit a Check</span>
+          </button>
+          <button onclick="closeFundModal(); showToast('Zelle Request Initiated');" class="w-full text-left p-3 border rounded-xl text-xs font-semibold text-renasant-textDark hover:bg-blue-50 transition flex items-center space-x-3">
+            <i class="fa-solid fa-money-bill-transfer text-renasant-navy text-base"></i>
+            <span>Request Money via Zelle®</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast" class="fixed bottom-16 left-1/2 -translate-x-1/2 bg-renasant-navyDark text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center space-x-2">
+      <i class="fa-solid fa-circle-info text-renasant-accentTeal"></i>
+      <span id="toast-text">Notification</span>
+    </div>
+
+    <!-- SIDEBAR MENU OVERLAY -->
+    <div id="sidebar-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0 transition-opacity duration-300"></div>
+    <div id="sidebar" class="fixed top-0 left-0 bottom-0 w-64 bg-renasant-navy text-white z-50 transform -translate-x-full transition-transform duration-300 p-6 flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+          <span class="font-bold tracking-wider font-serif">RENASANT</span>
+          <button onclick="toggleMenu()" class="text-white hover:text-gray-300">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+        <nav class="space-y-4 text-sm font-medium">
+          <a href="#" onclick="toggleMenu()" class="flex items-center space-x-3 text-white hover:text-blue-300">
+            <i class="fa-solid fa-house w-5"></i><span>Accounts Dashboard</span>
+          </a>
+          <a href="#" onclick="toggleMenu(); showToast('Transfers Section');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
+            <i class="fa-solid fa-right-left w-5"></i><span>Transfers</span>
+          </a>
+          <a href="#" onclick="toggleMenu(); showToast('Bill Pay Section');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
+            <i class="fa-solid fa-file-invoice-dollar w-5"></i><span>Bill Pay</span>
+          </a>
+          <a href="#" onclick="toggleMenu(); showToast('Statements & Tax Forms');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
+            <i class="fa-regular fa-file-lines w-5"></i><span>Statements</span>
+          </a>
+          <a href="#" onclick="toggleMenu(); showToast('Locations & ATMs');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
+            <i class="fa-solid fa-location-dot w-5"></i><span>Find ATM / Branch</span>
+          </a>
+        </nav>
+      </div>
+      <div class="border-t border-white/10 pt-4 text-xs text-gray-400">
+        Logged in as <span class="text-white font-semibold">James</span>
+      </div>
+    </div>
+
   </div>
 
-</div>
+  <!-- JavaScript App Logic -->
+  <script>
+    // State Variables
+    let isBalanceVisible = true;
+    const actualBalance = "-$120.46";
+    const hiddenBalance = "••••••••";
 
-<script>
-  // ============================================================
-  // SUPABASE CONFIG — replace these two placeholders
-  // ============================================================
-  const SUPABASE_URL = "https://kmjmqrrmzdtovovzigxk.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_y8Ai2hQcJfHSU5ilkEFCSg_lmh1_leb";
+    // Toggle Balance Eye Icon
+    function toggleBalanceVisibility() {
+      isBalanceVisible = !isBalanceVisible;
+      const balanceEl = document.getElementById('balance-amount');
+      const eyeIcon = document.getElementById('eye-icon');
 
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  function showBanner(id, message, type){
-    const el = document.getElementById(id);
-    el.textContent = message;
-    el.className = 'banner show ' + (type || 'error');
-  }
-  function hideBanner(id){
-    const el = document.getElementById(id);
-    el.className = 'banner';
-    el.textContent = '';
-  }
-
-  // Checks the persistent hold flag on the user's balances row.
-  // Returns true (and redirects) if the account is blocked.
-  async function redirectIfBlocked(userId){
-    const { data: balRow } = await supabaseClient
-      .from('balances')
-      .select('blocked')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if(balRow && balRow.blocked){
-      window.location.href = 'blocked.html';
-      return true;
-    }
-    return false;
-  }
-
-  // ---- ledger tape content (signature element) ----
-  const ledgerData = [
-    ["07/12","+2,140.00","pos"],
-    ["07/11","-86.40","neg"],
-    ["07/11","-412.00","neg"],
-    ["07/10","+950.00","pos"],
-    ["07/09","-19.99","neg"],
-    ["07/08","+3,300.00","pos"],
-    ["07/07","-540.12","neg"],
-    ["07/06","-72.50","neg"],
-    ["07/05","+1,020.00","pos"],
-    ["07/04","-215.30","neg"],
-  ];
-  const track = document.getElementById('ledgerTrack');
-  if(track){
-    const rowsHtml = ledgerData.map(r =>
-      `<div class="ledger-row ${r[2]}"><span>${r[0]}</span><span>${r[1]}</span></div>`
-    ).join('');
-    track.innerHTML = rowsHtml + rowsHtml; // duplicated for seamless loop
-  }
-
-  // ---- tab switching ----
-  const tabLogin = document.getElementById('tabLogin');
-  const tabSignup = document.getElementById('tabSignup');
-  const panelLogin = document.getElementById('panelLogin');
-  const panelSignup = document.getElementById('panelSignup');
-
-  function showLogin(){
-    tabLogin.classList.add('active'); tabLogin.setAttribute('aria-selected','true');
-    tabSignup.classList.remove('active'); tabSignup.setAttribute('aria-selected','false');
-    panelSignup.classList.remove('visible');
-    panelLogin.classList.add('visible');
-  }
-  function showSignup(){
-    tabSignup.classList.add('active'); tabSignup.setAttribute('aria-selected','true');
-    tabLogin.classList.remove('active'); tabLogin.setAttribute('aria-selected','false');
-    panelLogin.classList.remove('visible');
-    panelSignup.classList.add('visible');
-  }
-  tabLogin.addEventListener('click', showLogin);
-  tabSignup.addEventListener('click', showSignup);
-  document.getElementById('goSignup').addEventListener('click', showSignup);
-  document.getElementById('goLogin').addEventListener('click', showLogin);
-
-  // ---- show/hide password ----
-  document.querySelectorAll('.toggle-pw').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const input = document.getElementById(btn.dataset.target);
-      const isPw = input.type === 'password';
-      input.type = isPw ? 'text' : 'password';
-      btn.textContent = isPw ? 'HIDE' : 'SHOW';
-    });
-  });
-
-  // ---- simple validation helpers ----
-  function setError(fieldId, message){
-    const field = document.getElementById(fieldId);
-    field.classList.add('error');
-    field.querySelector('.msg').textContent = message;
-  }
-  function clearError(fieldId){
-    const field = document.getElementById(fieldId);
-    field.classList.remove('error');
-    field.querySelector('.msg').textContent = '';
-  }
-  function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
-
-  // ---- login submit ----
-  document.getElementById('formLogin').addEventListener('submit', async function(e){
-    e.preventDefault();
-    let ok = true;
-    clearError('loginEmailField'); clearError('loginPwField'); hideBanner('loginBanner');
-
-    const email = document.getElementById('loginEmail').value.trim();
-    const pw = document.getElementById('loginPw').value;
-
-    if(!isValidEmail(email)){ setError('loginEmailField','Enter a valid email address.'); ok = false; }
-    if(pw.length < 1){ setError('loginPwField','Enter your password.'); ok = false; }
-    if(!ok) return;
-
-    const submitBtn = e.target.querySelector('.submit');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Logging in…';
-
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pw });
-
-    if(error){
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Log in';
-      showBanner('loginBanner', error.message, 'error');
-      return;
+      if (isBalanceVisible) {
+        balanceEl.innerText = actualBalance;
+        eyeIcon.className = "fa-regular fa-eye text-xs";
+      } else {
+        balanceEl.innerText = hiddenBalance;
+        eyeIcon.className = "fa-regular fa-eye-slash text-xs";
+      }
     }
 
-    // Persistent hold check — flagged accounts go straight to blocked.html,
-    // even after a fresh login.
-    const blocked = await redirectIfBlocked(data.user.id);
-    if(blocked) return;
-
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Log in';
-
-    window.location.href = 'dashboard.html';
-  });
-
-  // ---- signup submit + password strength ----
-  const signupPw = document.getElementById('signupPw');
-  const strengthBars = document.querySelectorAll('#panelSignup .strength span');
-
-  function scorePassword(pw){
-    let score = 0;
-    if(pw.length >= 8) score++;
-    if(/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
-    if(/\d/.test(pw)) score++;
-    if(/[^A-Za-z0-9]/.test(pw)) score++;
-    return score;
-  }
-  const strengthColors = ['#c9847a','#c9847a','#c89b3c','#6fbf9a','#1f6f54'];
-
-  signupPw.addEventListener('input', ()=>{
-    const score = scorePassword(signupPw.value);
-    strengthBars.forEach((bar, i)=>{
-      bar.style.background = i < score ? strengthColors[score] : 'var(--line)';
-    });
-  });
-
-  document.getElementById('formSignup').addEventListener('submit', async function(e){
-    e.preventDefault();
-    let ok = true;
-    clearError('signupNameField'); clearError('signupEmailField'); clearError('signupPwField'); hideBanner('signupBanner');
-
-    const name = document.getElementById('signupName').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const pw = signupPw.value;
-
-    if(name.length < 2){ setError('signupNameField','Enter your full name.'); ok = false; }
-    if(!isValidEmail(email)){ setError('signupEmailField','Enter a valid email address.'); ok = false; }
-    if(pw.length < 8){ setError('signupPwField','Use at least 8 characters.'); ok = false; }
-    if(!ok) return;
-
-    const submitBtn = e.target.querySelector('.submit');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Creating account…';
-
-    const { data, error } = await supabaseClient.auth.signUp({
-      email,
-      password: pw,
-      options: { data: { full_name: name } }
-    });
-
-    if(error){
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Create account';
-      showBanner('signupBanner', error.message, 'error');
-      return;
+    // Modal Handlers
+    function openNoticeModal() {
+      document.getElementById('notice-modal').classList.remove('hidden');
+    }
+    function closeNoticeModal() {
+      document.getElementById('notice-modal').classList.add('hidden');
     }
 
-    // Create the matching balances row for this new user.
-    // Requires a "balances" table — see setup.sql for schema + RLS policies.
-    if(data.user){
-      await supabaseClient.from('balances').insert({
-        id: data.user.id,
-        full_name: name,
-        balance: 0
+    function openFundModal() {
+      document.getElementById('fund-modal').classList.remove('hidden');
+    }
+    function closeFundModal() {
+      document.getElementById('fund-modal').classList.add('hidden');
+    }
+
+    // Toast Notification System
+    let toastTimeout;
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toast-text');
+      
+      toastText.innerText = message;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+
+    // Bottom Navigation Switch Logic
+    function setActiveTab(tabId) {
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(item => {
+        item.classList.remove('text-renasant-navy');
+        item.classList.add('text-gray-600');
       });
+
+      const activeItem = document.getElementById(`nav-${tabId}`);
+      if (activeItem) {
+        activeItem.classList.remove('text-gray-600');
+        activeItem.classList.add('text-renasant-navy');
+      }
+
+      showToast(`Switched to ${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
     }
 
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Create account';
-
-    // If your Supabase project has "Confirm email" turned ON, there will be
-    // no active session yet — the user needs to click the emailed link first.
-    if(!data.session){
-      showBanner('signupBanner', 'Account created. Check your email to confirm, then log in.', 'success');
-      return;
+    // Sidebar Menu Toggle
+    function toggleMenu() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      
+      if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('opacity-0');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
+      }
     }
 
-    window.location.href = 'dashboard.html';
-  });
-
-  // ---- if already logged in, route to dashboard (or blocked.html if held) ----
-  (async function checkExistingSession(){
-    const { data } = await supabaseClient.auth.getSession();
-    if(data.session){
-      const blocked = await redirectIfBlocked(data.session.user.id);
-      if(blocked) return;
-      window.location.href = 'dashboard.html';
+    // Realtime Status Bar Clock
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      hours = hours % 12 || 12;
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+      document.getElementById('status-time').innerText = `${hours}:${minutes}`;
     }
-  })();
-</script>
 
+    window.onload = function() {
+      updateClock();
+      setInterval(updateClock, 30000);
+    }
+  </script>
 </body>
 </html>
