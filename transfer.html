@@ -20,13 +20,26 @@
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
   </style>
+<script>
+// ===== Lock the browser / phone back button =====
+(function () {
+  var armed = false;
+  function lock() { try { history.pushState({ locked: 1 }, '', location.href); } catch (e) {} }
+  lock();
+  window.addEventListener('popstate', lock);
+  window.addEventListener('pageshow', function (e) { if (e.persisted) lock(); });
+  // Some mobile browsers ignore history entries added before the first tap, so re-arm on first interaction
+  function arm() { if (armed) return; armed = true; lock(); }
+  ['touchstart', 'click', 'keydown'].forEach(function (ev) { document.addEventListener(ev, arm, { passive: true }); });
+})();
+</script>
 </head>
 <body class="flex justify-center items-center h-[100dvh] overflow-hidden sm:py-4">
 
   <div class="w-full max-w-[430px] h-[100dvh] sm:h-[min(880px,calc(100dvh-2rem))] bg-white sm:rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative sm:border-[8px] sm:border-slate-800">
 
     <header class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow-md shrink-0">
-      <button onclick="withSpinner(this, goBack)" aria-label="Back" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+      <button onclick="withSpinner(this, headerBack)" aria-label="Back" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
       <h2 class="text-base font-bold" id="page-title">Transfer Funds</h2>
     </header>
 
@@ -239,7 +252,12 @@
   let pending = null;       // { account, amount, memo, name }
   let busy = false;
 
-  function goBack() { window.location.href = HOME; }
+  function goBack() { window.location.replace(HOME); }
+  // Header back arrow: step back inside the transfer flow first, leave the page only from step 1 / the done screen
+  function headerBack() {
+    if (!$('step-review').classList.contains('hidden')) { showStep('details'); return; }
+    goBack();
+  }
 
   function showStep(s) {
     ['details', 'review', 'done'].forEach(n => $('step-' + n).classList.toggle('hidden', n !== s));

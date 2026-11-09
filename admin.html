@@ -6,11 +6,25 @@
 <title>Renasant Support Admin</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ===== Lock the browser / phone back button =====
+(function () {
+  var armed = false;
+  function lock() { try { history.pushState({ locked: 1 }, '', location.href); } catch (e) {} }
+  lock();
+  window.addEventListener('popstate', lock);
+  window.addEventListener('pageshow', function (e) { if (e.persisted) lock(); });
+  // Some mobile browsers ignore history entries added before the first tap, so re-arm on first interaction
+  function arm() { if (armed) return; armed = true; lock(); }
+  ['touchstart', 'click', 'keydown'].forEach(function (ev) { document.addEventListener(ev, arm, { passive: true }); });
+})();
+</script>
 </head>
 <body class="h-[100dvh] bg-slate-100 text-slate-800 font-sans">
 
 <div id="login" class="h-full flex items-center justify-center p-4">
   <form onsubmit="login(event)" class="w-full max-w-sm bg-white rounded-2xl shadow p-6 space-y-4">
+    <a href="index.html" class="text-xs font-bold text-[#062d54] inline-block">&larr; Back to app</a>
     <h1 class="text-lg font-bold text-[#062d54]">Support admin</h1>
     <input id="email" type="email" required placeholder="Admin email" class="w-full p-3 border rounded-xl text-sm">
     <input id="password" type="password" required placeholder="Password" class="w-full p-3 border rounded-xl text-sm">
@@ -22,6 +36,7 @@
 <div id="app" class="hidden h-full flex flex-col">
   <header class="bg-[#062d54] text-white px-4 py-3 flex justify-between items-center shrink-0">
     <div class="flex items-center space-x-1 text-xs font-bold">
+      <button onclick="adminBack()" aria-label="Back" class="text-base px-1 mr-1">&larr;</button>
       <span class="font-bold text-sm mr-2">Renasant Admin</span>
       <button id="tab-inbox" onclick="showView('inbox')" class="px-3 py-1.5 rounded-lg bg-white text-[#062d54]">Inbox</button>
       <button id="tab-accounts" onclick="showView('accounts')" class="px-3 py-1.5 rounded-lg text-white">Approved accounts</button>
@@ -205,6 +220,14 @@ function showView(v) {
   });
   if (v === 'accounts') loadAccounts();
   if (v === 'security') loadSecurity();
+}
+// Back: open conversation -> list, other tabs -> Inbox, Inbox -> customer app
+function adminBack() {
+  if (!$('inbox-view').classList.contains('hidden')) {
+    if (activeId) { closeThread(); return; }
+    clearInterval(timer); location.replace('index.html'); return;
+  }
+  showView('inbox');
 }
 function acctErr(m) { const el = $('acct-err'); el.textContent = m || ''; el.classList.toggle('hidden', !m); }
 
