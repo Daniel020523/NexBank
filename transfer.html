@@ -59,8 +59,8 @@
           </div>
           <div class="space-y-1">
             <label for="to-account" class="text-xs font-bold text-gray-600">Recipient account number</label>
-            <input id="to-account" type="text" inputmode="numeric" maxlength="16" autocomplete="off" placeholder="16-digit account number"
-              oninput="this.value=this.value.replace(/\D/g,''); lookupAccount()" class="w-full p-3 border rounded-lg text-sm font-mono font-semibold focus:outline-renasant-navy">
+            <input id="to-account" type="text" inputmode="text" maxlength="16" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="16-character account number"
+              oninput="this.value=this.value.replace(/[^a-zA-Z0-9]/g,''); lookupAccount()" class="w-full p-3 border rounded-lg text-sm font-mono font-semibold focus:outline-renasant-navy">
             <div id="lookup" class="hidden text-xs font-semibold rounded-lg px-3 py-2 mt-1 flex items-center space-x-2"></div>
           </div>
           <div class="space-y-1">
@@ -127,57 +127,76 @@
   const HOME = 'renasant-bank.html';
   const WU = 'Western Union International Bank';   // the only bank that accepts admin-approved accounts
   const BANKS = {
-    'United States': ['Bank of America','Chase','Wells Fargo','Citibank','U.S. Bank'],
-    'Canada': ['Royal Bank of Canada','TD Canada Trust','Scotiabank','BMO','CIBC'],
-    'Mexico': ['BBVA México','Banorte','Santander México','Citibanamex'],
-    'United Kingdom': ['Barclays','HSBC UK','Lloyds Bank','NatWest','Santander UK'],
-    'Ireland': ['AIB','Bank of Ireland','Permanent TSB'],
-    'France': ['BNP Paribas','Crédit Agricole','Société Générale','LCL'],
-    'Germany': ['Deutsche Bank','Commerzbank','DKB','Sparkasse'],
-    'Spain': ['Santander','BBVA','CaixaBank','Banco Sabadell'],
-    'Italy': ['Intesa Sanpaolo','UniCredit','Banco BPM','Monte dei Paschi'],
-    'Portugal': ['Caixa Geral de Depósitos','Millennium bcp','Novo Banco','Santander Portugal'],
-    'Netherlands': ['ING','Rabobank','ABN AMRO','bunq'],
-    'Belgium': ['KBC','BNP Paribas Fortis','Belfius','ING Belgium'],
-    'Switzerland': ['UBS','Credit Suisse','PostFinance','Zürcher Kantonalbank'],
-    'Sweden': ['Swedbank','SEB','Handelsbanken','Nordea'],
-    'Norway': ['DNB','Nordea Norway','SpareBank 1'],
-    'Denmark': ['Danske Bank','Nordea Denmark','Jyske Bank'],
-    'Finland': ['Nordea Finland','OP Financial Group','Danske Bank Finland'],
-    'Poland': ['PKO Bank Polski','Bank Pekao','mBank','ING Bank Śląski'],
-    'Greece': ['National Bank of Greece','Piraeus Bank','Alpha Bank','Eurobank'],
-    'Turkey': ['Ziraat Bankası','İş Bankası','Garanti BBVA','Akbank'],
-    'Israel': ['Bank Hapoalim','Bank Leumi','Discount Bank','Mizrahi Tefahot'],
-    'United Arab Emirates': ['Emirates NBD','First Abu Dhabi Bank','Abu Dhabi Commercial Bank','Mashreq'],
-    'Saudi Arabia': ['Al Rajhi Bank','Saudi National Bank','Riyad Bank','Banque Saudi Fransi'],
-    'Egypt': ['National Bank of Egypt','Banque Misr','CIB Egypt'],
-    'Nigeria': ['Access Bank','GTBank','Zenith Bank','First Bank of Nigeria','UBA'],
-    'Ghana': ['GCB Bank','Ecobank Ghana','Stanbic Bank Ghana','Absa Ghana'],
-    'Kenya': ['KCB','Equity Bank','Co-operative Bank of Kenya','Absa Kenya'],
-    'South Africa': ['Standard Bank','FNB','Absa','Nedbank','Capitec'],
-    'India': ['State Bank of India','HDFC Bank','ICICI Bank','Axis Bank'],
-    'Pakistan': ['HBL','UBL','MCB Bank','Meezan Bank'],
-    'Bangladesh': ['Dutch-Bangla Bank','BRAC Bank','Islami Bank Bangladesh','City Bank'],
-    'China': ['ICBC','China Construction Bank','Bank of China','Agricultural Bank of China'],
-    'Japan': ['MUFG Bank','Mizuho Bank','SMBC','Resona Bank'],
-    'South Korea': ['KB Kookmin Bank','Shinhan Bank','Hana Bank','Woori Bank'],
-    'Philippines': ['BDO','BPI','Metrobank','Landbank'],
-    'Vietnam': ['Vietcombank','BIDV','VietinBank','Techcombank'],
-    'Thailand': ['Bangkok Bank','Kasikornbank','Siam Commercial Bank','Krungthai Bank'],
-    'Indonesia': ['Bank Mandiri','BCA','BRI','BNI'],
-    'Malaysia': ['Maybank','CIMB','Public Bank','RHB Bank'],
-    'Singapore': ['DBS','OCBC','UOB','Standard Chartered Singapore'],
-    'Australia': ['Commonwealth Bank','Westpac','ANZ','NAB'],
-    'New Zealand': ['ANZ New Zealand','ASB Bank','BNZ','Westpac New Zealand'],
-    'Brazil': ['Itaú Unibanco','Banco do Brasil','Bradesco','Caixa Econômica Federal'],
-    'Argentina': ['Banco Nación','Banco Galicia','Santander Argentina','BBVA Argentina'],
-    'Chile': ['Banco de Chile','BancoEstado','Santander Chile','BCI'],
-    'Colombia': ['Bancolombia','Davivienda','Banco de Bogotá','BBVA Colombia'],
-    'Peru': ['BCP','BBVA Perú','Interbank','Scotiabank Perú'],
-    'Jamaica': ['NCB','Scotiabank Jamaica','JN Bank','Sagicor Bank'],
-    'Dominican Republic': ['Banco Popular Dominicano','Banreservas','BHD','Scotiabank DR']
+    'United States': ['Bank of America','Chase','Wells Fargo','Citibank','U.S. Bank','Capital One','PNC Bank','Truist','TD Bank','Goldman Sachs Marcus','Ally Bank','Charles Schwab Bank','Regions Bank','Fifth Third Bank','Citizens Bank','KeyBank','Huntington Bank','Navy Federal Credit Union','USAA','Discover Bank','Renasant Bank'],
+    'Canada': ['Royal Bank of Canada','TD Canada Trust','Scotiabank','BMO','CIBC','National Bank of Canada','Desjardins','Tangerine','HSBC Canada','Laurentian Bank'],
+    'Mexico': ['BBVA México','Banorte','Santander México','Citibanamex','HSBC México','Scotiabank México','Inbursa','Banco Azteca','BanCoppel'],
+    'United Kingdom': ['Barclays','HSBC UK','Lloyds Bank','NatWest','Santander UK','Halifax','TSB','Nationwide','Monzo','Starling Bank','Revolut','Metro Bank','Co-operative Bank'],
+    'Ireland': ['AIB','Bank of Ireland','Permanent TSB','Ulster Bank','Revolut Ireland','KBC Ireland'],
+    'France': ['BNP Paribas','Crédit Agricole','Société Générale','LCL','Crédit Mutuel','Banque Populaire','Caisse d\'Epargne','La Banque Postale','Boursorama','HSBC France'],
+    'Germany': ['Deutsche Bank','Commerzbank','DKB','Sparkasse','Volksbank','ING Germany','N26','Postbank','HypoVereinsbank','Santander Germany'],
+    'Spain': ['Santander','BBVA','CaixaBank','Banco Sabadell','Bankinter','Unicaja','Kutxabank','ING Spain','Abanca','Openbank'],
+    'Italy': ['Intesa Sanpaolo','UniCredit','Banco BPM','Monte dei Paschi','BPER Banca','Banca Mediolanum','Fineco','Credem','Poste Italiane'],
+    'Portugal': ['Caixa Geral de Depósitos','Millennium bcp','Novo Banco','Santander Portugal','BPI','Montepio','ActivoBank'],
+    'Netherlands': ['ING','Rabobank','ABN AMRO','bunq','SNS Bank','Triodos Bank','Knab','ASN Bank'],
+    'Belgium': ['KBC','BNP Paribas Fortis','Belfius','ING Belgium','Argenta','AXA Bank Belgium','CBC Banque'],
+    'Switzerland': ['UBS','Credit Suisse','PostFinance','Zürcher Kantonalbank','Raiffeisen','Julius Baer','Migros Bank','Bank Cler','Banque Cantonale Vaudoise'],
+    'Sweden': ['Swedbank','SEB','Handelsbanken','Nordea','Länsförsäkringar Bank','Danske Bank Sweden','ICA Banken','Skandia'],
+    'Norway': ['DNB','Nordea Norway','SpareBank 1','Danske Bank Norway','Handelsbanken Norway','Sbanken'],
+    'Denmark': ['Danske Bank','Nordea Denmark','Jyske Bank','Sydbank','Nykredit','Spar Nord','Arbejdernes Landsbank'],
+    'Finland': ['Nordea Finland','OP Financial Group','Danske Bank Finland','S-Pankki','Aktia','Handelsbanken Finland'],
+    'Poland': ['PKO Bank Polski','Bank Pekao','mBank','ING Bank Śląski','Santander Bank Polska','Millennium Bank','Alior Bank','Bank Handlowy'],
+    'Greece': ['National Bank of Greece','Piraeus Bank','Alpha Bank','Eurobank','Attica Bank'],
+    'Turkey': ['Ziraat Bankası','İş Bankası','Garanti BBVA','Akbank','Yapı Kredi','Halkbank','VakıfBank','QNB Finansbank','DenizBank'],
+    'Israel': ['Bank Hapoalim','Bank Leumi','Discount Bank','Mizrahi Tefahot','First International Bank','Bank Otsar Hahayal'],
+    'United Arab Emirates': ['Emirates NBD','First Abu Dhabi Bank','Abu Dhabi Commercial Bank','Mashreq','Dubai Islamic Bank','RAKBANK','Commercial Bank of Dubai','Abu Dhabi Islamic Bank'],
+    'Saudi Arabia': ['Al Rajhi Bank','Saudi National Bank','Riyad Bank','Banque Saudi Fransi','Saudi British Bank','Alinma Bank','Arab National Bank','Bank Albilad'],
+    'Egypt': ['National Bank of Egypt','Banque Misr','CIB Egypt','QNB Alahli','Banque du Caire','HSBC Egypt'],
+    'Nigeria': ['Access Bank','GTBank','Zenith Bank','First Bank of Nigeria','UBA','Fidelity Bank','Stanbic IBTC','Sterling Bank','Union Bank','Wema Bank','Polaris Bank','Ecobank Nigeria','Kuda Bank','Opay','Moniepoint'],
+    'Ghana': ['GCB Bank','Ecobank Ghana','Stanbic Bank Ghana','Absa Ghana','Fidelity Bank Ghana','CalBank','Zenith Bank Ghana','Standard Chartered Ghana','Republic Bank Ghana'],
+    'Kenya': ['KCB','Equity Bank','Co-operative Bank of Kenya','Absa Kenya','Standard Chartered Kenya','NCBA','Stanbic Kenya','I&M Bank','DTB Kenya'],
+    'South Africa': ['Standard Bank','FNB','Absa','Nedbank','Capitec','Investec','TymeBank','Discovery Bank','African Bank'],
+    'India': ['State Bank of India','HDFC Bank','ICICI Bank','Axis Bank','Kotak Mahindra Bank','Punjab National Bank','Bank of Baroda','Canara Bank','IndusInd Bank','Yes Bank','Union Bank of India','IDFC First Bank'],
+    'Pakistan': ['HBL','UBL','MCB Bank','Meezan Bank','Allied Bank','Bank Alfalah','Askari Bank','Faysal Bank','Standard Chartered Pakistan','National Bank of Pakistan'],
+    'Bangladesh': ['Dutch-Bangla Bank','BRAC Bank','Islami Bank Bangladesh','City Bank','Eastern Bank','Sonali Bank','Janata Bank','Prime Bank','Standard Chartered Bangladesh'],
+    'China': ['ICBC','China Construction Bank','Bank of China','Agricultural Bank of China','Bank of Communications','China Merchants Bank','Postal Savings Bank of China','Ping An Bank'],
+    'Japan': ['MUFG Bank','Mizuho Bank','SMBC','Resona Bank','Japan Post Bank','Rakuten Bank','SBI Sumishin Net Bank','Aeon Bank'],
+    'South Korea': ['KB Kookmin Bank','Shinhan Bank','Hana Bank','Woori Bank','NH Nonghyup Bank','IBK','KakaoBank','Toss Bank','SC First Bank'],
+    'Philippines': ['BDO','BPI','Metrobank','Landbank','PNB','Security Bank','UnionBank','China Bank','RCBC','GCash'],
+    'Vietnam': ['Vietcombank','BIDV','VietinBank','Techcombank','MB Bank','ACB','VPBank','Sacombank','TPBank','Agribank'],
+    'Thailand': ['Bangkok Bank','Kasikornbank','Siam Commercial Bank','Krungthai Bank','Bank of Ayudhya (Krungsri)','TMBThanachart','CIMB Thai','UOB Thailand'],
+    'Indonesia': ['Bank Mandiri','BCA','BRI','BNI','CIMB Niaga','Bank Danamon','Permata Bank','OCBC NISP','BTN','Bank Syariah Indonesia'],
+    'Malaysia': ['Maybank','CIMB','Public Bank','RHB Bank','Hong Leong Bank','AmBank','Bank Islam','Affin Bank','Bank Rakyat'],
+    'Singapore': ['DBS','OCBC','UOB','Standard Chartered Singapore','Citibank Singapore','HSBC Singapore','Maybank Singapore','Trust Bank','GXS Bank'],
+    'Australia': ['Commonwealth Bank','Westpac','ANZ','NAB','Macquarie Bank','Bendigo Bank','ING Australia','Bank of Queensland','Suncorp Bank','St.George Bank','ME Bank'],
+    'New Zealand': ['ANZ New Zealand','ASB Bank','BNZ','Westpac New Zealand','Kiwibank','TSB Bank','Heartland Bank','SBS Bank'],
+    'Brazil': ['Itaú Unibanco','Banco do Brasil','Bradesco','Caixa Econômica Federal','Santander Brasil','Nubank','Banco Inter','BTG Pactual','Safra','C6 Bank','Sicoob'],
+    'Argentina': ['Banco Nación','Banco Galicia','Santander Argentina','BBVA Argentina','Banco Macro','Banco Provincia','HSBC Argentina','ICBC Argentina','Mercado Pago'],
+    'Chile': ['Banco de Chile','BancoEstado','Santander Chile','BCI','Itaú Chile','Scotiabank Chile','Banco Falabella','Banco Security'],
+    'Colombia': ['Bancolombia','Davivienda','Banco de Bogotá','BBVA Colombia','Banco de Occidente','Banco Popular','Scotiabank Colpatria','Nequi','AV Villas'],
+    'Peru': ['BCP','BBVA Perú','Interbank','Scotiabank Perú','Banco de la Nación','BanBif','Pichincha Perú','Mibanco'],
+    'Jamaica': ['NCB','Scotiabank Jamaica','JN Bank','Sagicor Bank','CIBC Caribbean','JMMB Bank','First Global Bank'],
+    'Dominican Republic': ['Banco Popular Dominicano','Banreservas','BHD','Scotiabank DR','Banco Santa Cruz','Asociación Popular','Banesco DR','Banco Caribe'],
+    'Ecuador': ['Banco Pichincha','Banco del Pacífico','Banco de Guayaquil','Produbanco','Banco Bolivariano'],
+    'Costa Rica': ['Banco Nacional de Costa Rica','BAC Credomatic','Banco de Costa Rica','Scotiabank Costa Rica'],
+    'Trinidad and Tobago': ['Republic Bank','First Citizens Bank','RBC Royal Bank Trinidad','Scotiabank Trinidad'],
+    'Morocco': ['Attijariwafa Bank','Banque Populaire du Maroc','BMCE Bank','Crédit Agricole du Maroc','CIH Bank'],
+    'Tanzania': ['CRDB Bank','NMB Bank','NBC Tanzania','Stanbic Tanzania','Equity Bank Tanzania'],
+    'Uganda': ['Stanbic Uganda','Centenary Bank','dfcu Bank','Absa Uganda','Equity Bank Uganda'],
+    'Ethiopia': ['Commercial Bank of Ethiopia','Awash Bank','Dashen Bank','Bank of Abyssinia','Wegagen Bank'],
+    'Cameroon': ['Afriland First Bank','Ecobank Cameroon','Société Générale Cameroun','UBA Cameroon','BICEC'],
+    'Qatar': ['Qatar National Bank','Commercial Bank of Qatar','Doha Bank','Dukhan Bank','Qatar Islamic Bank'],
+    'Kuwait': ['National Bank of Kuwait','Kuwait Finance House','Gulf Bank','Burgan Bank','Warba Bank'],
+    'Lebanon': ['Bank Audi','BLOM Bank','Byblos Bank','Fransabank','Bank of Beirut'],
+    'Sri Lanka': ['Bank of Ceylon','People\'s Bank','Commercial Bank of Ceylon','Hatton National Bank','Sampath Bank'],
+    'Nepal': ['Nabil Bank','Nepal Investment Mega Bank','Global IME Bank','NIC Asia Bank','Rastriya Banijya Bank'],
+    'Russia': ['Sberbank','VTB','Alfa-Bank','Gazprombank','Tinkoff','Raiffeisenbank Russia'],
+    'Ukraine': ['PrivatBank','Monobank','Oschadbank','Raiffeisen Bank Ukraine','PUMB'],
+    'Romania': ['Banca Transilvania','BCR','BRD','Raiffeisen Bank Romania','ING Bank Romania'],
+    'Czech Republic': ['Česká spořitelna','ČSOB','Komerční banka','Raiffeisenbank CZ','Moneta Money Bank'],
+    'Hungary': ['OTP Bank','K&H Bank','Erste Bank Hungary','CIB Bank','MBH Bank'],
+    'Austria': ['Erste Bank','Raiffeisen Bank International','Bank Austria','BAWAG','Oberbank']
   };
-  const DEFAULT_BANKS = ['HSBC','Citibank','Standard Chartered','Santander'];
+  const DEFAULT_BANKS = ['HSBC','Citibank','Standard Chartered','Santander','Deutsche Bank','BNP Paribas','Barclays','Wise','Revolut','Western Union Partner Bank'];
   const $ = id => document.getElementById(id);
   const money = v => (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -218,10 +237,13 @@
   }
 
   function populateBanks() {
-    const list = [WU, ...(BANKS[me.country] || DEFAULT_BANKS)];
+    // All banks from every country, de-duplicated and sorted A-Z (Western Union first)
+    const all = [...new Set(Object.values(BANKS).flat().concat(DEFAULT_BANKS))]
+      .filter(b => b !== WU)
+      .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
     const sel = $('to-bank');
-    list.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o); });
-    $('bank-country').textContent = me.country ? '(' + me.country + ')' : '';
+    [WU, ...all].forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o); });
+    $('bank-country').textContent = '';
   }
 
   function renderFrom() {
@@ -258,7 +280,7 @@
     const account = $('to-account').value.trim();
     const bank = $('to-bank').value;
     const seq = ++lookupSeq;
-    if (account.length < 16) { setLookup(null); return; }      // only check once all 16 digits are in
+    if (account.length < 16) { setLookup(null); return; }      // only check once all 16 characters are in
     if (!bank) { setLookup('bad', 'Select a bank first'); return; }
     if (bank !== WU) { setLookup('bad', 'Incorrect account number'); return; }
     setLookup('wait', 'Checking account...');
@@ -281,7 +303,7 @@
     const amount = Math.round(parseFloat($('amount').value) * 100) / 100;
     const memo = $('memo').value.trim();
 
-    if (!/^\d{16}$/.test(account)) return setErr('details-err', 'Account number must be 16 digits.');
+    if (!/^[a-zA-Z0-9]{16}$/.test(account)) return setErr('details-err', 'Account number must be 16 letters or digits.');
     if (!verified || verified.account !== account || verified.bank !== $('to-bank').value) return setErr('details-err', 'Incorrect account number.');
     if (!amount || amount <= 0) return setErr('details-err', 'Enter a valid amount.');
     if (amount > me.balance) return setErr('details-err', 'Insufficient funds.');
