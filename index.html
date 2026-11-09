@@ -54,6 +54,19 @@
       border-bottom: 1.5px dashed rgba(255, 255, 255, 0.35);
     }
 
+    /* Page View Transitions */
+    .app-screen {
+      position: absolute;
+      inset: 0;
+      background: white;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 20;
+    }
+
+    .app-screen.slide-out {
+      transform: translateX(100%);
+    }
+
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 0px;
@@ -66,13 +79,12 @@
   <!-- Mobile App Frame Container -->
   <div class="w-full max-w-[430px] h-[100vh] sm:h-[880px] bg-white sm:rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative border-0 sm:border-[8px] sm:border-slate-800">
     
-    <!-- Dynamic Top Phone Status Bar -->
+    <!-- Dynamic Top Phone Status Bar (Battery percentage & icon removed) -->
     <div class="bg-renasant-navy text-white px-6 pt-3 pb-1 flex justify-between items-center text-xs font-semibold z-50">
       <span id="status-time" class="tracking-tight text-sm font-bold">8:54</span>
       <div class="flex items-center space-x-2 text-xs">
         <i class="fa-solid fa-signal"></i>
         <i class="fa-solid fa-wifi"></i>
-        <i class="fa-solid fa-battery-full text-sm"></i>
       </div>
     </div>
 
@@ -84,7 +96,7 @@
       </button>
 
       <!-- Renasant Bank Logo -->
-      <div class="flex items-center space-x-2">
+      <div onclick="navigateTo('dashboard')" class="flex items-center space-x-2 cursor-pointer">
         <svg class="w-7 h-7" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M20 80 C20 40, 50 30, 80 20 C60 50, 40 60, 20 80 Z" fill="#64B5F6" />
           <path d="M35 85 C35 55, 60 45, 85 35 C70 60, 55 70, 35 85 Z" fill="#90CAF9" opacity="0.8"/>
@@ -97,10 +109,10 @@
 
       <!-- Header Action Icons -->
       <div class="flex items-center space-x-3 text-xl">
-        <button onclick="showToast('Help & Support')" class="hover:opacity-80 transition focus:outline-none">
+        <button onclick="navigateTo('help')" class="hover:opacity-80 transition focus:outline-none">
           <i class="fa-regular fa-circle-question"></i>
         </button>
-        <button onclick="showToast('Profile & Settings')" class="hover:opacity-80 transition focus:outline-none">
+        <button onclick="navigateTo('profile')" class="hover:opacity-80 transition focus:outline-none">
           <i class="fa-regular fa-circle-user"></i>
         </button>
       </div>
@@ -123,11 +135,11 @@
       <div class="flex justify-between items-center pt-1 px-1">
         <div class="flex items-center space-x-2">
           <h1 class="text-xl font-bold text-renasant-textDark tracking-tight">Welcome, James!</h1>
-          <button onclick="showToast('No new notifications')" class="text-gray-700 hover:text-renasant-navy transition">
+          <button onclick="navigateTo('notifications')" class="text-gray-700 hover:text-renasant-navy transition">
             <i class="fa-regular fa-bell text-lg"></i>
           </button>
         </div>
-        <button onclick="showToast('Account Settings')" class="text-gray-600 hover:text-renasant-navy transition p-1">
+        <button onclick="navigateTo('settings')" class="text-gray-600 hover:text-renasant-navy transition p-1">
           <i class="fa-solid fa-gear text-xl"></i>
         </button>
       </div>
@@ -135,7 +147,7 @@
       <!-- MAIN ACCOUNT CARD (Simple Checking) -->
       <div class="rounded-xl overflow-hidden shadow-md border border-gray-100">
         <!-- Top Light Green Banner -->
-        <button onclick="openFundModal()" class="w-full bg-renasant-greenBg px-3 py-2 flex items-center space-x-2 text-renasant-greenText hover:bg-green-200 transition text-left">
+        <button onclick="navigateTo('fund')" class="w-full bg-renasant-greenBg px-3 py-2 flex items-center space-x-2 text-renasant-greenText hover:bg-green-200 transition text-left">
           <i class="fa-regular fa-circle-question text-base"></i>
           <span class="font-bold text-sm tracking-wide">Fund Account</span>
         </button>
@@ -145,18 +157,18 @@
           
           <div class="flex justify-between items-start">
             <!-- Account Info -->
-            <div>
-              <h2 class="text-lg font-semibold tracking-wide">Simple Checking</h2>
+            <div onclick="navigateTo('accountDetails')" class="cursor-pointer group">
+              <h2 class="text-lg font-semibold tracking-wide group-hover:underline">Simple Checking</h2>
               <div class="flex items-center space-x-2 mt-0.5 text-xs text-gray-300">
                 <span>****6922</span>
-                <button onclick="toggleBalanceVisibility()" id="eye-btn" class="focus:outline-none hover:text-white transition">
+                <button onclick="event.stopPropagation(); toggleBalanceVisibility()" id="eye-btn" class="focus:outline-none hover:text-white transition">
                   <i class="fa-regular fa-eye text-xs" id="eye-icon"></i>
                 </button>
               </div>
             </div>
 
             <!-- Balance Display -->
-            <div class="text-right">
+            <div onclick="navigateTo('accountDetails')" class="text-right cursor-pointer">
               <div id="balance-amount" class="text-3xl font-bold tracking-tight">-$120.46</div>
               <div class="flex items-center justify-end space-x-1 text-[11px] text-gray-300 mt-1">
                 <span>Available Balance</span>
@@ -171,19 +183,19 @@
           <!-- Quick Actions Grid inside Card -->
           <div class="grid grid-cols-3 text-center">
             <!-- Transfers -->
-            <button onclick="setActiveTab('transfers')" class="flex flex-col items-center justify-center py-1 dashed-border-r hover:bg-white/10 rounded transition">
+            <button onclick="navigateTo('transfers')" class="flex flex-col items-center justify-center py-1 dashed-border-r hover:bg-white/10 rounded transition">
               <i class="fa-solid fa-right-left text-lg mb-1"></i>
               <span class="text-xs font-medium">Transfers</span>
             </button>
 
             <!-- Deposit -->
-            <button onclick="setActiveTab('deposit')" class="flex flex-col items-center justify-center py-1 dashed-border-r hover:bg-white/10 rounded transition">
+            <button onclick="navigateTo('deposit')" class="flex flex-col items-center justify-center py-1 dashed-border-r hover:bg-white/10 rounded transition">
               <i class="fa-solid fa-camera text-lg mb-1"></i>
               <span class="text-xs font-medium">Deposit</span>
             </button>
 
             <!-- Documents -->
-            <button onclick="showToast('Viewing Documents')" class="flex flex-col items-center justify-center py-1 hover:bg-white/10 rounded transition">
+            <button onclick="navigateTo('documents')" class="flex flex-col items-center justify-center py-1 hover:bg-white/10 rounded transition">
               <i class="fa-regular fa-file-lines text-lg mb-1"></i>
               <span class="text-xs font-medium">Documents</span>
             </button>
@@ -193,7 +205,7 @@
       </div>
 
       <!-- ANNOUNCEMENTS CARD -->
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div onclick="navigateTo('notice')" class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 cursor-pointer hover:border-blue-200 transition">
         <h3 class="text-base font-bold text-renasant-textDark mb-3">Announcements</h3>
         
         <div class="flex items-start space-x-3">
@@ -204,16 +216,16 @@
             </h4>
             <p class="text-xs text-gray-600 leading-relaxed">
               To ensure compatibility with the latest security standards, Android operating systems below version ...
-              <button onclick="openNoticeModal()" class="text-renasant-navy font-semibold underline hover:text-blue-900 focus:outline-none">
+              <span class="text-renasant-navy font-semibold underline">
                 Show Full Text
-              </button>
+              </span>
             </p>
           </div>
         </div>
       </div>
 
       <!-- SPENDING INSIGHTS CARD -->
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center space-x-4">
+      <div onclick="navigateTo('insights')" class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center space-x-4 cursor-pointer hover:border-teal-200 transition">
         <!-- SVG Icon Graphic -->
         <div class="w-16 h-16 shrink-0 relative flex items-center justify-center">
           <svg class="w-full h-full" viewBox="0 0 64 64" fill="none">
@@ -244,85 +256,312 @@
     <!-- FIXED BOTTOM NAVIGATION BAR -->
     <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-2 flex justify-around items-center z-40 shadow-lg">
       
+      <!-- Dashboard / Accounts Nav item -->
+      <button onclick="navigateTo('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center justify-center w-full py-1 text-renasant-navy focus:outline-none">
+        <i class="fa-solid fa-house text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Home</span>
+      </button>
+
       <!-- Transfers Nav item -->
-      <button onclick="setActiveTab('transfers')" id="nav-transfers" class="nav-item flex flex-col items-center justify-center w-full py-1 text-renasant-navy focus:outline-none">
+      <button onclick="navigateTo('transfers')" id="nav-transfers" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
         <i class="fa-solid fa-right-left text-lg mb-1"></i>
         <span class="text-[10px] font-medium">Transfers</span>
       </button>
 
       <!-- Bill Pay Nav item -->
-      <button onclick="setActiveTab('billpay')" id="nav-billpay" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
-        <div class="relative">
-          <i class="fa-solid fa-money-bill-1-wave text-lg mb-1"></i>
-        </div>
+      <button onclick="navigateTo('billpay')" id="nav-billpay" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
+        <i class="fa-solid fa-money-bill-1-wave text-lg mb-1"></i>
         <span class="text-[10px] font-medium">Bill Pay</span>
       </button>
 
       <!-- Zelle Nav item -->
-      <button onclick="setActiveTab('zelle')" id="nav-zelle" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
+      <button onclick="navigateTo('zelle')" id="nav-zelle" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
         <i class="fa-solid fa-money-bill-transfer text-lg mb-1"></i>
         <span class="text-[10px] font-medium">Zelle®</span>
       </button>
 
       <!-- Deposit Nav item -->
-      <button onclick="setActiveTab('deposit')" id="nav-deposit" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
+      <button onclick="navigateTo('deposit')" id="nav-deposit" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
         <i class="fa-solid fa-camera text-lg mb-1"></i>
         <span class="text-[10px] font-medium">Deposit</span>
       </button>
 
       <!-- Cards Nav item -->
-      <button onclick="setActiveTab('cards')" id="nav-cards" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
+      <button onclick="navigateTo('cards')" id="nav-cards" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
         <i class="fa-solid fa-credit-card text-lg mb-1"></i>
         <span class="text-[10px] font-medium">Cards</span>
       </button>
 
     </nav>
 
-    <!-- ANNOUNCEMENT FULL TEXT MODAL -->
-    <div id="notice-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-fade-in space-y-4">
-        <div class="flex justify-between items-center border-b pb-3">
-          <h3 class="text-base font-bold text-renasant-navy">Security Announcement</h3>
-          <button onclick="closeNoticeModal()" class="text-gray-400 hover:text-gray-600">
-            <i class="fa-solid fa-xmark text-xl"></i>
-          </button>
+    <!-- SUB-PAGES CONTAINER WITH SLIDE TRANSITIONS -->
+    <div id="sub-page-container">
+      
+      <!-- TRANSFERS PAGE -->
+      <div id="page-transfers" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('transfers')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Transfer Funds</h2>
         </div>
-        <div class="text-xs text-gray-700 space-y-3 leading-relaxed max-h-60 overflow-y-auto pr-1">
-          <p class="font-semibold text-renasant-textDark">Important Notice for Android Mobile Users</p>
-          <p>To ensure compatibility with the latest security standards, Android operating systems below version 9.0 will no longer be supported starting next month.</p>
-          <p>Please update your device's operating system to continue using all Renasant Bank Mobile features smoothly and securely.</p>
+        <div class="p-4 flex-1 overflow-y-auto space-y-4">
+          <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
+            <label class="text-xs font-bold text-gray-600">From Account</label>
+            <div class="p-3 bg-white border rounded-lg text-sm font-semibold text-renasant-navy">Simple Checking (****6922)</div>
+            <label class="text-xs font-bold text-gray-600">To Account</label>
+            <select class="w-full p-3 bg-white border rounded-lg text-sm font-semibold text-gray-700">
+              <option>Savings Account (****4110)</option>
+              <option>External Bank Account</option>
+            </select>
+            <label class="text-xs font-bold text-gray-600">Amount ($)</label>
+            <input type="number" placeholder="0.00" class="w-full p-3 border rounded-lg text-sm font-bold">
+            <button onclick="closePage('transfers'); showToast('Transfer Submitted Successfully!');" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm">Submit Transfer</button>
+          </div>
         </div>
-        <button onclick="closeNoticeModal()" class="w-full py-2.5 bg-renasant-navy text-white text-xs font-bold rounded-xl hover:bg-renasant-navyDark transition">
-          I Understand
-        </button>
       </div>
-    </div>
 
-    <!-- FUND ACCOUNT MODAL -->
-    <div id="fund-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
-        <div class="flex justify-between items-center border-b pb-3">
-          <h3 class="text-base font-bold text-renasant-navy">Fund Simple Checking</h3>
-          <button onclick="closeFundModal()" class="text-gray-400 hover:text-gray-600">
-            <i class="fa-solid fa-xmark text-xl"></i>
-          </button>
+      <!-- DEPOSIT PAGE -->
+      <div id="page-deposit" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('deposit')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Mobile Check Deposit</h2>
         </div>
-        <p class="text-xs text-gray-600">Select an option to add funds to your account ****6922:</p>
-        <div class="space-y-2">
-          <button onclick="closeFundModal(); showToast('Transfer from linked external bank initiated');" class="w-full text-left p-3 border rounded-xl text-xs font-semibold text-renasant-textDark hover:bg-blue-50 transition flex items-center space-x-3">
-            <i class="fa-solid fa-building-columns text-renasant-navy text-base"></i>
-            <span>Transfer from External Bank</span>
+        <div class="p-6 flex-1 overflow-y-auto space-y-4 text-center">
+          <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center justify-center space-y-2 bg-gray-50">
+            <i class="fa-solid fa-camera text-4xl text-renasant-navy"></i>
+            <span class="text-xs font-semibold text-gray-600">Tap to Capture Front of Check</span>
+          </div>
+          <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center justify-center space-y-2 bg-gray-50">
+            <i class="fa-solid fa-camera text-4xl text-renasant-navy"></i>
+            <span class="text-xs font-semibold text-gray-600">Tap to Capture Back of Check</span>
+          </div>
+          <button onclick="closePage('deposit'); showToast('Check Deposit Submitted');" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm">Submit Deposit</button>
+        </div>
+      </div>
+
+      <!-- BILL PAY PAGE -->
+      <div id="page-billpay" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('billpay')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Bill Pay</h2>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto space-y-3">
+          <div class="flex justify-between items-center p-3 border rounded-xl bg-white shadow-sm">
+            <div>
+              <div class="font-bold text-sm text-renasant-textDark">Electric Utility Co.</div>
+              <div class="text-xs text-gray-500">Due Nov 15 • $84.20</div>
+            </div>
+            <button onclick="showToast('Bill Payment Scheduled')" class="px-3 py-1.5 bg-renasant-navy text-white rounded-lg text-xs font-semibold">Pay Now</button>
+          </div>
+          <div class="flex justify-between items-center p-3 border rounded-xl bg-white shadow-sm">
+            <div>
+              <div class="font-bold text-sm text-renasant-textDark">City Water Dept</div>
+              <div class="text-xs text-gray-500">Due Nov 22 • $42.50</div>
+            </div>
+            <button onclick="showToast('Bill Payment Scheduled')" class="px-3 py-1.5 bg-renasant-navy text-white rounded-lg text-xs font-semibold">Pay Now</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZELLE PAGE -->
+      <div id="page-zelle" class="app-screen slide-out flex flex-col">
+        <div class="bg-purple-900 text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('zelle')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Zelle®</h2>
+        </div>
+        <div class="p-6 flex-1 overflow-y-auto space-y-4 text-center">
+          <i class="fa-solid fa-money-bill-transfer text-5xl text-purple-800"></i>
+          <h3 class="font-bold text-lg text-gray-800">Send or Request Money</h3>
+          <p class="text-xs text-gray-500">Send money directly to friends and family using their email or mobile phone number.</p>
+          <div class="grid grid-cols-2 gap-3 pt-4">
+            <button onclick="showToast('Zelle Send Selected')" class="py-3 bg-purple-800 text-white rounded-xl font-bold text-xs">Send</button>
+            <button onclick="showToast('Zelle Request Selected')" class="py-3 bg-purple-100 text-purple-900 rounded-xl font-bold text-xs">Request</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARDS PAGE -->
+      <div id="page-cards" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('cards')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Manage Debit Cards</h2>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto space-y-4">
+          <div class="bg-gradient-to-r from-blue-900 to-indigo-800 text-white p-5 rounded-2xl shadow-md space-y-6">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold uppercase tracking-widest">Renasant Debit</span>
+              <i class="fa-solid fa-wifi text-lg"></i>
+            </div>
+            <div class="text-lg font-mono tracking-widest">•••• •••• •••• 6922</div>
+            <div class="flex justify-between text-xs">
+              <span>JAMES MILLER</span>
+              <span>EXP 08/28</span>
+            </div>
+          </div>
+          <div class="flex justify-between items-center p-3 border rounded-xl">
+            <span class="text-xs font-bold text-gray-700">Lock / Freeze Card</span>
+            <input type="checkbox" class="w-5 h-5 accent-renasant-navy cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS PAGE -->
+      <div id="page-documents" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('documents')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Statements & Documents</h2>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto space-y-2">
+          <div onclick="showToast('Downloading October Statement...')" class="flex justify-between items-center p-3 border rounded-xl bg-white cursor-pointer hover:bg-gray-50">
+            <div class="flex items-center space-x-3">
+              <i class="fa-regular fa-file-pdf text-red-600 text-xl"></i>
+              <div>
+                <div class="text-xs font-bold text-gray-800">October 2026 Statement</div>
+                <div class="text-[10px] text-gray-500">PDF • 145 KB</div>
+              </div>
+            </div>
+            <i class="fa-solid fa-download text-gray-400"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUND ACCOUNT PAGE -->
+      <div id="page-fund" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('fund')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Fund Account</h2>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto space-y-3">
+          <button onclick="closePage('fund'); navigateTo('transfers');" class="w-full text-left p-4 border rounded-xl font-bold text-xs text-renasant-navy bg-blue-50 flex justify-between items-center">
+            <span>Transfer from External Account</span>
+            <i class="fa-solid fa-chevron-right"></i>
           </button>
-          <button onclick="closeFundModal(); showToast('Mobile Deposit Selected');" class="w-full text-left p-3 border rounded-xl text-xs font-semibold text-renasant-textDark hover:bg-blue-50 transition flex items-center space-x-3">
-            <i class="fa-solid fa-camera text-renasant-navy text-base"></i>
-            <span>Deposit a Check</span>
-          </button>
-          <button onclick="closeFundModal(); showToast('Zelle Request Initiated');" class="w-full text-left p-3 border rounded-xl text-xs font-semibold text-renasant-textDark hover:bg-blue-50 transition flex items-center space-x-3">
-            <i class="fa-solid fa-money-bill-transfer text-renasant-navy text-base"></i>
-            <span>Request Money via Zelle®</span>
+          <button onclick="closePage('fund'); navigateTo('deposit');" class="w-full text-left p-4 border rounded-xl font-bold text-xs text-renasant-navy bg-blue-50 flex justify-between items-center">
+            <span>Mobile Deposit</span>
+            <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
       </div>
+
+      <!-- ACCOUNT DETAILS PAGE -->
+      <div id="page-accountDetails" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('accountDetails')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Simple Checking Details</h2>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto space-y-4">
+          <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center space-y-1">
+            <span class="text-xs text-gray-500">Current Balance</span>
+            <div class="text-3xl font-bold text-renasant-navy">-$120.46</div>
+            <span class="text-[11px] text-red-600 font-semibold">Account Overdrawn</span>
+          </div>
+          <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Recent Transactions</h3>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center p-3 border-b text-xs">
+              <div>
+                <div class="font-bold text-gray-800">Coffee Shop</div>
+                <div class="text-[10px] text-gray-500">Nov 8, 2026</div>
+              </div>
+              <span class="font-bold text-red-600">-$4.50</span>
+            </div>
+            <div class="flex justify-between items-center p-3 border-b text-xs">
+              <div>
+                <div class="font-bold text-gray-800">Grocery Market</div>
+                <div class="text-[10px] text-gray-500">Nov 7, 2026</div>
+              </div>
+              <span class="font-bold text-red-600">-$65.96</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTICE ANNOUNCEMENT PAGE -->
+      <div id="page-notice" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('notice')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Announcement Details</h2>
+        </div>
+        <div class="p-5 flex-1 overflow-y-auto space-y-4">
+          <h3 class="text-base font-bold text-renasant-navy">Important Notice for Android Mobile Users</h3>
+          <p class="text-xs text-gray-600 leading-relaxed">
+            To ensure compatibility with the latest security standards, Android operating systems below version 9.0 will no longer be supported starting next month.
+          </p>
+          <p class="text-xs text-gray-600 leading-relaxed">
+            Please update your device's operating system to continue using all Renasant Bank Mobile features smoothly and securely.
+          </p>
+        </div>
+      </div>
+
+      <!-- SPENDING INSIGHTS PAGE -->
+      <div id="page-insights" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('insights')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Spending Insights</h2>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto space-y-4">
+          <div class="bg-teal-50 p-4 rounded-xl border border-teal-100 space-y-2">
+            <h4 class="text-xs font-bold text-teal-900">Monthly Spending Breakdown</h4>
+            <div class="text-xl font-bold text-teal-800">$1,420.00 spent this month</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE PAGE -->
+      <div id="page-profile" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('profile')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Profile</h2>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto space-y-4 text-xs">
+          <div class="border rounded-xl p-4 bg-white space-y-2">
+            <div class="font-bold text-sm text-renasant-navy">James Miller</div>
+            <div class="text-gray-500">Member since 2018</div>
+            <div class="text-gray-600">Email: james.m@example.com</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HELP PAGE -->
+      <div id="page-help" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('help')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Help & Support</h2>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto space-y-3">
+          <button onclick="showToast('Calling Support...')" class="w-full p-3 border rounded-xl text-xs font-bold text-left flex justify-between">
+            <span>Customer Service: 1-800-680-1601</span>
+            <i class="fa-solid fa-phone"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SETTINGS PAGE -->
+      <div id="page-settings" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('settings')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Settings</h2>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto space-y-3 text-xs">
+          <div class="flex justify-between items-center p-3 border rounded-xl">
+            <span>Push Notifications</span>
+            <input type="checkbox" checked class="w-4 h-4 accent-renasant-navy">
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS PAGE -->
+      <div id="page-notifications" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+          <button onclick="closePage('notifications')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Notifications</h2>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto space-y-2 text-xs">
+          <div class="p-3 border rounded-xl bg-gray-50">
+            <div class="font-bold text-gray-800">No New Notifications</div>
+            <div class="text-[10px] text-gray-500">You are all caught up!</div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- TOAST NOTIFICATION CONTAINER -->
@@ -373,6 +612,48 @@
     const actualBalance = "-$120.46";
     const hiddenBalance = "••••••••";
 
+    // Navigation Sub-page router
+    function navigateTo(pageId) {
+      if (pageId === 'dashboard') {
+        // Close all screens
+        document.querySelectorAll('.app-screen').forEach(screen => {
+          screen.classList.add('slide-out');
+        });
+        updateNavHighlight('dashboard');
+        return;
+      }
+
+      const targetPage = document.getElementById(`page-${pageId}`);
+      if (targetPage) {
+        targetPage.classList.remove('slide-out');
+        updateNavHighlight(pageId);
+      } else {
+        showToast(`Opening ${pageId}...`);
+      }
+    }
+
+    function closePage(pageId) {
+      const targetPage = document.getElementById(`page-${pageId}`);
+      if (targetPage) {
+        targetPage.classList.add('slide-out');
+      }
+      updateNavHighlight('dashboard');
+    }
+
+    function updateNavHighlight(activeId) {
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(item => {
+        item.classList.remove('text-renasant-navy');
+        item.classList.add('text-gray-600');
+      });
+
+      const activeItem = document.getElementById(`nav-${activeId}`);
+      if (activeItem) {
+        activeItem.classList.remove('text-gray-600');
+        activeItem.classList.add('text-renasant-navy');
+      }
+    }
+
     // Toggle Balance Eye Icon
     function toggleBalanceVisibility() {
       isBalanceVisible = !isBalanceVisible;
@@ -388,21 +669,6 @@
       }
     }
 
-    // Modal Handlers
-    function openNoticeModal() {
-      document.getElementById('notice-modal').classList.remove('hidden');
-    }
-    function closeNoticeModal() {
-      document.getElementById('notice-modal').classList.add('hidden');
-    }
-
-    function openFundModal() {
-      document.getElementById('fund-modal').classList.remove('hidden');
-    }
-    function closeFundModal() {
-      document.getElementById('fund-modal').classList.add('hidden');
-    }
-
     // Toast Notification System
     let toastTimeout;
     function showToast(message) {
@@ -416,23 +682,6 @@
       toastTimeout = setTimeout(() => {
         toast.classList.add('opacity-0', 'pointer-events-none');
       }, 2500);
-    }
-
-    // Bottom Navigation Switch Logic
-    function setActiveTab(tabId) {
-      const navItems = document.querySelectorAll('.nav-item');
-      navItems.forEach(item => {
-        item.classList.remove('text-renasant-navy');
-        item.classList.add('text-gray-600');
-      });
-
-      const activeItem = document.getElementById(`nav-${tabId}`);
-      if (activeItem) {
-        activeItem.classList.remove('text-gray-600');
-        activeItem.classList.add('text-renasant-navy');
-      }
-
-      showToast(`Switched to ${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
     }
 
     // Sidebar Menu Toggle
