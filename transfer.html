@@ -26,7 +26,7 @@
   <div class="w-full max-w-[430px] h-[100dvh] sm:h-[min(880px,calc(100dvh-2rem))] bg-white sm:rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative sm:border-[8px] sm:border-slate-800">
 
     <header class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow-md shrink-0">
-      <button onclick="goBack()" aria-label="Back" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+      <button onclick="withSpinner(this, goBack)" aria-label="Back" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
       <h2 class="text-base font-bold" id="page-title">Transfer Funds</h2>
     </header>
 
@@ -72,7 +72,7 @@
             <input id="memo" type="text" maxlength="60" placeholder="What's this for?" class="w-full p-3 border rounded-lg text-sm focus:outline-renasant-navy">
           </div>
           <p id="details-err" class="hidden text-xs text-red-600 font-semibold"></p>
-          <button id="continue-btn" onclick="checkRecipient()" disabled class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md opacity-50">Continue</button>
+          <button id="continue-btn" onclick="withSpinner(this, checkRecipient)" disabled class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md opacity-50">Continue</button>
         </div>
 
       </section>
@@ -96,11 +96,11 @@
           <input id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••"
             oninput="this.value=this.value.replace(/\D/g,'')" class="w-full p-3 border-2 rounded-xl text-2xl font-bold text-center tracking-[0.6em] focus:outline-renasant-navy">
           <p id="no-pin" class="hidden text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
-            You haven't set a transaction PIN yet. <a href="index.html" class="underline font-bold">Open Profile</a> to set one, then come back.
+            You haven't set a transaction PIN yet. <a href="index.html" onclick="linkSpin(this)" class="underline font-bold">Open Profile</a> to set one, then come back.
           </p>
           <p id="review-err" class="hidden text-xs text-red-600 font-semibold text-center"></p>
           <button id="confirm-btn" onclick="submitTransfer()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md">Confirm Transfer</button>
-          <button onclick="showStep('details')" class="w-full text-renasant-navy py-2 text-xs font-bold">Edit details</button>
+          <button onclick="withSpinner(this, () => showStep('details'))" class="w-full text-renasant-navy py-2 text-xs font-bold">Edit details</button>
         </div>
       </section>
 
@@ -114,7 +114,7 @@
         <div class="bg-white border rounded-xl p-4 text-sm flex justify-between">
           <span class="text-gray-500">New available balance</span><span class="font-bold text-renasant-navy" id="done-balance"></span>
         </div>
-        <button id="gen-receipt-btn" onclick="showReceipt()" class="w-full bg-white border-2 border-renasant-navy text-renasant-navy py-3 rounded-xl font-bold text-sm"><i class="fa-solid fa-receipt mr-2"></i>Generate Receipt</button>
+        <button id="gen-receipt-btn" onclick="withSpinner(this, showReceipt)" class="w-full bg-white border-2 border-renasant-navy text-renasant-navy py-3 rounded-xl font-bold text-sm"><i class="fa-solid fa-receipt mr-2"></i>Generate Receipt</button>
 
         <div id="receipt" class="hidden text-left bg-white border rounded-xl overflow-hidden shadow-md">
           <div class="bg-renasant-navy text-white p-4 text-center">
@@ -127,13 +127,13 @@
           </div>
           <div id="receipt-rows" class="divide-y text-sm"></div>
           <div class="p-4 bg-slate-50 space-y-2">
-            <button onclick="downloadReceipt()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md"><i class="fa-solid fa-download mr-2"></i>Download Receipt</button>
+            <button onclick="withSpinner(this, downloadReceipt)" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md"><i class="fa-solid fa-download mr-2"></i>Download Receipt</button>
             <p class="text-[11px] text-gray-500 text-center">Keep the reference number for your records.</p>
           </div>
         </div>
 
-        <button onclick="goBack()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md">Back to Home</button>
-        <button onclick="resetForm()" class="w-full text-renasant-navy py-2 text-xs font-bold">Make another transfer</button>
+        <button onclick="withSpinner(this, goBack)" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md">Back to Home</button>
+        <button onclick="withSpinner(this, resetForm)" class="w-full text-renasant-navy py-2 text-xs font-bold">Make another transfer</button>
       </section>
     </main>
   </div>
@@ -229,11 +229,31 @@
     $('page-title').textContent = s === 'done' ? 'Transfer Complete' : s === 'review' ? 'Review Transfer' : 'Transfer Funds';
     $('content').scrollTop = 0;
   }
+  const SPIN = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+  // Shows a spinner on a button, then runs its action (navigation / next step / etc.)
+  function withSpinner(btn, fn, ms = 450) {
+    if (!btn || btn.dataset.loading) return;
+    btn.dataset.loading = '1';
+    const html = btn.innerHTML, wasDisabled = btn.disabled, label = btn.textContent.trim();
+    btn.disabled = true; btn.classList.add('opacity-70');
+    btn.innerHTML = label ? SPIN.replace('"></i>', ' mr-2"></i>') + label : SPIN;
+    setTimeout(() => {
+      try { fn(); } finally {
+        btn.innerHTML = html; btn.disabled = wasDisabled;
+        btn.classList.remove('opacity-70'); delete btn.dataset.loading;
+      }
+    }, ms);
+  }
+  function linkSpin(a) {
+    if (a.dataset.loading) return;
+    a.dataset.loading = '1';
+    a.insertAdjacentHTML('afterbegin', SPIN.replace('"></i>', ' mr-1"></i>'));
+  }
   function setErr(id, msg) { const el = $(id); el.textContent = msg || ''; el.classList.toggle('hidden', !msg); }
   function setBusy(btn, on, label) {
     busy = on; btn.disabled = on;
     btn.classList.toggle('opacity-60', on);
-    btn.textContent = on ? 'Please wait...' : label;
+    btn.innerHTML = on ? '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Please wait...' : label;
   }
 
   async function init() {
@@ -255,12 +275,11 @@
   }
 
   function populateBanks() {
-    // All banks from every country, de-duplicated and sorted A-Z (Western Union first)
-    const all = [...new Set(Object.values(BANKS).flat().concat(DEFAULT_BANKS))]
-      .filter(b => b !== WU)
+    // All banks from every country (including Western Union), de-duplicated and sorted A-Z
+    const all = [...new Set([WU, ...Object.values(BANKS).flat(), ...DEFAULT_BANKS])]
       .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
     const sel = $('to-bank');
-    [WU, ...all].forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o); });
+    all.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o); });
     $('bank-country').textContent = '';
   }
 
