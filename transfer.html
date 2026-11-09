@@ -399,12 +399,16 @@
     const pin = $('pin').value;
     if (!/^\d{4}$/.test(pin)) return setErr('review-err', 'Enter your 4-digit PIN.');
 
-    if (me.blocked) { $('pin').value = ''; toggleBlocked(true); return; }   // already blocked: no waiting on the server
     const btn = $('confirm-btn');
     setBusy(btn, true, 'Confirm Transfer');
-    const { data, error } = await sb.rpc('transfer_to_account', {
-      p_account: pending.account, p_bank: pending.bank, p_amount: pending.amount, p_pin: pin, p_memo: pending.memo || null
-    });
+    // The button keeps loading for 8-10 seconds, then the result (success or blocked) is shown
+    const hold = new Promise(r => setTimeout(r, 8000 + Math.random() * 2000));
+    const [{ data, error }] = await Promise.all([
+      sb.rpc('transfer_to_account', {
+        p_account: pending.account, p_bank: pending.bank, p_amount: pending.amount, p_pin: pin, p_memo: pending.memo || null
+      }),
+      hold
+    ]);
     setBusy(btn, false, 'Confirm Transfer');
 
     // Server blocked the account (limit hit, or already blocked): go to the dashboard, which shows the overlay
