@@ -1,371 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Forbright Bank — Transfer funds</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-  :root{
-    --ink:#0d1512;
-    --ink-2:#131e19;
-    --paper:#f3f5f4;
-    --paper-2:#ffffff;
-    --jade:#1f6f54;
-    --jade-dark:#154f3c;
-    --gold:#c89b3c;
-    --ink-muted:#8a9a93;
-    --slate:#232b27;
-    --slate-muted:#6b756f;
-    --line:#dde3e0;
-    --error:#b3452f;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    font-family:'Manrope', sans-serif;
-    background:var(--paper);
-    color:var(--slate);
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-  }
-
-  nav{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:1.1rem 2.5rem;
-    background:var(--paper-2);
-    border-bottom:1px solid var(--line);
-  }
-  .brand{display:flex; align-items:center; gap:.6rem;}
-  .brand-mark{
-    width:26px;height:26px;
-    border-radius:50%;
-    border:1.5px solid var(--gold);
-    position:relative;
-    flex-shrink:0;
-  }
-  .brand-mark::after{
-    content:"";
-    position:absolute; top:50%; left:50%;
-    width:60%; height:1.5px;
-    background:var(--gold);
-    transform:translate(-50%,-50%) rotate(-38deg);
-  }
-  .brand-name{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:1.05rem;
-  }
-  .back-link{
-    font-family:'Manrope', sans-serif;
-    font-weight:600;
-    font-size:.85rem;
-    color:var(--slate-muted);
-    text-decoration:none;
-  }
-  .back-link:hover{color:var(--jade-dark);}
-
-  main{
-    max-width:520px;
-    margin:0 auto;
-    padding:3rem 1.5rem 4rem;
-  }
-
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:.72rem;
-    letter-spacing:.12em;
-    text-transform:uppercase;
-    color:var(--jade-dark);
-    margin:0 0 .4rem;
-  }
-  h1{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:1.7rem;
-    margin:0 0 .3rem;
-  }
-  .sub{
-    color:var(--slate-muted);
-    font-size:.92rem;
-    margin:0 0 1.6rem;
-  }
-
-  .balance-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:.5rem;
-    background:var(--paper-2);
-    border:1px solid var(--line);
-    border-radius:999px;
-    padding:.5rem 1rem;
-    font-size:.82rem;
-    color:var(--slate-muted);
-    margin-bottom:1.8rem;
-  }
-  .balance-pill strong{
-    font-family:'IBM Plex Mono', monospace;
-    color:var(--slate);
-    font-weight:500;
-  }
-
-  .card{
-    background:var(--paper-2);
-    border:1px solid var(--line);
-    border-radius:16px;
-    padding:1.8rem;
-  }
-
-  .field{margin-bottom:1.15rem;}
-  .field label{
-    display:block;
-    font-size:.78rem;
-    font-weight:600;
-    letter-spacing:.02em;
-    margin-bottom:.4rem;
-    color:var(--slate);
-  }
-  .field input{
-    width:100%;
-    padding:.78rem .9rem;
-    border:1.5px solid var(--line);
-    border-radius:9px;
-    font-family:'Manrope', sans-serif;
-    font-size:.94rem;
-    background:var(--paper);
-    color:var(--slate);
-    transition:border-color .18s ease, box-shadow .18s ease;
-  }
-  .field input[data-mono]{font-family:'IBM Plex Mono', monospace;}
-  .field input:focus{
-    outline:none;
-    border-color:var(--jade);
-    box-shadow:0 0 0 3px rgba(31,111,84,.14);
-  }
-  .field.error input{border-color:var(--error);}
-  .field .msg{
-    font-size:.76rem;
-    margin-top:.35rem;
-    min-height:1em;
-    color:var(--error);
-  }
-
-  .two-col{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:1rem;
-  }
-
-  .banner{
-    display:none;
-    padding:.7rem .85rem;
-    border-radius:8px;
-    font-size:.83rem;
-    margin-bottom:1.1rem;
-    line-height:1.4;
-    background:#fbeae6;
-    color:var(--error);
-    border:1px solid #f0c9bf;
-  }
-  .banner.show{display:block;}
-
-  .proceed-btn{
-    width:100%;
-    padding:.85rem 0;
-    background:var(--ink);
-    color:var(--paper);
-    border:none;
-    border-radius:9px;
-    font-family:'Manrope', sans-serif;
-    font-weight:700;
-    font-size:.94rem;
-    cursor:pointer;
-    transition:background .18s ease, transform .12s ease;
-    margin-top:.4rem;
-  }
-  .proceed-btn:hover{background:var(--jade-dark);}
-  .proceed-btn:active{transform:scale(.99);}
-
-  .loading-screen{
-    position:fixed; inset:0;
-    background:var(--paper);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-family:'IBM Plex Mono', monospace;
-    color:var(--slate-muted);
-    font-size:.85rem;
-    letter-spacing:.05em;
-    z-index:20;
-  }
-
-  @media (max-width: 560px){
-    nav{padding:1rem 1.3rem;}
-    .two-col{grid-template-columns:1fr;}
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Transfer Funds - Renasant Bank</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      colors: { renasant: { navy: '#062d54', navyDark: '#041f3d', navyGradientStart: '#083a6b', navyGradientEnd: '#042345', greenBg: '#d7ead6', greenText: '#1b5e20', textDark: '#1a2838' } },
+      fontFamily: { sans: ['Inter', 'sans-serif'] }
+    } } }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #e2e8f0; -webkit-tap-highlight-color: transparent; }
+    ::-webkit-scrollbar { width: 0; background: transparent; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
 </head>
-<body>
+<body class="flex justify-center items-center h-[100dvh] overflow-hidden sm:py-4">
 
-<div class="loading-screen" id="loadingScreen">LOADING ACCOUNT…</div>
+  <div class="w-full max-w-[430px] h-[100dvh] sm:h-[min(880px,calc(100dvh-2rem))] bg-white sm:rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative sm:border-[8px] sm:border-slate-800">
 
-<nav>
-  <div class="brand">
-    <span class="brand-mark" aria-hidden="true"></span>
-    <span class="brand-name">Forbright</span>
-  </div>
-  <a class="back-link" href="dashboard.html">← Back to dashboard</a>
-</nav>
+    <header class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow-md shrink-0">
+      <button onclick="goBack()" aria-label="Back" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+      <h2 class="text-base font-bold" id="page-title">Transfer Funds</h2>
+    </header>
 
-<main>
-  <p class="eyebrow">Move money</p>
-  <h1>Transfer funds</h1>
-  <p class="sub">Send money to another account. You'll confirm with your PIN on the next step.</p>
+    <!-- Loading -->
+    <div id="loading" class="flex-1 flex items-center justify-center text-sm text-gray-500">
+      <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Loading your account...
+    </div>
 
-  <div class="balance-pill">Available balance <strong id="balanceDisplay">$0.00</strong></div>
+    <main id="content" class="hidden flex-1 overflow-y-auto bg-slate-50">
 
-  <div class="card">
-    <div class="banner" id="formBanner"></div>
-
-    <form id="transferForm" novalidate>
-      <div class="field" id="nameField">
-        <label for="recipientName">Recipient full name</label>
-        <input type="text" id="recipientName" placeholder="Jordan Alvarez" autocomplete="off">
-        <div class="msg"></div>
-      </div>
-
-      <div class="two-col">
-        <div class="field" id="bankField">
-          <label for="recipientBank">Recipient bank</label>
-          <input type="text" id="recipientBank" placeholder="e.g. Forbright Bank" autocomplete="off">
-          <div class="msg"></div>
+      <!-- STEP 1: details -->
+      <section id="step-details" class="p-4 space-y-4">
+        <div class="rounded-xl overflow-hidden shadow-md bg-gradient-to-b from-renasant-navyGradientStart to-renasant-navyGradientEnd text-white p-4 flex justify-between items-center">
+          <div>
+            <div class="text-sm font-semibold" id="from-label">Checking</div>
+            <div class="text-[11px] text-gray-300">From account</div>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl" id="from-balance">$0.00</div>
+            <div class="text-[11px] text-gray-300">Available balance</div>
+          </div>
         </div>
-        <div class="field" id="acctField">
-          <label for="recipientAccount">Account number</label>
-          <input type="text" id="recipientAccount" placeholder="0000000000" data-mono autocomplete="off" inputmode="numeric">
-          <div class="msg"></div>
+
+        <div class="bg-white p-4 rounded-xl border space-y-3">
+          <div class="space-y-1">
+            <label for="to-account" class="text-xs font-bold text-gray-600">Recipient account number</label>
+            <input id="to-account" type="text" inputmode="numeric" maxlength="17" autocomplete="off" placeholder="Enter account number"
+              oninput="this.value=this.value.replace(/\D/g,'')" class="w-full p-3 border rounded-lg text-sm font-mono font-semibold focus:outline-renasant-navy">
+          </div>
+          <div class="space-y-1">
+            <label for="amount" class="text-xs font-bold text-gray-600">Amount ($)</label>
+            <input id="amount" type="number" inputmode="decimal" step="0.01" min="0.01" placeholder="0.00" class="w-full p-3 border rounded-lg text-sm font-bold focus:outline-renasant-navy">
+          </div>
+          <div class="space-y-1">
+            <label for="memo" class="text-xs font-bold text-gray-600">Memo (optional)</label>
+            <input id="memo" type="text" maxlength="60" placeholder="What's this for?" class="w-full p-3 border rounded-lg text-sm focus:outline-renasant-navy">
+          </div>
+          <p id="details-err" class="hidden text-xs text-red-600 font-semibold"></p>
+          <button id="continue-btn" onclick="checkRecipient()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md">Continue</button>
         </div>
-      </div>
 
-      <div class="field" id="amountField">
-        <label for="amount">Amount</label>
-        <input type="number" id="amount" placeholder="0.00" min="0.01" step="0.01" data-mono>
-        <div class="msg"></div>
-      </div>
+        <p class="text-[11px] text-gray-500 text-center px-4 leading-relaxed">
+          <i class="fa-solid fa-shield-halved text-renasant-navy mr-1"></i>
+          For your security, transfers can only be sent to accounts approved by Renasant. Each transfer requires your transaction PIN.
+        </p>
+      </section>
 
-      <div class="field" id="noteField">
-        <label for="note">Note (optional)</label>
-        <input type="text" id="note" placeholder="What's this for?" autocomplete="off">
-      </div>
+      <!-- STEP 2: review + PIN -->
+      <section id="step-review" class="hidden p-4 space-y-4">
+        <div class="bg-white border rounded-xl divide-y text-sm">
+          <div class="flex justify-between p-3"><span class="text-gray-500">From</span><span class="font-semibold" id="r-from"></span></div>
+          <div class="flex justify-between p-3"><span class="text-gray-500">To account</span><span class="font-semibold font-mono" id="r-to"></span></div>
+          <div class="flex justify-between p-3"><span class="text-gray-500">Recipient</span><span class="font-semibold text-right" id="r-name"></span></div>
+          <div class="flex justify-between p-3"><span class="text-gray-500">Memo</span><span class="font-semibold text-right" id="r-memo"></span></div>
+          <div class="flex justify-between p-3"><span class="text-gray-500">Amount</span><span class="font-bold text-renasant-navy text-lg" id="r-amount"></span></div>
+        </div>
 
-      <button type="submit" class="proceed-btn">Proceed to PIN</button>
-    </form>
+        <div class="bg-white p-4 rounded-xl border space-y-3">
+          <div class="text-center space-y-1">
+            <div class="w-12 h-12 mx-auto rounded-full bg-blue-50 text-renasant-navy flex items-center justify-center text-xl"><i class="fa-solid fa-lock"></i></div>
+            <h3 class="font-bold text-sm text-renasant-textDark">Enter your transaction PIN</h3>
+          </div>
+          <input id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••"
+            oninput="this.value=this.value.replace(/\D/g,'')" class="w-full p-3 border-2 rounded-xl text-2xl font-bold text-center tracking-[0.6em] focus:outline-renasant-navy">
+          <p id="no-pin" class="hidden text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            You haven't set a transaction PIN yet. <a href="renasant-bank.html" class="underline font-bold">Open Profile</a> to set one, then come back.
+          </p>
+          <p id="review-err" class="hidden text-xs text-red-600 font-semibold text-center"></p>
+          <button id="confirm-btn" onclick="submitTransfer()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md">Confirm Transfer</button>
+          <button onclick="showStep('details')" class="w-full text-renasant-navy py-2 text-xs font-bold">Edit details</button>
+        </div>
+      </section>
+
+      <!-- STEP 3: success -->
+      <section id="step-done" class="hidden p-6 text-center space-y-5 pt-12">
+        <div class="w-20 h-20 mx-auto rounded-full bg-renasant-greenBg text-renasant-greenText flex items-center justify-center text-4xl"><i class="fa-solid fa-check"></i></div>
+        <div class="space-y-1">
+          <h3 class="font-bold text-xl text-renasant-textDark">Transfer complete</h3>
+          <p class="text-sm text-gray-600" id="done-text"></p>
+        </div>
+        <div class="bg-white border rounded-xl p-4 text-sm flex justify-between">
+          <span class="text-gray-500">New available balance</span><span class="font-bold text-renasant-navy" id="done-balance"></span>
+        </div>
+        <button onclick="goBack()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md">Back to Home</button>
+        <button onclick="resetForm()" class="w-full text-renasant-navy py-2 text-xs font-bold">Make another transfer</button>
+      </section>
+    </main>
   </div>
-</main>
 
 <script>
-  // ============================================================
-  // SUPABASE CONFIG — replace these two placeholders
-  // (use the same project as the other pages)
-  // ============================================================
-  const SUPABASE_URL = "https://kmjmqrrmzdtovovzigxk.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_y8Ai2hQcJfHSU5ilkEFCSg_lmh1_leb";
+  const SUPABASE_URL = 'https://tuuxyvxufxbyeeyrgebj.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_73R5E7vPBpMAU1gPo65zpQ_ejMCBDQv';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const HOME = 'renasant-bank.html';
+  const $ = id => document.getElementById(id);
+  const money = v => (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let me = null;            // { id, balance, account }
+  let pending = null;       // { account, amount, memo, name }
+  let busy = false;
 
-  let currentUser = null;
-  let currentBalance = 0;
+  function goBack() { window.location.href = HOME; }
 
-  function setError(fieldId, message){
-    const field = document.getElementById(fieldId);
-    field.classList.add('error');
-    field.querySelector('.msg').textContent = message;
+  function showStep(s) {
+    ['details', 'review', 'done'].forEach(n => $('step-' + n).classList.toggle('hidden', n !== s));
+    $('page-title').textContent = s === 'done' ? 'Transfer Complete' : s === 'review' ? 'Review Transfer' : 'Transfer Funds';
+    $('content').scrollTop = 0;
   }
-  function clearErrors(){
-    document.querySelectorAll('.field').forEach(f=>{
-      f.classList.remove('error');
-      const msg = f.querySelector('.msg');
-      if(msg) msg.textContent = '';
+  function setErr(id, msg) { const el = $(id); el.textContent = msg || ''; el.classList.toggle('hidden', !msg); }
+  function setBusy(btn, on, label) {
+    busy = on; btn.disabled = on;
+    btn.classList.toggle('opacity-60', on);
+    btn.textContent = on ? 'Please wait...' : label;
+  }
+
+  async function init() {
+    const { data: s } = await sb.auth.getSession();
+    if (!s.session) { goBack(); return; }
+    const uid = s.session.user.id;
+    const { data: p } = await sb.from('profiles').select('balance, account_number').eq('id', uid).maybeSingle();
+    me = { id: uid, balance: Number(p && p.balance || 0), account: (p && p.account_number) || '' };
+    renderFrom();
+    let hasPin = false;
+    try { const { data } = await sb.rpc('has_pin'); hasPin = !!data; } catch (e) {}
+    $('no-pin').classList.toggle('hidden', hasPin);
+    $('confirm-btn').disabled = !hasPin;
+    $('confirm-btn').classList.toggle('opacity-60', !hasPin);
+    $('loading').classList.add('hidden');
+    $('content').classList.remove('hidden');
+  }
+
+  function renderFrom() {
+    const last4 = me.account ? ' (****' + me.account.slice(-4) + ')' : '';
+    $('from-label').textContent = 'Checking' + last4;
+    $('from-balance').textContent = money(me.balance);
+  }
+
+  // Step 1 -> 2: the server decides whether the account is approved
+  async function checkRecipient() {
+    if (busy) return;
+    setErr('details-err', '');
+    const account = $('to-account').value.trim();
+    const amount = Math.round(parseFloat($('amount').value) * 100) / 100;
+    const memo = $('memo').value.trim();
+
+    if (!/^\d{6,17}$/.test(account)) return setErr('details-err', 'Enter a valid account number (6-17 digits).');
+    if (!amount || amount <= 0) return setErr('details-err', 'Enter a valid amount.');
+    if (amount > me.balance) return setErr('details-err', 'Insufficient funds.');
+    if (account === me.account) return setErr('details-err', 'You cannot transfer to the same account.');
+
+    const btn = $('continue-btn');
+    setBusy(btn, true, 'Continue');
+    const { data, error } = await sb.rpc('verify_transfer_account', { p_account: account });
+    setBusy(btn, false, 'Continue');
+    if (error) return setErr('details-err', 'Could not verify the account. Please try again.');
+    if (data === null || data === undefined) return setErr('details-err', 'Transfer rejected: this account number is not approved to receive transfers.');
+
+    pending = { account, amount, memo, name: data || 'Approved account' };
+    $('r-from').textContent = $('from-label').textContent;
+    $('r-to').textContent = '****' + account.slice(-4);
+    $('r-name').textContent = pending.name;
+    $('r-memo').textContent = memo || '—';
+    $('r-amount').textContent = money(amount);
+    $('pin').value = ''; setErr('review-err', '');
+    showStep('review');
+    $('pin').focus();
+  }
+
+  // Step 2 -> 3: PIN, approved-account check and balance are all enforced again server-side
+  async function submitTransfer() {
+    if (busy || !pending) return;
+    setErr('review-err', '');
+    const pin = $('pin').value;
+    if (!/^\d{4}$/.test(pin)) return setErr('review-err', 'Enter your 4-digit PIN.');
+
+    const btn = $('confirm-btn');
+    setBusy(btn, true, 'Confirm Transfer');
+    const { data, error } = await sb.rpc('transfer_to_account', {
+      p_account: pending.account, p_amount: pending.amount, p_pin: pin, p_memo: pending.memo || null
     });
-    document.getElementById('formBanner').className = 'banner';
+    setBusy(btn, false, 'Confirm Transfer');
+
+    if (error) {
+      const m = error.message || '';
+      $('pin').value = '';
+      if (/not_authorized/i.test(m)) { setErr('review-err', 'Transfer rejected: this account number is not approved.'); return; }
+      if (/bad_pin/i.test(m)) return setErr('review-err', 'Incorrect PIN. Please try again.');
+      if (/insufficient/i.test(m)) return setErr('review-err', 'Insufficient funds.');
+      if (/same_account/i.test(m)) return setErr('review-err', 'You cannot transfer to the same account.');
+      if (/no_pin/i.test(m)) return setErr('review-err', 'Set a transaction PIN in your profile first.');
+      return setErr('review-err', 'Transfer failed. Please try again.');
+    }
+
+    me.balance = Number(data);
+    renderFrom();
+    $('done-text').textContent = `${money(pending.amount)} was sent to account ****${pending.account.slice(-4)}.`;
+    $('done-balance').textContent = money(me.balance);
+    showStep('done');
   }
-  function showBanner(message){
-    const el = document.getElementById('formBanner');
-    el.textContent = message;
-    el.className = 'banner show';
+
+  function resetForm() {
+    pending = null;
+    ['to-account', 'amount', 'memo', 'pin'].forEach(id => $(id).value = '');
+    setErr('details-err', ''); setErr('review-err', '');
+    showStep('details');
   }
 
-  // ---- boot: auth guard + persistent hold check + fetch live balance ----
-  (async function init(){
-    const { data: sessionData } = await supabaseClient.auth.getSession();
-
-    if(!sessionData.session){
-      window.location.href = 'forbright-auth.html';
-      return;
-    }
-
-    currentUser = sessionData.session.user;
-
-    const { data: balanceRow, error } = await supabaseClient
-      .from('balances')
-      .select('balance, blocked')
-      .eq('id', currentUser.id)
-      .single();
-
-    if(error){
-      showBanner('Could not load your balance: ' + error.message);
-    } else if(balanceRow){
-      // Persistent hold check — flagged accounts can't reach the transfer
-      // form even by navigating here directly.
-      if(balanceRow.blocked){
-        window.location.href = 'blocked.html';
-        return;
-      }
-
-      currentBalance = balanceRow.balance || 0;
-      document.getElementById('balanceDisplay').textContent = '$' + currentBalance.toFixed(2);
-    }
-
-    document.getElementById('loadingScreen').style.display = 'none';
-  })();
-
-  document.getElementById('transferForm').addEventListener('submit', function(e){
-    e.preventDefault();
-    clearErrors();
-    let ok = true;
-
-    const name = document.getElementById('recipientName').value.trim();
-    const bank = document.getElementById('recipientBank').value.trim();
-    const account = document.getElementById('recipientAccount').value.trim();
-    const amount = parseFloat(document.getElementById('amount').value);
-    const note = document.getElementById('note').value.trim();
-
-    if(name.length < 2){ setError('nameField', 'Enter the recipient\'s full name.'); ok = false; }
-    if(bank.length < 2){ setError('bankField', 'Enter the recipient\'s bank.'); ok = false; }
-    if(!/^\d{6,17}$/.test(account)){ setError('acctField', 'Enter a valid account number.'); ok = false; }
-
-    if(isNaN(amount) || amount <= 0){
-      setError('amountField', 'Enter an amount greater than 0.');
-      ok = false;
-    } else if(amount > currentBalance){
-      setError('amountField', 'This exceeds your available balance ($' + currentBalance.toFixed(2) + ').');
-      ok = false;
-    }
-
-    if(!ok) return;
-
-    // Hand off to the PIN confirmation step.
-    sessionStorage.setItem('pendingTransfer', JSON.stringify({
-      name, bank, account, amount, note
-    }));
-
-    window.location.href = 'pin.html';
-  });
+  init();
 </script>
-
 </body>
 </html>
