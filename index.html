@@ -964,8 +964,16 @@
 
     async function loadTransactions() {
       if (!supabaseClient || !currentUser) return;
-      const { data } = await supabaseClient.from('transactions').select('*').order('created_at', { ascending: false }).limit(2000);
-      const list = data || [];
+      // Only fetch transactions that belong to the logged-in account
+      const { data, error } = await supabaseClient
+        .from('transactions')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false })
+        .limit(2000);
+      if (error) { showToast('Could not load transactions'); }
+      // Safety net: even if the server returns extra rows, only show this user's own
+      const list = (data || []).filter(t => t.user_id === currentUser.id);
       const empty = '<div class="text-center text-gray-500 py-6">No transactions yet.</div>';
       document.getElementById('recent-transactions').innerHTML = list.length ? list.slice(0, 10).map(txRow).join('') : empty;
 
