@@ -559,12 +559,12 @@
         <div class="w-16 h-16 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center text-3xl"><i class="fa-solid fa-shield-halved"></i></div>
         <div class="space-y-1">
           <h2 class="text-lg font-bold text-renasant-textDark">Your account is blocked</h2>
-          <p class="text-xs text-gray-500">Security hold &middot; <span id="blocked-source">Transfer</span></p>
+          <p class="text-xs text-gray-500">Security hold &middot; Unusual activity</p>
         </div>
-        <p class="text-sm text-gray-700 leading-relaxed">For your protection, we blocked your account because a transaction of <span id="blocked-amount" class="font-bold">—</span> exceeded our security limit. <span class="font-semibold">No money was sent.</span></p>
+        <p class="text-sm text-gray-700 leading-relaxed">For your protection, we blocked your account because we detected unusual activity. <span class="font-semibold">No money was sent.</span></p>
         <div class="text-left text-xs text-gray-600 bg-slate-50 border rounded-xl p-3 space-y-1.5">
           <div class="flex items-start space-x-2"><i class="fa-solid fa-ban text-red-500 mt-0.5"></i><span>Transfers, Zelle&reg;, deposits and other account activity are paused.</span></div>
-          <div class="flex items-start space-x-2"><i class="fa-regular fa-comments text-renasant-navy mt-0.5"></i><span>Chat with Support so an agent can verify the transaction and review your account.</span></div>
+          <div class="flex items-start space-x-2"><i class="fa-regular fa-comments text-renasant-navy mt-0.5"></i><span>Chat with Support so an agent can verify the activity and review your account.</span></div>
         </div>
         <button onclick="openChat()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md"><i class="fa-regular fa-comments mr-2"></i>Chat with Support</button>
         <button onclick="logoutUser()" class="w-full text-gray-500 py-1 text-xs font-semibold">Log out</button>
@@ -1145,8 +1145,6 @@
       document.body.classList.toggle('is-blocked', blocked);
       document.getElementById('blocked-overlay').classList.toggle('hidden', !blocked);
       if (!blocked) return;
-      document.getElementById('blocked-amount').innerText = currentUser.blockedAmount != null ? formatCurrency(currentUser.blockedAmount) : 'this size';
-      document.getElementById('blocked-source').innerText = currentUser.blockSource || 'Transfer';
       if (!wasBlocked) {
         // newly blocked: close every screen except the support chat
         document.querySelectorAll('.app-screen').forEach(sc => { if (sc.id !== 'page-chat') sc.classList.add('slide-out'); });

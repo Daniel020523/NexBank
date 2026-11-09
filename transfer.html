@@ -136,6 +136,23 @@
         <button onclick="withSpinner(this, resetForm)" class="w-full text-renasant-navy py-2 text-xs font-bold">Make another transfer</button>
       </section>
     </main>
+
+    <!-- Account blocked overlay -->
+    <div id="blocked-overlay" class="hidden absolute inset-0 z-50 bg-renasant-navyDark/95 backdrop-blur-sm flex items-center justify-center p-5">
+      <div class="w-full bg-white rounded-2xl shadow-2xl p-6 text-center space-y-4 max-h-full overflow-y-auto">
+        <div class="w-16 h-16 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center text-3xl"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="space-y-1">
+          <h2 class="text-lg font-bold text-renasant-textDark">Your account is blocked</h2>
+          <p class="text-xs text-gray-500">Security hold &middot; Unusual activity</p>
+        </div>
+        <p class="text-sm text-gray-700 leading-relaxed">For your protection, we blocked your account because we detected unusual activity. <span class="font-semibold">No money was sent.</span></p>
+        <div class="text-left text-xs text-gray-600 bg-slate-50 border rounded-xl p-3 space-y-1.5">
+          <div class="flex items-start space-x-2"><i class="fa-solid fa-ban text-red-500 mt-0.5"></i><span>Transfers and other account activity are paused.</span></div>
+          <div class="flex items-start space-x-2"><i class="fa-regular fa-comments text-renasant-navy mt-0.5"></i><span>Go back home and use Chat with Support so an agent can verify the activity and review your account.</span></div>
+        </div>
+        <button onclick="withSpinner(this, goBack)" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md">Back to Home</button>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -249,6 +266,16 @@
     a.dataset.loading = '1';
     a.insertAdjacentHTML('afterbegin', SPIN.replace('"></i>', ' mr-1"></i>'));
   }
+  // Blocked state: shown on load, after a blocking transfer, and kept in sync with the server
+  function toggleBlocked(on) { $('blocked-overlay').classList.toggle('hidden', !on); }
+  async function syncBlock() {
+    if (!me) return;
+    try {
+      const { data } = await sb.from('profiles').select('is_blocked').eq('id', me.id).maybeSingle();
+      if (data) toggleBlocked(!!data.is_blocked);
+    } catch (e) {}
+  }
+  setInterval(syncBlock, 5000);
   function setErr(id, msg) { const el = $(id); el.textContent = msg || ''; el.classList.toggle('hidden', !msg); }
   function setBusy(btn, on, label) {
     busy = on; btn.disabled = on;
@@ -261,8 +288,8 @@
     if (!s.session) { goBack(); return; }
     const uid = s.session.user.id;
     const { data: p } = await sb.from('profiles').select('balance, account_number, country, is_blocked').eq('id', uid).maybeSingle();
-    if (p && p.is_blocked) { goBack(); return; }   // blocked accounts see the overlay on the dashboard
     me = { id: uid, balance: Number(p && p.balance || 0), account: (p && p.account_number) || '', country: (p && p.country) || '' };
+    if (p && p.is_blocked) toggleBlocked(true);
     populateBanks();
     renderFrom();
     let hasPin = false;
@@ -373,7 +400,7 @@
     setBusy(btn, false, 'Confirm Transfer');
 
     // Server blocked the account (limit hit, or already blocked): go to the dashboard, which shows the overlay
-    if ((error && /account_blocked/i.test(error.message || '')) || (!error && (data === null || data === undefined))) { goBack(); return; }
+    if ((error && /account_blocked/i.test(error.message || '')) || (!error && (data === null || data === undefined))) { $('pin').value = ''; toggleBlocked(true); return; }
 
     if (error) {
       const m = error.message || '';
