@@ -114,6 +114,24 @@
         <div class="bg-white border rounded-xl p-4 text-sm flex justify-between">
           <span class="text-gray-500">New available balance</span><span class="font-bold text-renasant-navy" id="done-balance"></span>
         </div>
+        <button id="gen-receipt-btn" onclick="showReceipt()" class="w-full bg-white border-2 border-renasant-navy text-renasant-navy py-3 rounded-xl font-bold text-sm"><i class="fa-solid fa-receipt mr-2"></i>Generate Receipt</button>
+
+        <div id="receipt" class="hidden text-left bg-white border rounded-xl overflow-hidden shadow-md">
+          <div class="bg-renasant-navy text-white p-4 text-center">
+            <div class="text-xs text-blue-200 tracking-wide">RENASANT BANK</div>
+            <div class="font-bold text-base">Transfer Receipt</div>
+          </div>
+          <div class="p-4 text-center border-b">
+            <div class="text-2xl font-bold text-renasant-navy" id="rc-amount"></div>
+            <div class="text-xs font-semibold text-renasant-greenText mt-1"><i class="fa-solid fa-circle-check mr-1"></i>Completed</div>
+          </div>
+          <div id="receipt-rows" class="divide-y text-sm"></div>
+          <div class="p-4 bg-slate-50 space-y-2">
+            <button onclick="downloadReceipt()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md"><i class="fa-solid fa-download mr-2"></i>Download Receipt</button>
+            <p class="text-[11px] text-gray-500 text-center">Keep the reference number for your records.</p>
+          </div>
+        </div>
+
         <button onclick="goBack()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md">Back to Home</button>
         <button onclick="resetForm()" class="w-full text-renasant-navy py-2 text-xs font-bold">Make another transfer</button>
       </section>
@@ -353,11 +371,94 @@
     renderFrom();
     $('done-text').textContent = `${money(pending.amount)} was sent to ${pending.bank}, account ****${pending.account.slice(-4)}.`;
     $('done-balance').textContent = money(me.balance);
+    lastReceipt = {
+      ref: makeRef(), when: new Date(), from: $('from-label').textContent,
+      bank: pending.bank, to: '****' + pending.account.slice(-4), name: pending.name,
+      memo: pending.memo || '—', amount: pending.amount
+    };
+    $('receipt').classList.add('hidden');
     showStep('done');
   }
 
+  // ---------- Receipt ----------
+  let lastReceipt = null;
+  function makeRef() {
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const rnd = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => chars[b % chars.length]).join('');
+    return 'RNS-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + rnd;
+  }
+  function receiptRows(r) {
+    return [
+      ['Reference No.', r.ref],
+      ['Date & time', r.when.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })],
+      ['Status', 'Completed'],
+      ['From account', r.from],
+      ['Recipient bank', r.bank],
+      ['To account', r.to],
+      ['Recipient', r.name],
+      ['Memo', r.memo],
+      ['Amount', money(r.amount)]
+    ];
+  }
+  function showReceipt() {
+    if (!lastReceipt) return;
+    $('rc-amount').textContent = money(lastReceipt.amount);
+    const box = $('receipt-rows'); box.innerHTML = '';
+    receiptRows(lastReceipt).forEach(([k, v]) => {
+      const row = document.createElement('div'); row.className = 'flex justify-between p-3 gap-4';
+      const a = document.createElement('span'); a.className = 'text-gray-500 shrink-0'; a.textContent = k;
+      const b = document.createElement('span'); b.className = 'font-semibold text-right break-all' + (k === 'Reference No.' || k === 'To account' ? ' font-mono' : ''); b.textContent = v;
+      row.append(a, b); box.appendChild(row);
+    });
+    $('receipt').classList.remove('hidden');
+    $('receipt').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function downloadReceipt() {
+    if (!lastReceipt) return;
+    const rows = receiptRows(lastReceipt), W = 800, PAD = 50, VALX = 330, MAXW = W - PAD - VALX;
+    const F = 'Inter, Arial, sans-serif';
+    const wrap = (ctx, text, max) => {
+      const out = []; let line = '';
+      String(text).split(/(\s+)/).forEach(w => {
+        if (ctx.measureText(line + w).width > max && line) { out.push(line.trim()); line = w.trimStart(); } else line += w;
+      });
+      out.push(line.trim()); return out;
+    };
+    const m = document.createElement('canvas').getContext('2d'); m.font = '600 24px ' + F;
+    const laid = rows.map(([k, v]) => ({ k, lines: wrap(m, v, MAXW) }));
+    const rowsH = laid.reduce((s, r) => s + r.lines.length * 32 + 24, 0);
+    const H = 330 + rowsH + 110;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#062d54'; g.fillRect(0, 0, W, 150);
+    g.textAlign = 'center'; g.fillStyle = '#9db8d6'; g.font = '600 20px ' + F; g.fillText('RENASANT BANK', W / 2, 55);
+    g.fillStyle = '#ffffff'; g.font = '700 38px ' + F; g.fillText('Transfer Receipt', W / 2, 108);
+    g.fillStyle = '#062d54'; g.font = '700 58px ' + F; g.fillText(money(lastReceipt.amount), W / 2, 240);
+    g.fillStyle = '#1b5e20'; g.font = '600 24px ' + F; g.fillText('\u2713 Completed', W / 2, 285);
+    let y = 330;
+    laid.forEach((r, i) => {
+      g.strokeStyle = '#e2e8f0'; g.lineWidth = 2; g.beginPath(); g.moveTo(PAD, y); g.lineTo(W - PAD, y); g.stroke();
+      g.textAlign = 'left'; g.fillStyle = '#64748b'; g.font = '500 24px ' + F; g.fillText(r.k, PAD, y + 40);
+      g.textAlign = 'right'; g.fillStyle = '#1a2838'; g.font = (r.k === 'Reference No.' || r.k === 'To account' ? '600 24px monospace' : '600 24px ' + F);
+      r.lines.forEach((ln, j) => g.fillText(ln, W - PAD, y + 40 + j * 32));
+      y += r.lines.length * 32 + 24;
+    });
+    g.strokeStyle = '#e2e8f0'; g.beginPath(); g.moveTo(PAD, y); g.lineTo(W - PAD, y); g.stroke();
+    g.textAlign = 'center'; g.fillStyle = '#94a3b8'; g.font = '500 20px ' + F;
+    g.fillText('Keep this reference number for your records.', W / 2, y + 50);
+    g.fillText('Thank you for banking with Renasant Bank.', W / 2, y + 80);
+    c.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'receipt-' + lastReceipt.ref + '.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }, 'image/png');
+  }
+
   function resetForm() {
-    pending = null; verified = null; setLookup(null); setContinue(false);
+    pending = null; verified = null; lastReceipt = null; $('receipt').classList.add('hidden'); setLookup(null); setContinue(false);
     ['to-account', 'to-bank', 'amount', 'memo', 'pin'].forEach(id => $(id).value = '');
     setErr('details-err', ''); setErr('review-err', '');
     showStep('details');
