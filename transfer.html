@@ -241,12 +241,28 @@
   let pending = null;       // { account, amount, memo, name }
   let busy = false;
 
-  function goBack() { window.location.replace(HOME); }
+  const FROM_APP = (() => { try { return sessionStorage.getItem('rns_from_app') === '1'; } catch (e) { return false; } })();
+  let stepDepth = 0, ignorePop = 0;   // history entries this page added (the review step)
+  // Return to the dashboard through real history, so the phone's Back button stays in step afterwards
+  function goBack() {
+    if (FROM_APP && history.length > 1) {
+      history.go(-(1 + stepDepth));
+      setTimeout(() => window.location.replace(HOME), 1500);   // fallback if the browser ignores the jump
+    } else window.location.replace(HOME);
+  }
   // Header back arrow: step back inside the transfer flow first, leave the page only from step 1 / the done screen
   function headerBack() {
-    if (!$('step-review').classList.contains('hidden')) { showStep('details'); return; }
+    if (!$('step-review').classList.contains('hidden')) { history.back(); return; }
     goBack();
   }
+  // Phone / browser Back: review -> details, done -> dashboard, details -> dashboard (native)
+  window.addEventListener('popstate', () => {
+    if (ignorePop > 0) { ignorePop--; return; }
+    if (stepDepth === 0) return;
+    stepDepth--;
+    if (!$('step-done').classList.contains('hidden')) { goBack(); return; }
+    if (!$('step-review').classList.contains('hidden')) showStep('details');
+  });
 
   function showStep(s) {
     ['details', 'review', 'done'].forEach(n => $('step-' + n).classList.toggle('hidden', n !== s));
@@ -292,7 +308,7 @@
 
   async function init() {
     const { data: s } = await sb.auth.getSession();
-    if (!s.session) { goBack(); return; }
+    if (!s.session) { window.location.replace(HOME); return; }
     const uid = s.session.user.id;
     const pinReq = sb.rpc('has_pin').then(r => !!r.data, () => false);   // runs alongside the profile request
     const { data: p } = await sb.from('profiles').select('balance, account_number, country, is_blocked').eq('id', uid).maybeSingle();
@@ -388,6 +404,7 @@
     $('r-memo').textContent = memo || '—';
     $('r-amount').textContent = money(amount);
     $('pin').value = ''; setErr('review-err', '');
+    if (stepDepth === 0) { try { history.pushState({ step: 'review' }, '', location.href); stepDepth = 1; } catch (e) {} }
     showStep('review');
     $('pin').focus();
   }
@@ -440,10 +457,20 @@
   }
 
   // Same format/derivation as Transaction History (RNS-YYYYMMDD-XXXXXXXX from the saved transaction), so both receipts show the same number
-  function refFromTx(t) {
+  function rnsRef(t) {
     if (t.reference || t.ref) return String(t.reference || t.ref);
     const d = new Date(t.created_at), p = n => String(n).padStart(2, '0');
-    const code = String(t.id != null ? t.id : '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase().padEnd(8, '0');
+    // Hash of the transaction's own fields -> 8 unique letters/digits (never a pattern like 60000000)
+    const str = [t.id, t.created_at, t.amount, t.description, t.user_id].join('|');
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (let i = 0; i < str.length; i++) { const c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    let n1 = h1 >>> 0, n2 = h2 >>> 0;
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) { code += chars[n1 % 32]; n1 = Math.floor(n1 / 32); }
+    for (let i = 0; i < 2; i++) { code += chars[n2 % 32]; n2 = Math.floor(n2 / 32); }
     return 'RNS-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + code;
   }
   async function syncReceiptRef() {
@@ -451,7 +478,7 @@
     try {
       const { data } = await sb.from('transactions').select('*').eq('user_id', me.id).order('created_at', { ascending: false }).limit(1);
       if (data && data[0] && mine === lastReceipt) {
-        mine.ref = refFromTx(data[0]); mine.when = new Date(data[0].created_at);
+        mine.ref = rnsRef(data[0]); mine.when = new Date(data[0].created_at);
         if (!$('receipt').classList.contains('hidden')) showReceipt();
       }
     } catch (e) {}
@@ -538,6 +565,7 @@
     pending = null; verified = null; lastReceipt = null; $('receipt').classList.add('hidden'); setLookup(null); setContinue(false);
     ['to-account', 'to-bank', 'amount', 'memo', 'pin'].forEach(id => $(id).value = '');
     setErr('details-err', ''); setErr('review-err', '');
+    if (stepDepth > 0) { stepDepth = 0; ignorePop++; history.go(-1); }
     showStep('details');
   }
 
