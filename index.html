@@ -610,6 +610,10 @@
         openAuth('login');
         return;
       }
+      if (pageId === 'transfers') {
+        window.location.href = 'transfer.html';
+        return;
+      }
       const page = document.getElementById('page-' + pageId);
       if (page) {
         // Close every other open screen (except this page's parent) so nothing stays stacked on top
