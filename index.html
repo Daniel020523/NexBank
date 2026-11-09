@@ -27,6 +27,8 @@
     .app-screen { position: absolute; inset: 0; background: white; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); z-index: 30; }
     .app-screen.slide-out { transform: translateX(100%); }
     ::-webkit-scrollbar { width: 0; background: transparent; }
+    #toast { z-index: 70; }
+    body.is-blocked #page-chat { z-index: 58; }
   </style>
 </head>
 <body class="flex justify-center items-center h-[100dvh] overflow-hidden sm:py-4 bg-slate-200">
@@ -551,6 +553,24 @@
       </div>
     </div>
 
+    <!-- Account blocked overlay (server-driven; only Chat with Support works) -->
+    <div id="blocked-overlay" class="hidden absolute inset-0 z-[56] bg-renasant-navyDark/95 backdrop-blur-sm flex items-center justify-center p-5">
+      <div class="w-full bg-white rounded-2xl shadow-2xl p-6 text-center space-y-4 max-h-full overflow-y-auto">
+        <div class="w-16 h-16 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center text-3xl"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="space-y-1">
+          <h2 class="text-lg font-bold text-renasant-textDark">Your account is blocked</h2>
+          <p class="text-xs text-gray-500">Security hold &middot; <span id="blocked-source">Transfer</span></p>
+        </div>
+        <p class="text-sm text-gray-700 leading-relaxed">For your protection, we blocked your account because a transaction of <span id="blocked-amount" class="font-bold">—</span> exceeded our security limit. <span class="font-semibold">No money was sent.</span></p>
+        <div class="text-left text-xs text-gray-600 bg-slate-50 border rounded-xl p-3 space-y-1.5">
+          <div class="flex items-start space-x-2"><i class="fa-solid fa-ban text-red-500 mt-0.5"></i><span>Transfers, Zelle&reg;, deposits and other account activity are paused.</span></div>
+          <div class="flex items-start space-x-2"><i class="fa-regular fa-comments text-renasant-navy mt-0.5"></i><span>Chat with Support so an agent can verify the transaction and review your account.</span></div>
+        </div>
+        <button onclick="openChat()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md"><i class="fa-regular fa-comments mr-2"></i>Chat with Support</button>
+        <button onclick="logoutUser()" class="w-full text-gray-500 py-1 text-xs font-semibold">Log out</button>
+      </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="fixed bottom-16 left-1/2 -translate-x-1/2 bg-renasant-navyDark text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center space-x-2 max-w-[90%]">
       <i class="fa-solid fa-circle-info text-renasant-accentTeal"></i>
@@ -599,6 +619,7 @@
 
     // ---------- Navigation (dashboard is always the home) ----------
     function navigateTo(pageId) {
+      if (isLoggedIn() && currentUser.isBlocked && pageId !== 'chat' && pageId !== 'dashboard') { renderBlock(); return; }
       if (pageId !== 'deposit') closeCamera();
       if (pageId === 'dashboard') {
         document.querySelectorAll('.app-screen').forEach(s => s.classList.add('slide-out'));
@@ -652,6 +673,7 @@
         ? `Logged in as <span class="text-white font-semibold">${escapeHtml(currentUser.name)}</span>`
         : `<button onclick="toggleMenu(); openAuth('login')" class="text-white font-semibold underline">Log In / Sign Up</button>`;
 
+      renderBlock();
       if (!li) return;
       const acct = currentUser.accountNumber;
       const last4 = acct ? acct.slice(-4) : null;
@@ -849,7 +871,10 @@
         balance: Number((profile && profile.balance) || 0),
         cardExpiry: (profile && profile.card_expiry) || '',
         since: (profile && profile.created_at) || user.created_at,
-        hasPin: false
+        hasPin: false,
+        isBlocked: !!(profile && profile.is_blocked),
+        blockedAmount: profile && profile.blocked_amount != null ? Number(profile.blocked_amount) : null,
+        blockSource: (profile && profile.block_source) || ''
       };
       try { const { data: hp } = await supabaseClient.rpc('has_pin'); currentUser.hasPin = !!hp; } catch (e) {}
       isBalanceVisible = false;
@@ -873,6 +898,7 @@
       const amt = parseFloat(input.value);
       if (!amt || amt <= 0) { showToast('Please enter a valid amount'); return; }
       const { data, error } = await supabaseClient.rpc('transfer_funds', { amount: amt });
+      if (await handleBlocked(data, error)) { input.value = ''; return; }
       if (error) { showToast(/insufficient/i.test(error.message) ? 'Insufficient funds' : 'Transfer failed. Please try again.'); return; }
       currentUser.balance = Number(data);
       renderState();
@@ -945,6 +971,7 @@
       const amt = parseFloat(document.getElementById('zelle-amount-input').value);
       if (!amt || amt <= 0) { showToast('Please enter a valid amount'); return; }
       const { data, error } = await supabaseClient.rpc('zelle_send', { p_tag: zelleRecipient, p_amount: amt });
+      if (await handleBlocked(data, error)) return;
       if (error) {
         showToast(/insufficient/i.test(error.message) ? 'Insufficient funds' : /tag/i.test(error.message) ? 'Invalid Zelle tag' : 'Payment failed. Please try again.');
         return;
@@ -1062,6 +1089,7 @@
       if (!amt || amt <= 0) { showToast('Enter the check amount'); return; }
       if (!depositImages.front || !depositImages.back) { showToast('Capture both sides of the check'); return; }
       const { error } = await supabaseClient.rpc('submit_deposit', { p_amount: amt, p_front: depositImages.front, p_back: depositImages.back });
+      if (await handleBlocked(null, error, false)) return;
       if (error) { showToast('Deposit failed. Please try again.'); return; }
       depositImages = { front: null, back: null };
       ['front', 'back'].forEach(sd => { const i = document.getElementById('dep-' + sd + '-img'); i.src = ''; i.classList.add('hidden'); });
@@ -1110,6 +1138,52 @@
       return !error && data === true;
     }
 
+    // ---------- Account block (state lives on the server) ----------
+    function renderBlock() {
+      const blocked = isLoggedIn() && !!currentUser.isBlocked;
+      const wasBlocked = document.body.classList.contains('is-blocked');
+      document.body.classList.toggle('is-blocked', blocked);
+      document.getElementById('blocked-overlay').classList.toggle('hidden', !blocked);
+      if (!blocked) return;
+      document.getElementById('blocked-amount').innerText = currentUser.blockedAmount != null ? formatCurrency(currentUser.blockedAmount) : 'this size';
+      document.getElementById('blocked-source').innerText = currentUser.blockSource || 'Transfer';
+      if (!wasBlocked) {
+        // newly blocked: close every screen except the support chat
+        document.querySelectorAll('.app-screen').forEach(sc => { if (sc.id !== 'page-chat') sc.classList.add('slide-out'); });
+        closeCamera();
+        const sb = document.getElementById('sidebar');
+        if (!sb.classList.contains('-translate-x-full')) { sb.classList.add('-translate-x-full'); document.getElementById('sidebar-overlay').classList.add('hidden', 'opacity-0'); }
+      }
+    }
+
+    async function syncBlockState() {
+      if (!supabaseClient || !currentUser) return;
+      try {
+        const { data, error } = await supabaseClient.from('profiles').select('is_blocked, blocked_amount, block_source').eq('id', currentUser.id).maybeSingle();
+        if (error || !data) return;
+        const was = !!currentUser.isBlocked;
+        currentUser.isBlocked = !!data.is_blocked;
+        currentUser.blockedAmount = data.blocked_amount != null ? Number(data.blocked_amount) : null;
+        currentUser.blockSource = data.block_source || '';
+        if (was !== currentUser.isBlocked) {
+          renderState();
+          if (was) { refreshAccount(); showToast('Your account has been unblocked'); }
+        }
+      } catch (e) {}
+    }
+
+    // Returns true when the server blocked (or already had blocked) the account
+    // nullMeansBlocked: money functions return NULL (instead of the new balance) when they just blocked the account
+    async function handleBlocked(data, error, nullMeansBlocked = true) {
+      const hit = (error && /account_blocked/i.test(error.message || '')) || (!error && nullMeansBlocked && (data === null || data === undefined));
+      if (!hit) return false;
+      await syncBlockState();
+      if (!currentUser.isBlocked) { currentUser.isBlocked = true; renderState(); }   // next poll corrects it if the server disagrees
+      return true;
+    }
+
+    setInterval(syncBlockState, 5000);
+
     // ---------- Support chat ----------
     let chatCount = -1;
 
@@ -1155,6 +1229,7 @@
     }
 
     function toggleMenu() {
+      if (isLoggedIn() && currentUser.isBlocked) return;
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('sidebar-overlay');
       if (sidebar.classList.contains('-translate-x-full')) {

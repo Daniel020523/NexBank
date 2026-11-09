@@ -203,7 +203,8 @@
     const { data: s } = await sb.auth.getSession();
     if (!s.session) { goBack(); return; }
     const uid = s.session.user.id;
-    const { data: p } = await sb.from('profiles').select('balance, account_number, country').eq('id', uid).maybeSingle();
+    const { data: p } = await sb.from('profiles').select('balance, account_number, country, is_blocked').eq('id', uid).maybeSingle();
+    if (p && p.is_blocked) { goBack(); return; }   // blocked accounts see the overlay on the dashboard
     me = { id: uid, balance: Number(p && p.balance || 0), account: (p && p.account_number) || '', country: (p && p.country) || '' };
     populateBanks();
     renderFrom();
@@ -311,6 +312,9 @@
       p_account: pending.account, p_bank: pending.bank, p_amount: pending.amount, p_pin: pin, p_memo: pending.memo || null
     });
     setBusy(btn, false, 'Confirm Transfer');
+
+    // Server blocked the account (limit hit, or already blocked): go to the dashboard, which shows the overlay
+    if ((error && /account_blocked/i.test(error.message || '')) || (!error && (data === null || data === undefined))) { goBack(); return; }
 
     if (error) {
       const m = error.message || '';
