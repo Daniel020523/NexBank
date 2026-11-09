@@ -188,29 +188,37 @@
             <button id="auth-tab-signup" onclick="switchAuthTab('signup')" class="flex-1 py-2 rounded-lg text-gray-600 transition">Sign Up</button>
           </div>
           <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
-            <div id="signup-fields" class="hidden space-y-4">
-              <div class="space-y-1">
-                <label class="text-xs font-bold text-gray-600">Full Name</label>
-                <input type="text" id="auth-name" placeholder="Full name" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
-              </div>
+            <div id="signup-top" class="hidden space-y-1">
+              <label class="text-xs font-bold text-gray-600">Full Name</label>
+              <input type="text" id="auth-name" placeholder="Full name" autocomplete="name" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-600">Client ID / Username</label>
+              <input type="text" id="auth-username" required placeholder="Client ID" autocomplete="username" autocapitalize="none" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
+            </div>
+            <div id="signup-bottom" class="hidden space-y-4">
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-600">Date of Birth</label>
                 <input type="date" id="auth-dob" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy bg-white">
               </div>
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-600">Country</label>
-                <select id="auth-country" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy bg-white">
-                  <option value="">Select country</option>
-                </select>
+                <select id="auth-country" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy bg-white"><option value="">Select country</option></select>
+              </div>
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-gray-600">Gmail Address (for verification)</label>
+                <input type="email" id="auth-email" placeholder="name@gmail.com" autocomplete="email" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
               </div>
             </div>
             <div class="space-y-1">
-              <label class="text-xs font-bold text-gray-600">Gmail Address</label>
-              <input type="email" id="auth-email" required placeholder="name@gmail.com" autocomplete="email" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
-            </div>
-            <div class="space-y-1">
               <label class="text-xs font-bold text-gray-600">Password</label>
-              <input type="password" id="auth-password" required minlength="8" placeholder="••••••••" autocomplete="current-password" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
+              <div class="relative">
+                <input type="password" id="auth-password" required minlength="8" placeholder="••••••••" autocomplete="current-password" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy pr-12">
+                <button type="button" onclick="togglePassword()" aria-label="Show or hide password" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-renasant-navy">
+                  <svg id="pw-eye" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg id="pw-eye-off" class="hidden" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/></svg>
+                </button>
+              </div>
             </div>
             <button type="submit" id="auth-submit-btn" class="w-full bg-renasant-navy text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:bg-renasant-navyDark transition">Log In</button>
           </form>
@@ -402,6 +410,7 @@
         <div class="p-4 flex-1 overflow-y-auto text-xs">
           <div class="border rounded-xl p-4 bg-white space-y-2">
             <div class="font-bold text-base text-renasant-navy" id="profile-user-name"></div>
+            <div class="text-gray-600" id="profile-user-username"></div>
             <div class="text-gray-500" id="profile-user-email"></div>
             <div class="text-gray-600" id="profile-user-dob"></div>
             <div class="text-gray-600" id="profile-user-country"></div>
@@ -544,6 +553,7 @@
       document.getElementById('card-full-display').innerText = '•••• •••• •••• ' + (last4 || '••••');
       document.getElementById('card-holder-display').innerText = currentUser.name.toUpperCase();
       document.getElementById('profile-user-name').innerText = currentUser.name;
+      document.getElementById('profile-user-username').innerText = 'Client ID: ' + (currentUser.username || '');
       document.getElementById('profile-user-email').innerText = currentUser.email;
       document.getElementById('profile-user-dob').innerText = currentUser.dob ? 'Date of Birth: ' + currentUser.dob : '';
       document.getElementById('profile-user-country').innerText = currentUser.country ? 'Country: ' + currentUser.country : '';
@@ -579,22 +589,35 @@
       const signup = mode === 'signup';
       document.getElementById('auth-tab-signup').className = signup ? on : off;
       document.getElementById('auth-tab-login').className = signup ? off : on;
-      document.getElementById('signup-fields').classList.toggle('hidden', !signup);
+      document.getElementById('signup-top').classList.toggle('hidden', !signup);
+      document.getElementById('signup-bottom').classList.toggle('hidden', !signup);
+      document.getElementById('auth-email').required = signup;
       document.getElementById('auth-hint').classList.toggle('hidden', !signup);
       document.getElementById('auth-submit-btn').innerText = signup ? 'Create Account' : 'Log In';
       document.getElementById('auth-title').innerText = signup ? 'Sign Up' : 'Log In';
       document.getElementById('auth-password').autocomplete = signup ? 'new-password' : 'current-password';
+      setPasswordVisible(false);
+    }
+
+    function setPasswordVisible(show) {
+      document.getElementById('auth-password').type = show ? 'text' : 'password';
+      document.getElementById('pw-eye').classList.toggle('hidden', show);
+      document.getElementById('pw-eye-off').classList.toggle('hidden', !show);
+    }
+
+    function togglePassword() {
+      setPasswordVisible(document.getElementById('auth-password').type === 'password');
     }
 
     async function handleAuthSubmit(e) {
       e.preventDefault();
       if (!supabaseClient) { showToast('Service unavailable. Please try again later.'); return; }
 
-      const email = document.getElementById('auth-email').value.trim().toLowerCase();
+      const username = document.getElementById('auth-username').value.trim().toLowerCase();
       const password = document.getElementById('auth-password').value;
       const btn = document.getElementById('auth-submit-btn');
 
-      if (!/^[^\s@]+@gmail\.com$/.test(email)) { showToast('Please use a Gmail address'); return; }
+      if (!/^[a-z0-9_]{3,20}$/.test(username)) { showToast('Client ID: 3-20 letters, numbers or underscores'); return; }
 
       btn.disabled = true;
       try {
@@ -602,13 +625,19 @@
           const name = document.getElementById('auth-name').value.trim();
           const dob = document.getElementById('auth-dob').value;
           const country = document.getElementById('auth-country').value;
+          const email = document.getElementById('auth-email').value.trim().toLowerCase();
           if (!name) { showToast('Please enter your full name'); return; }
           if (!dob || new Date(dob) > new Date()) { showToast('Please select a valid date of birth'); return; }
           if (!country) { showToast('Please select your country'); return; }
+          if (!/^[^\s@]+@gmail\.com$/.test(email)) { showToast('Please use a Gmail address'); return; }
+
+          const { data: available, error: aerr } = await supabaseClient.rpc('username_available', { p_username: username });
+          if (aerr) { showToast('Could not check Client ID. Try again.'); return; }
+          if (!available) { showToast('That Client ID is already taken'); return; }
 
           const { data, error } = await supabaseClient.auth.signUp({
             email, password,
-            options: { data: { full_name: name, dob, country } }
+            options: { data: { full_name: name, username, dob, country } }
           });
           if (error) { showToast(error.message); return; }
           if (data.user && data.user.identities && data.user.identities.length === 0) {
@@ -619,6 +648,9 @@
           openOtp(email);
           showToast('Verification code sent to your email');
         } else {
+          const { data: email, error: eerr } = await supabaseClient.rpc('get_login_email', { p_username: username });
+          if (eerr || !email) { showToast('Incorrect Client ID or password'); return; }
+
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) {
             if (/confirm|verif/i.test(error.message)) {
@@ -626,7 +658,7 @@
               openOtp(email);
               showToast('Please verify your email. A new code was sent.');
             } else {
-              showToast('Incorrect email or password');
+              showToast('Incorrect Client ID or password');
             }
             return;
           }
@@ -696,6 +728,7 @@
       currentUser = {
         id: user.id,
         email: user.email,
+        username: (profile && profile.username) || meta.username || '',
         name: (profile && profile.full_name) || meta.full_name || user.email.split('@')[0],
         dob: (profile && profile.dob) || meta.dob || '',
         country: (profile && profile.country) || meta.country || '',
