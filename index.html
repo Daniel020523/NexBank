@@ -4,138 +4,75 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Renasant Bank Mobile App</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Supabase JS Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script>
     tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            renasant: {
-              navy: '#062d54',
-              navyDark: '#041f3d',
-              navyGradientStart: '#083a6b',
-              navyGradientEnd: '#042345',
-              greenBg: '#d7ead6',
-              greenText: '#1b5e20',
-              accentTeal: '#00a896',
-              textDark: '#1a2838',
-              graySub: '#58697a',
-              borderLight: '#e1e8ed'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          }
-        }
-      }
+      theme: { extend: {
+        colors: { renasant: {
+          navy: '#062d54', navyDark: '#041f3d', navyGradientStart: '#083a6b', navyGradientEnd: '#042345',
+          greenBg: '#d7ead6', greenText: '#1b5e20', accentTeal: '#00a896', textDark: '#1a2838'
+        } },
+        fontFamily: { sans: ['Inter', 'sans-serif'] }
+      } }
     }
   </script>
-
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f2f5f8;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    
-    .dashed-border-r {
-      border-right: 1.5px dashed rgba(255, 255, 255, 0.35);
-    }
-
-    .dashed-border-b {
-      border-bottom: 1.5px dashed rgba(255, 255, 255, 0.35);
-    }
-
-    /* Screen Transitions */
-    .app-screen {
-      position: absolute;
-      inset: 0;
-      background: white;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 30;
-    }
-
-    .app-screen.slide-out {
-      transform: translateX(100%);
-    }
-
-    ::-webkit-scrollbar {
-      width: 0px;
-      background: transparent;
-    }
+    body { font-family: 'Inter', sans-serif; background-color: #f2f5f8; -webkit-tap-highlight-color: transparent; }
+    input, select { user-select: text; }
+    .dashed-border-r { border-right: 1.5px dashed rgba(255,255,255,0.35); }
+    .dashed-border-b { border-bottom: 1.5px dashed rgba(255,255,255,0.35); }
+    .app-screen { position: absolute; inset: 0; background: white; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); z-index: 30; }
+    .app-screen.slide-out { transform: translateX(100%); }
+    ::-webkit-scrollbar { width: 0; background: transparent; }
   </style>
 </head>
 <body class="flex justify-center items-center min-h-screen sm:py-6 bg-slate-200">
 
-  <!-- Mobile App Frame Container -->
   <div class="w-full max-w-[430px] h-[100vh] sm:h-[880px] bg-white sm:rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative border-0 sm:border-[8px] sm:border-slate-800">
-    
-    <!-- (STATUS BAR HAS BEEN REMOVED ENTIRELY AS REQUESTED) -->
 
-    <!-- Renasant Bank Main Header -->
+    <!-- Header -->
     <header class="bg-renasant-navy text-white px-4 py-3.5 flex justify-between items-center z-40 shadow-md">
-      <!-- Hamburger Menu -->
-      <button onclick="toggleMenu()" class="p-1 text-white hover:opacity-80 transition focus:outline-none">
+      <button onclick="toggleMenu()" class="p-1 hover:opacity-80 transition focus:outline-none">
         <i class="fa-solid fa-bars text-2xl"></i>
       </button>
-
-      <!-- Renasant Bank Logo -->
       <div onclick="navigateTo('dashboard')" class="flex items-center space-x-2 cursor-pointer">
         <svg class="w-7 h-7" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M20 80 C20 40, 50 30, 80 20 C60 50, 40 60, 20 80 Z" fill="#64B5F6" />
           <path d="M35 85 C35 55, 60 45, 85 35 C70 60, 55 70, 35 85 Z" fill="#90CAF9" opacity="0.8"/>
         </svg>
         <div class="flex flex-col tracking-wider leading-none">
-          <span class="font-bold text-lg tracking-widest uppercase text-white font-serif">RENASANT</span>
-          <span class="text-[9px] tracking-[0.25em] text-gray-300 font-sans self-end -mt-0.5">BANK</span>
+          <span class="font-bold text-lg tracking-widest uppercase font-serif">RENASANT</span>
+          <span class="text-[9px] tracking-[0.25em] text-gray-300 self-end -mt-0.5">BANK</span>
         </div>
       </div>
-
-      <!-- Header Action Icons -->
       <div class="flex items-center space-x-3 text-xl">
-        <button onclick="openConfigModal()" title="Supabase DB Settings" class="text-amber-400 hover:text-amber-300 transition focus:outline-none">
-          <i class="fa-solid fa-database text-lg"></i>
-        </button>
-        <button onclick="navigateTo('help')" class="hover:opacity-80 transition focus:outline-none">
-          <i class="fa-regular fa-circle-question"></i>
-        </button>
-        <button onclick="navigateTo('profile')" class="hover:opacity-80 transition focus:outline-none">
-          <i class="fa-regular fa-circle-user"></i>
-        </button>
+        <button onclick="navigateTo('help')" class="hover:opacity-80 transition focus:outline-none"><i class="fa-regular fa-circle-question"></i></button>
+        <button onclick="navigateTo('profile')" class="hover:opacity-80 transition focus:outline-none"><i class="fa-regular fa-circle-user"></i></button>
       </div>
     </header>
 
-    <!-- Scrollable Main Content Area -->
+    <!-- Dashboard -->
     <main class="flex-1 overflow-y-auto px-4 pt-3 pb-24 space-y-4">
-      
-      <!-- FDIC Sub-header Banner -->
-      <div class="flex items-start space-x-2 px-1 text-renasant-textDark">
-        <div class="font-black tracking-tighter text-lg leading-none border-b-2 border-renasant-navy inline-block">
-          FDIC
-        </div>
-        <p class="text-[11px] leading-tight text-gray-700 italic font-serif">
-          FDIC-Insured - Backed by the full faith and credit of the U.S. Government
-        </p>
+
+      <!-- Login / Sign Up bar (logged out only) -->
+      <div id="guest-bar" class="flex space-x-2">
+        <button onclick="openAuth('login')" class="flex-1 bg-renasant-navy text-white py-2.5 rounded-xl font-bold text-sm shadow">Log In</button>
+        <button onclick="openAuth('signup')" class="flex-1 bg-white text-renasant-navy border-2 border-renasant-navy py-2.5 rounded-xl font-bold text-sm">Sign Up</button>
       </div>
 
-      <!-- Welcome & Bell Header (Dynamic Name from Supabase/Auth) -->
+      <div class="flex items-start space-x-2 px-1 text-renasant-textDark">
+        <div class="font-black tracking-tighter text-lg leading-none border-b-2 border-renasant-navy inline-block">FDIC</div>
+        <p class="text-[11px] leading-tight text-gray-700 italic font-serif">FDIC-Insured - Backed by the full faith and credit of the U.S. Government</p>
+      </div>
+
       <div class="flex justify-between items-center pt-1 px-1">
         <div class="flex items-center space-x-2">
-          <h1 class="text-xl font-bold text-renasant-textDark tracking-tight">
-            Welcome, <span id="display-user-name">James</span>!
-          </h1>
+          <h1 class="text-xl font-bold text-renasant-textDark tracking-tight" id="welcome-text">Welcome!</h1>
           <button onclick="navigateTo('notifications')" class="text-gray-700 hover:text-renasant-navy transition relative">
             <i class="fa-regular fa-bell text-lg"></i>
-            <span class="absolute -top-1 -right-1 bg-red-500 w-2 h-2 rounded-full"></span>
           </button>
         </div>
         <button onclick="navigateTo('settings')" class="text-gray-600 hover:text-renasant-navy transition p-1">
@@ -143,281 +80,172 @@
         </button>
       </div>
 
-      <!-- MAIN ACCOUNT CARD (Simple Checking) -->
-      <div class="rounded-xl overflow-hidden shadow-md border border-gray-100">
-        <!-- Top Light Green Banner -->
+      <!-- Account card: logged out -->
+      <div id="account-guest" class="rounded-xl overflow-hidden shadow-md bg-gradient-to-b from-renasant-navyGradientStart to-renasant-navyGradientEnd text-white p-5 text-center space-y-3">
+        <i class="fa-solid fa-lock text-2xl"></i>
+        <h2 class="text-base font-semibold">Log in to view your accounts</h2>
+        <p class="text-xs text-gray-300">Your balance and account details are hidden until you sign in.</p>
+        <button onclick="openAuth('login')" class="bg-white text-renasant-navy px-6 py-2 rounded-full text-sm font-bold">Log In</button>
+      </div>
+
+      <!-- Account card: logged in -->
+      <div id="account-user" class="hidden rounded-xl overflow-hidden shadow-md border border-gray-100">
         <button onclick="navigateTo('fund')" class="w-full bg-renasant-greenBg px-3 py-2 flex items-center space-x-2 text-renasant-greenText hover:bg-green-200 transition text-left">
           <i class="fa-regular fa-circle-question text-base"></i>
           <span class="font-bold text-sm tracking-wide">Fund Account</span>
         </button>
-
-        <!-- Dark Navy Teal Balance Section -->
         <div class="bg-gradient-to-b from-renasant-navyGradientStart to-renasant-navyGradientEnd text-white p-4">
-          
           <div class="flex justify-between items-start">
-            <!-- Account Info with Card Eye Toggle -->
-            <div class="cursor-pointer group">
-              <h2 onclick="navigateTo('accountDetails')" class="text-lg font-semibold tracking-wide group-hover:underline">Simple Checking</h2>
+            <div>
+              <h2 onclick="navigateTo('accountDetails')" class="text-lg font-semibold tracking-wide cursor-pointer hover:underline">Simple Checking</h2>
               <div class="flex items-center space-x-2 mt-0.5 text-xs text-gray-300">
-                <span id="account-number-text">****6922</span>
-                <!-- EYE TOGGLE 1: Card / Account Number Toggle -->
-                <button onclick="toggleCardNumberVisibility()" id="card-eye-btn" title="Toggle Card Number" class="focus:outline-none hover:text-white transition p-1">
+                <span id="account-number-text">—</span>
+                <button onclick="toggleCardNumberVisibility()" class="focus:outline-none hover:text-white transition p-1">
                   <i class="fa-regular fa-eye text-xs" id="card-eye-icon"></i>
                 </button>
               </div>
             </div>
-
-            <!-- Balance Display with Balance Eye Toggle -->
             <div class="text-right">
               <div class="flex items-center justify-end space-x-1.5">
-                <div id="balance-amount-display" class="text-3xl font-bold tracking-tight">-$120.46</div>
-                <!-- EYE TOGGLE 2: Balance Toggle Beside Balance Amount -->
-                <button onclick="toggleBalanceVisibility()" id="balance-eye-btn" title="Toggle Balance Visibility" class="focus:outline-none hover:text-white transition p-1 text-gray-300">
+                <div id="balance-amount-display" class="text-3xl font-bold tracking-tight">$0.00</div>
+                <button onclick="toggleBalanceVisibility()" class="focus:outline-none hover:text-white transition p-1 text-gray-300">
                   <i class="fa-regular fa-eye text-base" id="balance-eye-icon"></i>
                 </button>
               </div>
               <div onclick="navigateTo('accountDetails')" class="flex items-center justify-end space-x-1 text-[11px] text-gray-300 mt-1 cursor-pointer">
                 <span>Available Balance</span>
-                <i class="fa-regular fa-circle-question text-[10px]"></i>
               </div>
             </div>
           </div>
-
-          <!-- Dashed Horizontal Divider -->
           <div class="my-4 dashed-border-b"></div>
-
-          <!-- Quick Actions Grid inside Card -->
           <div class="grid grid-cols-3 text-center">
-            <!-- Transfers -->
-            <button onclick="navigateTo('transfers')" class="flex flex-col items-center justify-center py-1 dashed-border-r hover:bg-white/10 rounded transition">
-              <i class="fa-solid fa-right-left text-lg mb-1"></i>
-              <span class="text-xs font-medium">Transfers</span>
+            <button onclick="navigateTo('transfers')" class="flex flex-col items-center py-1 dashed-border-r hover:bg-white/10 rounded transition">
+              <i class="fa-solid fa-right-left text-lg mb-1"></i><span class="text-xs font-medium">Transfers</span>
             </button>
-
-            <!-- Deposit -->
-            <button onclick="navigateTo('deposit')" class="flex flex-col items-center justify-center py-1 dashed-border-r hover:bg-white/10 rounded transition">
-              <i class="fa-solid fa-camera text-lg mb-1"></i>
-              <span class="text-xs font-medium">Deposit</span>
+            <button onclick="navigateTo('deposit')" class="flex flex-col items-center py-1 dashed-border-r hover:bg-white/10 rounded transition">
+              <i class="fa-solid fa-camera text-lg mb-1"></i><span class="text-xs font-medium">Deposit</span>
             </button>
-
-            <!-- Documents -->
-            <button onclick="navigateTo('documents')" class="flex flex-col items-center justify-center py-1 hover:bg-white/10 rounded transition">
-              <i class="fa-regular fa-file-lines text-lg mb-1"></i>
-              <span class="text-xs font-medium">Documents</span>
+            <button onclick="navigateTo('documents')" class="flex flex-col items-center py-1 hover:bg-white/10 rounded transition">
+              <i class="fa-regular fa-file-lines text-lg mb-1"></i><span class="text-xs font-medium">Documents</span>
             </button>
           </div>
-
         </div>
       </div>
 
-      <!-- ANNOUNCEMENTS CARD -->
+      <!-- Announcements -->
       <div onclick="navigateTo('notice')" class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 cursor-pointer hover:border-blue-200 transition">
         <h3 class="text-base font-bold text-renasant-textDark mb-3">Announcements</h3>
-        
         <div class="flex items-start space-x-3">
           <i class="fa-regular fa-circle-question text-renasant-navy text-xl mt-0.5 shrink-0"></i>
           <div class="space-y-1">
-            <h4 class="text-sm font-bold text-renasant-textDark leading-snug">
-              Important Notice for Android Mobile Users
-            </h4>
-            <p class="text-xs text-gray-600 leading-relaxed">
-              To ensure compatibility with the latest security standards, Android operating systems below version ...
-              <span class="text-renasant-navy font-semibold underline">
-                Show Full Text
-              </span>
-            </p>
+            <h4 class="text-sm font-bold text-renasant-textDark leading-snug">Important Notice for Android Mobile Users</h4>
+            <p class="text-xs text-gray-600 leading-relaxed">To ensure compatibility with the latest security standards, Android operating systems below version ...
+              <span class="text-renasant-navy font-semibold underline">Show Full Text</span></p>
           </div>
         </div>
       </div>
 
-      <!-- SPENDING INSIGHTS CARD -->
+      <!-- Spending insights -->
       <div onclick="navigateTo('insights')" class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center space-x-4 cursor-pointer hover:border-teal-200 transition">
-        <!-- SVG Icon Graphic -->
-        <div class="w-16 h-16 shrink-0 relative flex items-center justify-center">
+        <div class="w-16 h-16 shrink-0 flex items-center justify-center">
           <svg class="w-full h-full" viewBox="0 0 64 64" fill="none">
-            <!-- Blue Bar Charts -->
             <rect x="8" y="38" width="12" height="20" rx="3" fill="#0b3d68" />
             <rect x="26" y="28" width="12" height="30" rx="3" fill="#0b3d68" />
             <rect x="44" y="18" width="12" height="40" rx="3" fill="#0b3d68" />
-            
-            <!-- Green Upward Curved Arrow -->
             <path d="M6 34 C 18 20, 32 18, 52 8" stroke="#00a896" stroke-width="5" stroke-linecap="round" fill="none"/>
             <path d="M42 6 L56 6 L56 20 Z" fill="#00a896"/>
           </svg>
         </div>
-
-        <!-- Text Content -->
         <div class="space-y-1">
-          <h4 class="text-sm font-bold text-renasant-textDark leading-tight">
-            Track Your Spending Insights.
-          </h4>
-          <p class="text-xs text-gray-500 leading-snug">
-            Review your latest spending insights and access your money tracking tools.
-          </p>
+          <h4 class="text-sm font-bold text-renasant-textDark leading-tight">Track Your Spending Insights.</h4>
+          <p class="text-xs text-gray-500 leading-snug">Review your latest spending insights and access your money tracking tools.</p>
         </div>
       </div>
-
     </main>
 
-    <!-- FIXED BOTTOM NAVIGATION BAR -->
+    <!-- Bottom nav -->
     <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-2 flex justify-around items-center z-40 shadow-lg">
-      
-      <!-- Dashboard / Accounts Nav item -->
-      <button onclick="navigateTo('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center justify-center w-full py-1 text-renasant-navy focus:outline-none">
-        <i class="fa-solid fa-house text-lg mb-1"></i>
-        <span class="text-[10px] font-medium">Home</span>
-      </button>
-
-      <!-- Transfers Nav item -->
-      <button onclick="navigateTo('transfers')" id="nav-transfers" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
-        <i class="fa-solid fa-right-left text-lg mb-1"></i>
-        <span class="text-[10px] font-medium">Transfers</span>
-      </button>
-
-      <!-- Bill Pay Nav item -->
-      <button onclick="navigateTo('billpay')" id="nav-billpay" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
-        <i class="fa-solid fa-money-bill-1-wave text-lg mb-1"></i>
-        <span class="text-[10px] font-medium">Bill Pay</span>
-      </button>
-
-      <!-- Zelle Nav item -->
-      <button onclick="navigateTo('zelle')" id="nav-zelle" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
-        <i class="fa-solid fa-money-bill-transfer text-lg mb-1"></i>
-        <span class="text-[10px] font-medium">Zelle®</span>
-      </button>
-
-      <!-- Deposit Nav item -->
-      <button onclick="navigateTo('deposit')" id="nav-deposit" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
-        <i class="fa-solid fa-camera text-lg mb-1"></i>
-        <span class="text-[10px] font-medium">Deposit</span>
-      </button>
-
-      <!-- Cards Nav item -->
-      <button onclick="navigateTo('cards')" id="nav-cards" class="nav-item flex flex-col items-center justify-center w-full py-1 text-gray-600 hover:text-renasant-navy focus:outline-none">
-        <i class="fa-solid fa-credit-card text-lg mb-1"></i>
-        <span class="text-[10px] font-medium">Cards</span>
-      </button>
-
+      <button onclick="navigateTo('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center w-full py-1 text-renasant-navy focus:outline-none"><i class="fa-solid fa-house text-lg mb-1"></i><span class="text-[10px] font-medium">Home</span></button>
+      <button onclick="navigateTo('transfers')" id="nav-transfers" class="nav-item flex flex-col items-center w-full py-1 text-gray-600 focus:outline-none"><i class="fa-solid fa-right-left text-lg mb-1"></i><span class="text-[10px] font-medium">Transfers</span></button>
+      <button onclick="navigateTo('billpay')" id="nav-billpay" class="nav-item flex flex-col items-center w-full py-1 text-gray-600 focus:outline-none"><i class="fa-solid fa-money-bill-1-wave text-lg mb-1"></i><span class="text-[10px] font-medium">Bill Pay</span></button>
+      <button onclick="navigateTo('zelle')" id="nav-zelle" class="nav-item flex flex-col items-center w-full py-1 text-gray-600 focus:outline-none"><i class="fa-solid fa-money-bill-transfer text-lg mb-1"></i><span class="text-[10px] font-medium">Zelle®</span></button>
+      <button onclick="navigateTo('deposit')" id="nav-deposit" class="nav-item flex flex-col items-center w-full py-1 text-gray-600 focus:outline-none"><i class="fa-solid fa-camera text-lg mb-1"></i><span class="text-[10px] font-medium">Deposit</span></button>
+      <button onclick="navigateTo('cards')" id="nav-cards" class="nav-item flex flex-col items-center w-full py-1 text-gray-600 focus:outline-none"><i class="fa-solid fa-credit-card text-lg mb-1"></i><span class="text-[10px] font-medium">Cards</span></button>
     </nav>
 
-    <!-- AUTHENTICATION / LOGIN / SIGNUP SCREEN (OVERLAY) -->
-    <div id="page-auth" class="app-screen flex flex-col bg-slate-50 z-50">
-      <div class="bg-renasant-navy text-white p-6 text-center shadow-lg relative">
-        <div class="flex items-center justify-center space-x-2">
-          <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
-            <path d="M20 80 C20 40, 50 30, 80 20 C60 50, 40 60, 20 80 Z" fill="#64B5F6" />
-            <path d="M35 85 C35 55, 60 45, 85 35 C70 60, 55 70, 35 85 Z" fill="#90CAF9" opacity="0.8"/>
-          </svg>
-          <span class="font-bold text-xl tracking-widest uppercase font-serif">RENASANT BANK</span>
-        </div>
-        <p class="text-xs text-blue-200 mt-1">Mobile Banking Login</p>
-      </div>
-
-      <div class="p-6 flex-1 overflow-y-auto flex flex-col justify-center space-y-5">
-        <!-- Auth Toggle Tabs -->
-        <div class="flex bg-gray-200 rounded-xl p-1 text-xs font-bold">
-          <button id="auth-tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg bg-renasant-navy text-white transition">Sign In</button>
-          <button id="auth-tab-signup" onclick="switchAuthTab('signup')" class="flex-1 py-2 rounded-lg text-gray-600 transition">Create Account</button>
-        </div>
-
-        <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
-          <div id="name-field-container" class="hidden space-y-1">
-            <label class="text-xs font-bold text-gray-600">Full Name</label>
-            <input type="text" id="auth-name" placeholder="James Miller" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
-          </div>
-
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-gray-600">Email Address (Gmail SMTP)</label>
-            <input type="email" id="auth-email" required placeholder="user@gmail.com" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
-          </div>
-
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-gray-600">Password</label>
-            <input type="password" id="auth-password" required placeholder="••••••••" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
-          </div>
-
-          <button type="submit" id="auth-submit-btn" class="w-full bg-renasant-navy text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:bg-renasant-navyDark transition">
-            Send Gmail OTP Verification Code
-          </button>
-        </form>
-
-        <div class="text-center pt-2">
-          <button onclick="skipAuthDemo()" class="text-xs text-renasant-navy font-semibold underline">
-            Continue with Demo Session
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- OTP VERIFICATION SCREEN -->
-    <div id="page-otp" class="app-screen slide-out flex flex-col bg-white z-50">
-      <div class="bg-renasant-navy text-white p-4 flex items-center space-x-3">
-        <button onclick="closePage('otp')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
-        <h2 class="text-base font-bold">Gmail Security Verification</h2>
-      </div>
-
-      <div class="p-6 flex-1 flex flex-col justify-center text-center space-y-6">
-        <div class="w-16 h-16 bg-blue-50 text-renasant-navy rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
-          <i class="fa-solid fa-envelope-circle-check"></i>
-        </div>
-
-        <div class="space-y-2">
-          <h3 class="font-bold text-lg text-renasant-textDark">Enter 6-Digit OTP</h3>
-          <p class="text-xs text-gray-500 leading-relaxed px-4">
-            We sent a verification code to <span id="otp-target-email" class="font-bold text-renasant-navy">user@gmail.com</span> via Gmail SMTP server.
-          </p>
-        </div>
-
-        <div class="flex justify-center space-x-2" id="otp-inputs">
-          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
-          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
-          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
-          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
-          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
-          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
-        </div>
-
-        <button onclick="verifyOTP()" class="w-full bg-renasant-navy text-white py-3.5 rounded-xl font-bold text-sm shadow-md">
-          Verify & Access Dashboard
-        </button>
-
-        <p class="text-xs text-gray-500">
-          Didn't receive code? <button onclick="resendOTP()" class="text-renasant-navy font-bold underline">Resend Code</button>
-        </p>
-      </div>
-    </div>
-
-    <!-- SUPABASE DB CONFIG MODAL OVERLAY -->
-    <div id="modal-supabase-config" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
-        <div class="flex justify-between items-center border-b pb-2">
-          <h3 class="font-bold text-renasant-navy text-sm">Connect Supabase Database</h3>
-          <button onclick="closeConfigModal()" class="text-gray-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <p class="text-xs text-gray-500">
-          Enter your Supabase credentials to sync dynamic profile & account balance in real-time.
-        </p>
-        <div class="space-y-3">
-          <div>
-            <label class="text-[11px] font-bold text-gray-600">SUPABASE_URL</label>
-            <input type="text" id="supabase-url" placeholder="https://xyz.supabase.co" class="w-full p-2.5 border rounded-lg text-xs font-mono">
-          </div>
-          <div>
-            <label class="text-[11px] font-bold text-gray-600">SUPABASE_ANON_KEY</label>
-            <input type="password" id="supabase-key" placeholder="eyJhbGciOi..." class="w-full p-2.5 border rounded-lg text-xs font-mono">
-          </div>
-        </div>
-        <div class="flex space-x-2 pt-2">
-          <button onclick="saveSupabaseConfig()" class="flex-1 bg-renasant-navy text-white py-2.5 rounded-xl font-bold text-xs">Save & Connect</button>
-          <button onclick="closeConfigModal()" class="px-4 border rounded-xl font-bold text-xs text-gray-600">Cancel</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUB-PAGES CONTAINER WITH SLIDE TRANSITIONS -->
+    <!-- Sub-pages -->
     <div id="sub-page-container">
-      
-      <!-- TRANSFERS PAGE -->
+
+      <!-- AUTH (Log In / Sign Up) -->
+      <div id="page-auth" class="app-screen slide-out flex flex-col bg-slate-50">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
+          <button onclick="closePage('auth')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold" id="auth-title">Log In</h2>
+        </div>
+        <div class="p-6 flex-1 overflow-y-auto space-y-5">
+          <div class="flex bg-gray-200 rounded-xl p-1 text-xs font-bold">
+            <button id="auth-tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg bg-renasant-navy text-white transition">Log In</button>
+            <button id="auth-tab-signup" onclick="switchAuthTab('signup')" class="flex-1 py-2 rounded-lg text-gray-600 transition">Sign Up</button>
+          </div>
+          <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+            <div id="signup-fields" class="hidden space-y-4">
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-gray-600">Full Name</label>
+                <input type="text" id="auth-name" placeholder="Full name" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
+              </div>
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-gray-600">Date of Birth</label>
+                <input type="date" id="auth-dob" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy bg-white">
+              </div>
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-gray-600">Country</label>
+                <select id="auth-country" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy bg-white">
+                  <option value="">Select country</option>
+                </select>
+              </div>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-600">Gmail Address</label>
+              <input type="email" id="auth-email" required placeholder="name@gmail.com" autocomplete="email" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-600">Password</label>
+              <input type="password" id="auth-password" required minlength="8" placeholder="••••••••" autocomplete="current-password" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
+            </div>
+            <button type="submit" id="auth-submit-btn" class="w-full bg-renasant-navy text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:bg-renasant-navyDark transition">Log In</button>
+          </form>
+          <p id="auth-hint" class="text-[11px] text-gray-500 text-center hidden">After signing up, we'll email you a 6-digit code to verify your account.</p>
+        </div>
+      </div>
+
+      <!-- EMAIL VERIFICATION CODE -->
+      <div id="page-otp" class="app-screen slide-out flex flex-col z-40">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
+          <button onclick="closePage('otp')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Verify Your Email</h2>
+        </div>
+        <div class="p-6 flex-1 flex flex-col justify-center text-center space-y-6">
+          <div class="w-16 h-16 bg-blue-50 text-renasant-navy rounded-full flex items-center justify-center mx-auto text-2xl">
+            <i class="fa-solid fa-envelope-circle-check"></i>
+          </div>
+          <div class="space-y-2">
+            <h3 class="font-bold text-lg text-renasant-textDark">Enter 6-Digit Code</h3>
+            <p class="text-xs text-gray-500 leading-relaxed px-4">We sent a verification code to <span id="otp-target-email" class="font-bold text-renasant-navy"></span></p>
+          </div>
+          <div class="flex justify-center space-x-2" id="otp-inputs">
+            <input type="text" inputmode="numeric" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+            <input type="text" inputmode="numeric" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+            <input type="text" inputmode="numeric" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+            <input type="text" inputmode="numeric" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+            <input type="text" inputmode="numeric" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+            <input type="text" inputmode="numeric" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+          </div>
+          <button id="otp-verify-btn" onclick="verifyOTP()" class="w-full bg-renasant-navy text-white py-3.5 rounded-xl font-bold text-sm shadow-md">Verify Account</button>
+          <p class="text-xs text-gray-500">Didn't receive a code? <button onclick="resendOTP()" class="text-renasant-navy font-bold underline">Resend Code</button></p>
+        </div>
+      </div>
+
+      <!-- TRANSFERS -->
       <div id="page-transfers" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('transfers')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
@@ -426,10 +254,10 @@
         <div class="p-4 flex-1 overflow-y-auto space-y-4">
           <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
             <label class="text-xs font-bold text-gray-600">From Account</label>
-            <div class="p-3 bg-white border rounded-lg text-sm font-semibold text-renasant-navy">Simple Checking (****6922)</div>
+            <div id="transfer-from" class="p-3 bg-white border rounded-lg text-sm font-semibold text-renasant-navy">Simple Checking</div>
             <label class="text-xs font-bold text-gray-600">To Account</label>
             <select class="w-full p-3 bg-white border rounded-lg text-sm font-semibold text-gray-700">
-              <option>Savings Account (****4110)</option>
+              <option>Savings Account</option>
               <option>External Bank Account</option>
             </select>
             <label class="text-xs font-bold text-gray-600">Amount ($)</label>
@@ -439,50 +267,35 @@
         </div>
       </div>
 
-      <!-- DEPOSIT PAGE -->
+      <!-- DEPOSIT -->
       <div id="page-deposit" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('deposit')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Mobile Check Deposit</h2>
         </div>
         <div class="p-6 flex-1 overflow-y-auto space-y-4 text-center">
-          <div onclick="showToast('Camera Initialized: Front')" class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center justify-center space-y-2 bg-gray-50 cursor-pointer">
+          <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center space-y-2 bg-gray-50">
             <i class="fa-solid fa-camera text-4xl text-renasant-navy"></i>
-            <span class="text-xs font-semibold text-gray-600">Tap to Capture Front of Check</span>
+            <span class="text-xs font-semibold text-gray-600">Capture Front of Check</span>
           </div>
-          <div onclick="showToast('Camera Initialized: Back')" class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center justify-center space-y-2 bg-gray-50 cursor-pointer">
+          <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center space-y-2 bg-gray-50">
             <i class="fa-solid fa-camera text-4xl text-renasant-navy"></i>
-            <span class="text-xs font-semibold text-gray-600">Tap to Capture Back of Check</span>
+            <span class="text-xs font-semibold text-gray-600">Capture Back of Check</span>
           </div>
-          <button onclick="closePage('deposit'); showToast('Check Deposit Submitted for Review');" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm">Submit Deposit</button>
+          <button onclick="closePage('deposit')" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm">Submit Deposit</button>
         </div>
       </div>
 
-      <!-- BILL PAY PAGE -->
+      <!-- BILL PAY -->
       <div id="page-billpay" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('billpay')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Bill Pay</h2>
         </div>
-        <div class="p-4 flex-1 overflow-y-auto space-y-3">
-          <div class="flex justify-between items-center p-3 border rounded-xl bg-white shadow-sm">
-            <div>
-              <div class="font-bold text-sm text-renasant-textDark">Electric Utility Co.</div>
-              <div class="text-xs text-gray-500">Due Nov 15 • $84.20</div>
-            </div>
-            <button onclick="showToast('Bill Payment Scheduled')" class="px-3 py-1.5 bg-renasant-navy text-white rounded-lg text-xs font-semibold">Pay Now</button>
-          </div>
-          <div class="flex justify-between items-center p-3 border rounded-xl bg-white shadow-sm">
-            <div>
-              <div class="font-bold text-sm text-renasant-textDark">City Water Dept</div>
-              <div class="text-xs text-gray-500">Due Nov 22 • $42.50</div>
-            </div>
-            <button onclick="showToast('Bill Payment Scheduled')" class="px-3 py-1.5 bg-renasant-navy text-white rounded-lg text-xs font-semibold">Pay Now</button>
-          </div>
-        </div>
+        <div class="p-6 flex-1 text-center text-xs text-gray-500">You have no bills or payees yet.</div>
       </div>
 
-      <!-- ZELLE PAGE -->
+      <!-- ZELLE -->
       <div id="page-zelle" class="app-screen slide-out flex flex-col">
         <div class="bg-purple-900 text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('zelle')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
@@ -493,13 +306,13 @@
           <h3 class="font-bold text-lg text-gray-800">Send or Request Money</h3>
           <p class="text-xs text-gray-500">Send money directly to friends and family using their email or mobile phone number.</p>
           <div class="grid grid-cols-2 gap-3 pt-4">
-            <button onclick="showToast('Zelle Send Initiated')" class="py-3 bg-purple-800 text-white rounded-xl font-bold text-xs">Send</button>
-            <button onclick="showToast('Zelle Request Initiated')" class="py-3 bg-purple-100 text-purple-900 rounded-xl font-bold text-xs">Request</button>
+            <button class="py-3 bg-purple-800 text-white rounded-xl font-bold text-xs">Send</button>
+            <button class="py-3 bg-purple-100 text-purple-900 rounded-xl font-bold text-xs">Request</button>
           </div>
         </div>
       </div>
 
-      <!-- CARDS PAGE -->
+      <!-- CARDS -->
       <div id="page-cards" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('cards')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
@@ -511,11 +324,8 @@
               <span class="text-xs font-bold uppercase tracking-widest">Renasant Debit</span>
               <i class="fa-solid fa-wifi text-lg"></i>
             </div>
-            <div id="card-full-display" class="text-lg font-mono tracking-widest">•••• •••• •••• 6922</div>
-            <div class="flex justify-between text-xs">
-              <span id="card-holder-display">JAMES MILLER</span>
-              <span>EXP 08/28</span>
-            </div>
+            <div id="card-full-display" class="text-lg font-mono tracking-widest">•••• •••• •••• ••••</div>
+            <div class="text-xs" id="card-holder-display">CARDHOLDER</div>
           </div>
           <div class="flex justify-between items-center p-3 border rounded-xl">
             <span class="text-xs font-bold text-gray-700">Lock / Freeze Card</span>
@@ -524,45 +334,28 @@
         </div>
       </div>
 
-      <!-- DOCUMENTS PAGE -->
+      <!-- DOCUMENTS -->
       <div id="page-documents" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('documents')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Statements & Documents</h2>
         </div>
-        <div class="p-4 flex-1 overflow-y-auto space-y-2">
-          <div onclick="showToast('Downloading October Statement...')" class="flex justify-between items-center p-3 border rounded-xl bg-white cursor-pointer hover:bg-gray-50">
-            <div class="flex items-center space-x-3">
-              <i class="fa-regular fa-file-pdf text-red-600 text-xl"></i>
-              <div>
-                <div class="text-xs font-bold text-gray-800">October 2026 Statement</div>
-                <div class="text-[10px] text-gray-500">PDF • 145 KB</div>
-              </div>
-            </div>
-            <i class="fa-solid fa-download text-gray-400"></i>
-          </div>
-        </div>
+        <div class="p-6 flex-1 text-center text-xs text-gray-500">No statements available yet.</div>
       </div>
 
-      <!-- FUND ACCOUNT PAGE -->
+      <!-- FUND ACCOUNT -->
       <div id="page-fund" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('fund')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Fund Account</h2>
         </div>
         <div class="p-4 flex-1 overflow-y-auto space-y-3">
-          <button onclick="closePage('fund'); navigateTo('transfers');" class="w-full text-left p-4 border rounded-xl font-bold text-xs text-renasant-navy bg-blue-50 flex justify-between items-center">
-            <span>Transfer from External Account</span>
-            <i class="fa-solid fa-chevron-right"></i>
-          </button>
-          <button onclick="closePage('fund'); navigateTo('deposit');" class="w-full text-left p-4 border rounded-xl font-bold text-xs text-renasant-navy bg-blue-50 flex justify-between items-center">
-            <span>Mobile Deposit</span>
-            <i class="fa-solid fa-chevron-right"></i>
-          </button>
+          <button onclick="closePage('fund'); navigateTo('transfers');" class="w-full text-left p-4 border rounded-xl font-bold text-xs text-renasant-navy bg-blue-50 flex justify-between items-center"><span>Transfer from External Account</span><i class="fa-solid fa-chevron-right"></i></button>
+          <button onclick="closePage('fund'); navigateTo('deposit');" class="w-full text-left p-4 border rounded-xl font-bold text-xs text-renasant-navy bg-blue-50 flex justify-between items-center"><span>Mobile Deposit</span><i class="fa-solid fa-chevron-right"></i></button>
         </div>
       </div>
 
-      <!-- ACCOUNT DETAILS PAGE -->
+      <!-- ACCOUNT DETAILS -->
       <div id="page-accountDetails" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('accountDetails')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
@@ -571,30 +364,14 @@
         <div class="p-4 flex-1 overflow-y-auto space-y-4">
           <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center space-y-1">
             <span class="text-xs text-gray-500">Current Balance</span>
-            <div id="detail-balance-amount" class="text-3xl font-bold text-renasant-navy">-$120.46</div>
-            <span class="text-[11px] text-red-600 font-semibold">Account Active</span>
+            <div id="detail-balance-amount" class="text-3xl font-bold text-renasant-navy">$0.00</div>
           </div>
           <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Recent Transactions</h3>
-          <div class="space-y-2">
-            <div class="flex justify-between items-center p-3 border-b text-xs">
-              <div>
-                <div class="font-bold text-gray-800">Coffee Shop</div>
-                <div class="text-[10px] text-gray-500">Nov 8, 2026</div>
-              </div>
-              <span class="font-bold text-red-600">-$4.50</span>
-            </div>
-            <div class="flex justify-between items-center p-3 border-b text-xs">
-              <div>
-                <div class="font-bold text-gray-800">Grocery Market</div>
-                <div class="text-[10px] text-gray-500">Nov 7, 2026</div>
-              </div>
-              <span class="font-bold text-red-600">-$65.96</span>
-            </div>
-          </div>
+          <div class="text-xs text-gray-500 text-center py-4">No transactions yet.</div>
         </div>
       </div>
 
-      <!-- NOTICE ANNOUNCEMENT PAGE -->
+      <!-- NOTICE -->
       <div id="page-notice" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('notice')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
@@ -602,60 +379,52 @@
         </div>
         <div class="p-5 flex-1 overflow-y-auto space-y-4">
           <h3 class="text-base font-bold text-renasant-navy">Important Notice for Android Mobile Users</h3>
-          <p class="text-xs text-gray-600 leading-relaxed">
-            To ensure compatibility with the latest security standards, Android operating systems below version 9.0 will no longer be supported starting next month.
-          </p>
-          <p class="text-xs text-gray-600 leading-relaxed">
-            Please update your device's operating system to continue using all Renasant Bank Mobile features smoothly and securely.
-          </p>
+          <p class="text-xs text-gray-600 leading-relaxed">To ensure compatibility with the latest security standards, Android operating systems below version 9.0 will no longer be supported starting next month.</p>
+          <p class="text-xs text-gray-600 leading-relaxed">Please update your device's operating system to continue using all Renasant Bank Mobile features smoothly and securely.</p>
         </div>
       </div>
 
-      <!-- SPENDING INSIGHTS PAGE -->
+      <!-- INSIGHTS -->
       <div id="page-insights" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('insights')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Spending Insights</h2>
         </div>
-        <div class="p-4 flex-1 overflow-y-auto space-y-4">
-          <div class="bg-teal-50 p-4 rounded-xl border border-teal-100 space-y-2">
-            <h4 class="text-xs font-bold text-teal-900">Monthly Spending Breakdown</h4>
-            <div class="text-xl font-bold text-teal-800">$1,420.00 spent this month</div>
-          </div>
-        </div>
+        <div class="p-6 flex-1 text-center text-xs text-gray-500">No spending data yet.</div>
       </div>
 
-      <!-- PROFILE PAGE -->
+      <!-- PROFILE -->
       <div id="page-profile" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('profile')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Profile</h2>
         </div>
-        <div class="p-4 flex-1 overflow-y-auto space-y-4 text-xs">
-          <div class="border rounded-xl p-4 bg-white space-y-3">
-            <div class="font-bold text-base text-renasant-navy" id="profile-user-name">James Miller</div>
-            <div class="text-gray-500" id="profile-user-email">james.m@example.com</div>
+        <div class="p-4 flex-1 overflow-y-auto text-xs">
+          <div class="border rounded-xl p-4 bg-white space-y-2">
+            <div class="font-bold text-base text-renasant-navy" id="profile-user-name"></div>
+            <div class="text-gray-500" id="profile-user-email"></div>
+            <div class="text-gray-600" id="profile-user-dob"></div>
+            <div class="text-gray-600" id="profile-user-country"></div>
             <div class="text-gray-600">Member Status: Verified</div>
             <button onclick="logoutUser()" class="w-full mt-4 bg-red-600 text-white py-2.5 rounded-xl font-bold text-xs">Log Out</button>
           </div>
         </div>
       </div>
 
-      <!-- HELP PAGE -->
+      <!-- HELP -->
       <div id="page-help" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('help')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Help & Support</h2>
         </div>
         <div class="p-4 flex-1 overflow-y-auto space-y-3">
-          <button onclick="showToast('Calling Support...')" class="w-full p-3 border rounded-xl text-xs font-bold text-left flex justify-between items-center">
-            <span>Customer Service: 1-800-680-1601</span>
-            <i class="fa-solid fa-phone text-renasant-navy"></i>
-          </button>
+          <a href="tel:18006801601" class="w-full p-3 border rounded-xl text-xs font-bold flex justify-between items-center">
+            <span>Customer Service: 1-800-680-1601</span><i class="fa-solid fa-phone text-renasant-navy"></i>
+          </a>
         </div>
       </div>
 
-      <!-- SETTINGS PAGE -->
+      <!-- SETTINGS -->
       <div id="page-settings" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('settings')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
@@ -666,308 +435,311 @@
             <span>Push Notifications</span>
             <input type="checkbox" checked class="w-4 h-4 accent-renasant-navy">
           </div>
-          <div class="flex justify-between items-center p-3 border rounded-xl" onclick="openConfigModal()">
-            <span>Configure Supabase DB</span>
-            <i class="fa-solid fa-chevron-right text-gray-400"></i>
-          </div>
         </div>
       </div>
 
-      <!-- NOTIFICATIONS PAGE -->
+      <!-- NOTIFICATIONS -->
       <div id="page-notifications" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('notifications')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Notifications</h2>
         </div>
-        <div class="p-4 flex-1 overflow-y-auto space-y-2 text-xs">
-          <div class="p-3 border rounded-xl bg-gray-50">
-            <div class="font-bold text-gray-800">Security Alert</div>
-            <div class="text-[10px] text-gray-500">Gmail OTP login verified successfully.</div>
-          </div>
-        </div>
+        <div class="p-6 flex-1 text-center text-xs text-gray-500">You have no notifications.</div>
       </div>
-
     </div>
 
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toast" class="fixed bottom-16 left-1/2 -translate-x-1/2 bg-renasant-navyDark text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center space-x-2">
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-16 left-1/2 -translate-x-1/2 bg-renasant-navyDark text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center space-x-2 max-w-[90%]">
       <i class="fa-solid fa-circle-info text-renasant-accentTeal"></i>
-      <span id="toast-text">Notification</span>
+      <span id="toast-text"></span>
     </div>
 
-    <!-- SIDEBAR MENU OVERLAY -->
+    <!-- Sidebar -->
     <div id="sidebar-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0 transition-opacity duration-300"></div>
     <div id="sidebar" class="fixed top-0 left-0 bottom-0 w-64 bg-renasant-navy text-white z-50 transform -translate-x-full transition-transform duration-300 p-6 flex flex-col justify-between">
       <div>
         <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
           <span class="font-bold tracking-wider font-serif">RENASANT</span>
-          <button onclick="toggleMenu()" class="text-white hover:text-gray-300">
-            <i class="fa-solid fa-xmark text-xl"></i>
-          </button>
+          <button onclick="toggleMenu()" class="text-white hover:text-gray-300"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
         <nav class="space-y-4 text-sm font-medium">
-          <a href="#" onclick="toggleMenu(); navigateTo('dashboard');" class="flex items-center space-x-3 text-white hover:text-blue-300">
-            <i class="fa-solid fa-house w-5"></i><span>Accounts Dashboard</span>
-          </a>
-          <a href="#" onclick="toggleMenu(); navigateTo('transfers');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
-            <i class="fa-solid fa-right-left w-5"></i><span>Transfers</span>
-          </a>
-          <a href="#" onclick="toggleMenu(); navigateTo('billpay');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
-            <i class="fa-solid fa-file-invoice-dollar w-5"></i><span>Bill Pay</span>
-          </a>
-          <a href="#" onclick="toggleMenu(); navigateTo('documents');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
-            <i class="fa-regular fa-file-lines w-5"></i><span>Statements</span>
-          </a>
+          <a href="#" onclick="toggleMenu(); navigateTo('dashboard'); return false;" class="flex items-center space-x-3 text-white"><i class="fa-solid fa-house w-5"></i><span>Accounts Dashboard</span></a>
+          <a href="#" onclick="toggleMenu(); navigateTo('transfers'); return false;" class="flex items-center space-x-3 text-gray-300 hover:text-white"><i class="fa-solid fa-right-left w-5"></i><span>Transfers</span></a>
+          <a href="#" onclick="toggleMenu(); navigateTo('billpay'); return false;" class="flex items-center space-x-3 text-gray-300 hover:text-white"><i class="fa-solid fa-file-invoice-dollar w-5"></i><span>Bill Pay</span></a>
+          <a href="#" onclick="toggleMenu(); navigateTo('documents'); return false;" class="flex items-center space-x-3 text-gray-300 hover:text-white"><i class="fa-regular fa-file-lines w-5"></i><span>Statements</span></a>
         </nav>
       </div>
-      <div class="border-t border-white/10 pt-4 text-xs text-gray-400">
-        Logged in as <span id="sidebar-user-name" class="text-white font-semibold">James</span>
-      </div>
+      <div class="border-t border-white/10 pt-4 text-xs text-gray-400" id="sidebar-footer"></div>
     </div>
-
   </div>
 
-  <!-- JavaScript App Logic -->
   <script>
-    // State Variables
-    let currentUser = {
-      name: "James",
-      email: "james.m@example.com",
-      cardNumber: "4532 8912 7741 6922",
-      maskedCard: "****6922",
-      balance: -120.46
-    };
+    // ====== CONFIGURATION: add your Supabase project credentials ======
+    const SUPABASE_URL = 'https://tuuxyvxufxbyeeyrgebj.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_73R5E7vPBpMAU1gPo65zpQ_ejMCBDQv';
+    // ==================================================================
 
+    const supabaseClient = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    const PROTECTED = ['transfers','deposit','billpay','zelle','cards','documents','fund','accountDetails','insights','profile','notifications','settings'];
+    const COUNTRIES = ['United States','Canada','Mexico','United Kingdom','Ireland','France','Germany','Spain','Italy','Portugal','Netherlands','Belgium','Switzerland','Sweden','Norway','Denmark','Finland','Poland','Greece','Turkey','Israel','United Arab Emirates','Saudi Arabia','Egypt','Nigeria','Ghana','Kenya','South Africa','India','Pakistan','Bangladesh','China','Japan','South Korea','Philippines','Vietnam','Thailand','Indonesia','Malaysia','Singapore','Australia','New Zealand','Brazil','Argentina','Chile','Colombia','Peru','Jamaica','Dominican Republic','Other'];
+
+    let currentUser = null; // { id, name, email, dob, country, accountNumber, balance }
     let isCardNumberVisible = false;
     let isBalanceVisible = true;
-    let generatedOTP = "";
-    let authMode = "login"; // 'login' or 'signup'
-    let supabaseClient = null;
+    let authMode = 'login';
 
-    // Navigation Sub-page router
+    function isLoggedIn() { return !!currentUser; }
+
+    // ---------- Navigation (dashboard is always the home) ----------
     function navigateTo(pageId) {
       if (pageId === 'dashboard') {
-        document.querySelectorAll('.app-screen:not(#page-auth)').forEach(screen => {
-          screen.classList.add('slide-out');
-        });
+        document.querySelectorAll('.app-screen').forEach(s => s.classList.add('slide-out'));
         updateNavHighlight('dashboard');
         return;
       }
-
-      const targetPage = document.getElementById(`page-${pageId}`);
-      if (targetPage) {
-        targetPage.classList.remove('slide-out');
-        updateNavHighlight(pageId);
-      } else {
-        showToast(`Opening ${pageId}...`);
+      if (PROTECTED.includes(pageId) && !isLoggedIn()) {
+        showToast('Please log in to continue');
+        openAuth('login');
+        return;
       }
+      const page = document.getElementById('page-' + pageId);
+      if (page) { page.classList.remove('slide-out'); updateNavHighlight(pageId); }
     }
 
     function closePage(pageId) {
-      const targetPage = document.getElementById(`page-${pageId}`);
-      if (targetPage) {
-        targetPage.classList.add('slide-out');
-      }
+      const page = document.getElementById('page-' + pageId);
+      if (page) page.classList.add('slide-out');
       updateNavHighlight('dashboard');
     }
 
     function updateNavHighlight(activeId) {
-      const navItems = document.querySelectorAll('.nav-item');
-      navItems.forEach(item => {
-        item.classList.remove('text-renasant-navy');
-        item.classList.add('text-gray-600');
-      });
-
-      const activeItem = document.getElementById(`nav-${activeId}`);
-      if (activeItem) {
-        activeItem.classList.remove('text-gray-600');
-        activeItem.classList.add('text-renasant-navy');
-      }
+      document.querySelectorAll('.nav-item').forEach(i => { i.classList.remove('text-renasant-navy'); i.classList.add('text-gray-600'); });
+      const a = document.getElementById('nav-' + activeId);
+      if (a) { a.classList.remove('text-gray-600'); a.classList.add('text-renasant-navy'); }
     }
 
-    // TOGGLE 1: CARD NUMBER EYE TOGGLE
+    // ---------- Render logged in / logged out state ----------
+    function renderState() {
+      const li = isLoggedIn();
+      document.getElementById('guest-bar').classList.toggle('hidden', li);
+      document.getElementById('account-guest').classList.toggle('hidden', li);
+      document.getElementById('account-user').classList.toggle('hidden', !li);
+
+      document.getElementById('welcome-text').innerText = li ? `Welcome, ${currentUser.name.split(' ')[0]}!` : 'Welcome!';
+      document.getElementById('sidebar-footer').innerHTML = li
+        ? `Logged in as <span class="text-white font-semibold">${escapeHtml(currentUser.name)}</span>`
+        : `<button onclick="toggleMenu(); openAuth('login')" class="text-white font-semibold underline">Log In / Sign Up</button>`;
+
+      if (!li) return;
+      const acct = currentUser.accountNumber;
+      const last4 = acct ? acct.slice(-4) : null;
+      document.getElementById('account-number-text').innerText = acct ? '****' + last4 : 'Account pending';
+      isCardNumberVisible = false;
+      document.getElementById('card-eye-icon').className = 'fa-regular fa-eye text-xs';
+      document.getElementById('balance-amount-display').innerText = isBalanceVisible ? formatCurrency(currentUser.balance) : '••••••••';
+      document.getElementById('detail-balance-amount').innerText = formatCurrency(currentUser.balance);
+      document.getElementById('transfer-from').innerText = 'Simple Checking' + (last4 ? ` (****${last4})` : '');
+      document.getElementById('card-full-display').innerText = '•••• •••• •••• ' + (last4 || '••••');
+      document.getElementById('card-holder-display').innerText = currentUser.name.toUpperCase();
+      document.getElementById('profile-user-name').innerText = currentUser.name;
+      document.getElementById('profile-user-email').innerText = currentUser.email;
+      document.getElementById('profile-user-dob').innerText = currentUser.dob ? 'Date of Birth: ' + currentUser.dob : '';
+      document.getElementById('profile-user-country').innerText = currentUser.country ? 'Country: ' + currentUser.country : '';
+    }
+
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function formatCurrency(v) { return (v < 0 ? '-$' : '$') + Math.abs(v).toFixed(2); }
+
     function toggleCardNumberVisibility() {
+      if (!isLoggedIn() || !currentUser.accountNumber) return;
       isCardNumberVisible = !isCardNumberVisible;
-      const cardText = document.getElementById('account-number-text');
-      const cardEyeIcon = document.getElementById('card-eye-icon');
-
-      if (isCardNumberVisible) {
-        cardText.innerText = currentUser.cardNumber;
-        cardEyeIcon.className = "fa-regular fa-eye-slash text-xs";
-      } else {
-        cardText.innerText = currentUser.maskedCard;
-        cardEyeIcon.className = "fa-regular fa-eye text-xs";
-      }
+      document.getElementById('account-number-text').innerText = isCardNumberVisible ? currentUser.accountNumber : '****' + currentUser.accountNumber.slice(-4);
+      document.getElementById('card-eye-icon').className = isCardNumberVisible ? 'fa-regular fa-eye-slash text-xs' : 'fa-regular fa-eye text-xs';
     }
 
-    // TOGGLE 2: BALANCE EYE TOGGLE (BESIDE BALANCE)
     function toggleBalanceVisibility() {
+      if (!isLoggedIn()) return;
       isBalanceVisible = !isBalanceVisible;
-      const balanceEl = document.getElementById('balance-amount-display');
-      const balanceEyeIcon = document.getElementById('balance-eye-icon');
-
-      if (isBalanceVisible) {
-        balanceEl.innerText = formatCurrency(currentUser.balance);
-        balanceEyeIcon.className = "fa-regular fa-eye text-base";
-      } else {
-        balanceEl.innerText = "••••••••";
-        balanceEyeIcon.className = "fa-regular fa-eye-slash text-base";
-      }
+      document.getElementById('balance-amount-display').innerText = isBalanceVisible ? formatCurrency(currentUser.balance) : '••••••••';
+      document.getElementById('balance-eye-icon').className = isBalanceVisible ? 'fa-regular fa-eye text-base' : 'fa-regular fa-eye-slash text-base';
     }
 
-    function formatCurrency(val) {
-      return (val < 0 ? "-$" : "$") + Math.abs(val).toFixed(2);
+    // ---------- Auth ----------
+    function openAuth(mode) {
+      switchAuthTab(mode || 'login');
+      document.getElementById('page-auth').classList.remove('slide-out');
     }
 
-    // Auth Tab Switching
     function switchAuthTab(mode) {
       authMode = mode;
-      const loginTab = document.getElementById('auth-tab-login');
-      const signupTab = document.getElementById('auth-tab-signup');
-      const nameContainer = document.getElementById('name-field-container');
-      const submitBtn = document.getElementById('auth-submit-btn');
-
-      if (mode === 'signup') {
-        signupTab.className = "flex-1 py-2 rounded-lg bg-renasant-navy text-white transition";
-        loginTab.className = "flex-1 py-2 rounded-lg text-gray-600 transition";
-        nameContainer.classList.remove('hidden');
-        submitBtn.innerText = "Send Gmail OTP Registration Code";
-      } else {
-        loginTab.className = "flex-1 py-2 rounded-lg bg-renasant-navy text-white transition";
-        signupTab.className = "flex-1 py-2 rounded-lg text-gray-600 transition";
-        nameContainer.classList.add('hidden');
-        submitBtn.innerText = "Send Gmail OTP Verification Code";
-      }
+      const on = 'flex-1 py-2 rounded-lg bg-renasant-navy text-white transition';
+      const off = 'flex-1 py-2 rounded-lg text-gray-600 transition';
+      const signup = mode === 'signup';
+      document.getElementById('auth-tab-signup').className = signup ? on : off;
+      document.getElementById('auth-tab-login').className = signup ? off : on;
+      document.getElementById('signup-fields').classList.toggle('hidden', !signup);
+      document.getElementById('auth-hint').classList.toggle('hidden', !signup);
+      document.getElementById('auth-submit-btn').innerText = signup ? 'Create Account' : 'Log In';
+      document.getElementById('auth-title').innerText = signup ? 'Sign Up' : 'Log In';
+      document.getElementById('auth-password').autocomplete = signup ? 'new-password' : 'current-password';
     }
 
-    // Authentication & Gmail SMTP OTP Logic
     async function handleAuthSubmit(e) {
       e.preventDefault();
-      const email = document.getElementById('auth-email').value;
-      const name = document.getElementById('auth-name').value || email.split('@')[0];
+      if (!supabaseClient) { showToast('Service unavailable. Please try again later.'); return; }
 
-      currentUser.email = email;
-      currentUser.name = name;
+      const email = document.getElementById('auth-email').value.trim().toLowerCase();
+      const password = document.getElementById('auth-password').value;
+      const btn = document.getElementById('auth-submit-btn');
 
-      // Generate 6-digit OTP code
-      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+      if (!/^[^\s@]+@gmail\.com$/.test(email)) { showToast('Please use a Gmail address'); return; }
 
-      document.getElementById('otp-target-email').innerText = email;
+      btn.disabled = true;
+      try {
+        if (authMode === 'signup') {
+          const name = document.getElementById('auth-name').value.trim();
+          const dob = document.getElementById('auth-dob').value;
+          const country = document.getElementById('auth-country').value;
+          if (!name) { showToast('Please enter your full name'); return; }
+          if (!dob || new Date(dob) > new Date()) { showToast('Please select a valid date of birth'); return; }
+          if (!country) { showToast('Please select your country'); return; }
 
-      // Send through Supabase Auth if connected or trigger SMTP Toast Simulation
-      if (supabaseClient) {
-        try {
-          const { error } = await supabaseClient.auth.signInWithOtp({ email });
-          if (error) console.warn("Supabase OTP fallback to SMTP sim:", error.message);
-        } catch (err) {
-          console.warn("Supabase SMTP connection:", err);
+          const { data, error } = await supabaseClient.auth.signUp({
+            email, password,
+            options: { data: { full_name: name, dob, country } }
+          });
+          if (error) { showToast(error.message); return; }
+          if (data.user && data.user.identities && data.user.identities.length === 0) {
+            showToast('An account with this email already exists');
+            return;
+          }
+          document.getElementById('auth-password').value = '';
+          openOtp(email);
+          showToast('Verification code sent to your email');
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) {
+            if (/confirm|verif/i.test(error.message)) {
+              await supabaseClient.auth.resend({ type: 'signup', email });
+              openOtp(email);
+              showToast('Please verify your email. A new code was sent.');
+            } else {
+              showToast('Incorrect email or password');
+            }
+            return;
+          }
+          if (!data.user.email_confirmed_at) {
+            await supabaseClient.auth.signOut();
+            await supabaseClient.auth.resend({ type: 'signup', email });
+            openOtp(email);
+            showToast('Please verify your email. A new code was sent.');
+            return;
+          }
+          await setUserFromSession(data.user);
+          document.getElementById('auth-form').reset();
+          navigateTo('dashboard');
+          showToast('Logged in successfully');
         }
+      } catch (err) {
+        showToast('Something went wrong. Please try again.');
+      } finally {
+        btn.disabled = false;
       }
-
-      // Show OTP Screen
-      navigateTo('otp');
-      showToast(`Gmail SMTP Code Sent! Demo OTP: ${generatedOTP}`);
     }
 
-    function verifyOTP() {
+    // ---------- Email verification code ----------
+    let pendingEmail = '';
+
+    function openOtp(email) {
+      pendingEmail = email;
+      document.getElementById('otp-target-email').innerText = email;
       const inputs = document.querySelectorAll('#otp-inputs input');
-      let enteredCode = "";
-      inputs.forEach(i => enteredCode += i.value);
+      inputs.forEach(i => i.value = '');
+      document.getElementById('page-otp').classList.remove('slide-out');
+      setTimeout(() => inputs[0].focus(), 350);
+    }
 
-      if (enteredCode === generatedOTP || enteredCode === "123456" || enteredCode.length === 6) {
-        // Update user state UI
-        document.getElementById('display-user-name').innerText = currentUser.name;
-        document.getElementById('profile-user-name').innerText = currentUser.name;
-        document.getElementById('profile-user-email').innerText = currentUser.email;
-        document.getElementById('sidebar-user-name').innerText = currentUser.name;
-        document.getElementById('card-holder-display').innerText = currentUser.name.toUpperCase();
-
-        document.getElementById('page-auth').classList.add('slide-out');
-        document.getElementById('page-otp').classList.add('slide-out');
-        showToast("Authentication Successful!");
-      } else {
-        showToast("Invalid OTP code. Please try again.");
+    async function verifyOTP() {
+      const code = Array.from(document.querySelectorAll('#otp-inputs input')).map(i => i.value).join('');
+      if (!/^\d{6}$/.test(code)) { showToast('Enter the 6-digit code'); return; }
+      const btn = document.getElementById('otp-verify-btn');
+      btn.disabled = true;
+      try {
+        let res = await supabaseClient.auth.verifyOtp({ email: pendingEmail, token: code, type: 'signup' });
+        if (res.error) res = await supabaseClient.auth.verifyOtp({ email: pendingEmail, token: code, type: 'email' });
+        if (res.error || !res.data.user) { showToast('Invalid or expired code'); return; }
+        await setUserFromSession(res.data.user);
+        document.getElementById('auth-form').reset();
+        navigateTo('dashboard');
+        showToast('Email verified. Welcome!');
+      } catch (e) {
+        showToast('Something went wrong. Please try again.');
+      } finally {
+        btn.disabled = false;
       }
     }
 
-    function resendOTP() {
-      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-      showToast(`New Gmail OTP Sent: ${generatedOTP}`);
+    async function resendOTP() {
+      const { error } = await supabaseClient.auth.resend({ type: 'signup', email: pendingEmail });
+      showToast(error ? 'Could not resend code. Try again shortly.' : 'A new code was sent');
     }
 
-    function skipAuthDemo() {
-      document.getElementById('page-auth').classList.add('slide-out');
-      showToast("Signed in as Demo User");
+    async function setUserFromSession(user) {
+      const meta = user.user_metadata || {};
+      let profile = null;
+      try {
+        const { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
+        profile = data;
+      } catch (e) { /* profile table optional */ }
+      currentUser = {
+        id: user.id,
+        email: user.email,
+        name: (profile && profile.full_name) || meta.full_name || user.email.split('@')[0],
+        dob: (profile && profile.dob) || meta.dob || '',
+        country: (profile && profile.country) || meta.country || '',
+        accountNumber: (profile && profile.account_number) || '',
+        balance: Number((profile && profile.balance) || 0)
+      };
+      renderState();
     }
 
-    function logoutUser() {
+    async function logoutUser() {
+      if (supabaseClient) await supabaseClient.auth.signOut();
+      currentUser = null;
+      renderState();
       navigateTo('dashboard');
-      document.getElementById('page-auth').classList.remove('slide-out');
-      showToast("Logged out successfully");
+      showToast('Logged out successfully');
     }
 
-    // Execute Money Transfer (Updating Balance Realtime)
-    function executeTransfer() {
-      const amtInput = document.getElementById('transfer-amount-input');
-      const amt = parseFloat(amtInput.value);
-      if (!amt || amt <= 0) {
-        showToast("Please enter a valid amount");
-        return;
-      }
-      currentUser.balance -= amt;
-      document.getElementById('balance-amount-display').innerText = formatCurrency(currentUser.balance);
-      document.getElementById('detail-balance-amount').innerText = formatCurrency(currentUser.balance);
-      amtInput.value = "";
+    // ---------- Transfer ----------
+    async function executeTransfer() {
+      const input = document.getElementById('transfer-amount-input');
+      const amt = parseFloat(input.value);
+      if (!amt || amt <= 0) { showToast('Please enter a valid amount'); return; }
+      const { data, error } = await supabaseClient.rpc('transfer_funds', { amount: amt });
+      if (error) { showToast(/insufficient/i.test(error.message) ? 'Insufficient funds' : 'Transfer failed. Please try again.'); return; }
+      currentUser.balance = Number(data);
+      renderState();
+      input.value = '';
       closePage('transfers');
       showToast(`Transferred ${formatCurrency(amt)} successfully`);
     }
 
-    // Supabase DB Configuration Functions
-    function openConfigModal() {
-      document.getElementById('modal-supabase-config').classList.remove('hidden');
-    }
-
-    function closeConfigModal() {
-      document.getElementById('modal-supabase-config').classList.add('hidden');
-    }
-
-    function saveSupabaseConfig() {
-      const url = document.getElementById('supabase-url').value;
-      const key = document.getElementById('supabase-key').value;
-
-      if (url && key) {
-        try {
-          supabaseClient = window.supabase.createClient(url, key);
-          localStorage.setItem('sb_url', url);
-          localStorage.setItem('sb_key', key);
-          showToast("Supabase Database Connected!");
-        } catch (e) {
-          showToast("Failed to connect Supabase");
-        }
-      }
-      closeConfigModal();
-    }
-
-    // Toast Notification System
+    // ---------- UI helpers ----------
     let toastTimeout;
     function showToast(message) {
-      const toast = document.getElementById('toast');
-      const toastText = document.getElementById('toast-text');
-      
-      toastText.innerText = message;
-      toast.classList.remove('opacity-0', 'pointer-events-none');
-
+      const t = document.getElementById('toast');
+      document.getElementById('toast-text').innerText = message;
+      t.classList.remove('opacity-0', 'pointer-events-none');
       clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        toast.classList.add('opacity-0', 'pointer-events-none');
-      }, 3000);
+      toastTimeout = setTimeout(() => t.classList.add('opacity-0', 'pointer-events-none'), 3000);
     }
 
-    // Sidebar Menu Toggle
     function toggleMenu() {
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('sidebar-overlay');
-      
       if (sidebar.classList.contains('-translate-x-full')) {
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
@@ -979,26 +751,39 @@
       }
     }
 
-    // Setup OTP Auto Tab Focus
-    window.onload = function() {
-      const inputs = document.querySelectorAll('#otp-inputs input');
-      inputs.forEach((input, index) => {
-        input.addEventListener('keyup', (e) => {
-          if (e.key >= 0 && e.key <= 9) {
-            if (index < inputs.length - 1) inputs[index + 1].focus();
-          } else if (e.key === 'Backspace') {
-            if (index > 0) inputs[index - 1].focus();
-          }
+    // ---------- Init: always start on the dashboard ----------
+    window.onload = async function() {
+      const sel = document.getElementById('auth-country');
+      COUNTRIES.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+      document.getElementById('auth-dob').max = new Date().toISOString().split('T')[0];
+
+      const otpInputs = document.querySelectorAll('#otp-inputs input');
+      otpInputs.forEach((input, idx) => {
+        input.addEventListener('input', () => {
+          input.value = input.value.replace(/\D/g, '');
+          if (input.value && idx < otpInputs.length - 1) otpInputs[idx + 1].focus();
+        });
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Backspace' && !input.value && idx > 0) otpInputs[idx - 1].focus();
+        });
+        input.addEventListener('paste', e => {
+          const digits = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+          if (!digits) return;
+          e.preventDefault();
+          digits.split('').forEach((d, i) => { otpInputs[i].value = d; });
+          otpInputs[Math.min(digits.length, 5)].focus();
         });
       });
 
-      // Restore Supabase Config if present
-      const savedUrl = localStorage.getItem('sb_url');
-      const savedKey = localStorage.getItem('sb_key');
-      if (savedUrl && savedKey && window.supabase) {
-        supabaseClient = window.supabase.createClient(savedUrl, savedKey);
+      renderState();
+      if (supabaseClient) {
+        try {
+          const { data } = await supabaseClient.auth.getSession();
+          if (data.session && data.session.user.email_confirmed_at) await setUserFromSession(data.session.user);
+        } catch (e) { /* stay logged out */ }
       }
-    }
+      navigateTo('dashboard');
+    };
   </script>
 </body>
 </html>
