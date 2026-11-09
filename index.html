@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Supabase JS Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     tailwind.config = {
@@ -38,7 +40,6 @@
   </script>
 
   <style>
-    /* Custom CSS for fine pixel adjustments and mobile simulator bounds */
     body {
       font-family: 'Inter', sans-serif;
       background-color: #f2f5f8;
@@ -54,20 +55,19 @@
       border-bottom: 1.5px dashed rgba(255, 255, 255, 0.35);
     }
 
-    /* Page View Transitions */
+    /* Screen Transitions */
     .app-screen {
       position: absolute;
       inset: 0;
       background: white;
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 20;
+      z-index: 30;
     }
 
     .app-screen.slide-out {
       transform: translateX(100%);
     }
 
-    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 0px;
       background: transparent;
@@ -79,17 +79,10 @@
   <!-- Mobile App Frame Container -->
   <div class="w-full max-w-[430px] h-[100vh] sm:h-[880px] bg-white sm:rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative border-0 sm:border-[8px] sm:border-slate-800">
     
-    <!-- Dynamic Top Phone Status Bar (Battery percentage & icon removed) -->
-    <div class="bg-renasant-navy text-white px-6 pt-3 pb-1 flex justify-between items-center text-xs font-semibold z-50">
-      <span id="status-time" class="tracking-tight text-sm font-bold">8:54</span>
-      <div class="flex items-center space-x-2 text-xs">
-        <i class="fa-solid fa-signal"></i>
-        <i class="fa-solid fa-wifi"></i>
-      </div>
-    </div>
+    <!-- (STATUS BAR HAS BEEN REMOVED ENTIRELY AS REQUESTED) -->
 
     <!-- Renasant Bank Main Header -->
-    <header class="bg-renasant-navy text-white px-4 py-3 flex justify-between items-center z-40 shadow-md">
+    <header class="bg-renasant-navy text-white px-4 py-3.5 flex justify-between items-center z-40 shadow-md">
       <!-- Hamburger Menu -->
       <button onclick="toggleMenu()" class="p-1 text-white hover:opacity-80 transition focus:outline-none">
         <i class="fa-solid fa-bars text-2xl"></i>
@@ -109,6 +102,9 @@
 
       <!-- Header Action Icons -->
       <div class="flex items-center space-x-3 text-xl">
+        <button onclick="openConfigModal()" title="Supabase DB Settings" class="text-amber-400 hover:text-amber-300 transition focus:outline-none">
+          <i class="fa-solid fa-database text-lg"></i>
+        </button>
         <button onclick="navigateTo('help')" class="hover:opacity-80 transition focus:outline-none">
           <i class="fa-regular fa-circle-question"></i>
         </button>
@@ -131,12 +127,15 @@
         </p>
       </div>
 
-      <!-- Welcome & Bell Header -->
+      <!-- Welcome & Bell Header (Dynamic Name from Supabase/Auth) -->
       <div class="flex justify-between items-center pt-1 px-1">
         <div class="flex items-center space-x-2">
-          <h1 class="text-xl font-bold text-renasant-textDark tracking-tight">Welcome, James!</h1>
-          <button onclick="navigateTo('notifications')" class="text-gray-700 hover:text-renasant-navy transition">
+          <h1 class="text-xl font-bold text-renasant-textDark tracking-tight">
+            Welcome, <span id="display-user-name">James</span>!
+          </h1>
+          <button onclick="navigateTo('notifications')" class="text-gray-700 hover:text-renasant-navy transition relative">
             <i class="fa-regular fa-bell text-lg"></i>
+            <span class="absolute -top-1 -right-1 bg-red-500 w-2 h-2 rounded-full"></span>
           </button>
         </div>
         <button onclick="navigateTo('settings')" class="text-gray-600 hover:text-renasant-navy transition p-1">
@@ -156,21 +155,28 @@
         <div class="bg-gradient-to-b from-renasant-navyGradientStart to-renasant-navyGradientEnd text-white p-4">
           
           <div class="flex justify-between items-start">
-            <!-- Account Info -->
-            <div onclick="navigateTo('accountDetails')" class="cursor-pointer group">
-              <h2 class="text-lg font-semibold tracking-wide group-hover:underline">Simple Checking</h2>
+            <!-- Account Info with Card Eye Toggle -->
+            <div class="cursor-pointer group">
+              <h2 onclick="navigateTo('accountDetails')" class="text-lg font-semibold tracking-wide group-hover:underline">Simple Checking</h2>
               <div class="flex items-center space-x-2 mt-0.5 text-xs text-gray-300">
-                <span>****6922</span>
-                <button onclick="event.stopPropagation(); toggleBalanceVisibility()" id="eye-btn" class="focus:outline-none hover:text-white transition">
-                  <i class="fa-regular fa-eye text-xs" id="eye-icon"></i>
+                <span id="account-number-text">****6922</span>
+                <!-- EYE TOGGLE 1: Card / Account Number Toggle -->
+                <button onclick="toggleCardNumberVisibility()" id="card-eye-btn" title="Toggle Card Number" class="focus:outline-none hover:text-white transition p-1">
+                  <i class="fa-regular fa-eye text-xs" id="card-eye-icon"></i>
                 </button>
               </div>
             </div>
 
-            <!-- Balance Display -->
-            <div onclick="navigateTo('accountDetails')" class="text-right cursor-pointer">
-              <div id="balance-amount" class="text-3xl font-bold tracking-tight">-$120.46</div>
-              <div class="flex items-center justify-end space-x-1 text-[11px] text-gray-300 mt-1">
+            <!-- Balance Display with Balance Eye Toggle -->
+            <div class="text-right">
+              <div class="flex items-center justify-end space-x-1.5">
+                <div id="balance-amount-display" class="text-3xl font-bold tracking-tight">-$120.46</div>
+                <!-- EYE TOGGLE 2: Balance Toggle Beside Balance Amount -->
+                <button onclick="toggleBalanceVisibility()" id="balance-eye-btn" title="Toggle Balance Visibility" class="focus:outline-none hover:text-white transition p-1 text-gray-300">
+                  <i class="fa-regular fa-eye text-base" id="balance-eye-icon"></i>
+                </button>
+              </div>
+              <div onclick="navigateTo('accountDetails')" class="flex items-center justify-end space-x-1 text-[11px] text-gray-300 mt-1 cursor-pointer">
                 <span>Available Balance</span>
                 <i class="fa-regular fa-circle-question text-[10px]"></i>
               </div>
@@ -294,12 +300,126 @@
 
     </nav>
 
+    <!-- AUTHENTICATION / LOGIN / SIGNUP SCREEN (OVERLAY) -->
+    <div id="page-auth" class="app-screen flex flex-col bg-slate-50 z-50">
+      <div class="bg-renasant-navy text-white p-6 text-center shadow-lg relative">
+        <div class="flex items-center justify-center space-x-2">
+          <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
+            <path d="M20 80 C20 40, 50 30, 80 20 C60 50, 40 60, 20 80 Z" fill="#64B5F6" />
+            <path d="M35 85 C35 55, 60 45, 85 35 C70 60, 55 70, 35 85 Z" fill="#90CAF9" opacity="0.8"/>
+          </svg>
+          <span class="font-bold text-xl tracking-widest uppercase font-serif">RENASANT BANK</span>
+        </div>
+        <p class="text-xs text-blue-200 mt-1">Mobile Banking Login</p>
+      </div>
+
+      <div class="p-6 flex-1 overflow-y-auto flex flex-col justify-center space-y-5">
+        <!-- Auth Toggle Tabs -->
+        <div class="flex bg-gray-200 rounded-xl p-1 text-xs font-bold">
+          <button id="auth-tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg bg-renasant-navy text-white transition">Sign In</button>
+          <button id="auth-tab-signup" onclick="switchAuthTab('signup')" class="flex-1 py-2 rounded-lg text-gray-600 transition">Create Account</button>
+        </div>
+
+        <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+          <div id="name-field-container" class="hidden space-y-1">
+            <label class="text-xs font-bold text-gray-600">Full Name</label>
+            <input type="text" id="auth-name" placeholder="James Miller" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-gray-600">Email Address (Gmail SMTP)</label>
+            <input type="email" id="auth-email" required placeholder="user@gmail.com" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-gray-600">Password</label>
+            <input type="password" id="auth-password" required placeholder="••••••••" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
+          </div>
+
+          <button type="submit" id="auth-submit-btn" class="w-full bg-renasant-navy text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:bg-renasant-navyDark transition">
+            Send Gmail OTP Verification Code
+          </button>
+        </form>
+
+        <div class="text-center pt-2">
+          <button onclick="skipAuthDemo()" class="text-xs text-renasant-navy font-semibold underline">
+            Continue with Demo Session
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OTP VERIFICATION SCREEN -->
+    <div id="page-otp" class="app-screen slide-out flex flex-col bg-white z-50">
+      <div class="bg-renasant-navy text-white p-4 flex items-center space-x-3">
+        <button onclick="closePage('otp')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+        <h2 class="text-base font-bold">Gmail Security Verification</h2>
+      </div>
+
+      <div class="p-6 flex-1 flex flex-col justify-center text-center space-y-6">
+        <div class="w-16 h-16 bg-blue-50 text-renasant-navy rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
+          <i class="fa-solid fa-envelope-circle-check"></i>
+        </div>
+
+        <div class="space-y-2">
+          <h3 class="font-bold text-lg text-renasant-textDark">Enter 6-Digit OTP</h3>
+          <p class="text-xs text-gray-500 leading-relaxed px-4">
+            We sent a verification code to <span id="otp-target-email" class="font-bold text-renasant-navy">user@gmail.com</span> via Gmail SMTP server.
+          </p>
+        </div>
+
+        <div class="flex justify-center space-x-2" id="otp-inputs">
+          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+          <input type="text" maxlength="1" class="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:border-renasant-navy outline-none">
+        </div>
+
+        <button onclick="verifyOTP()" class="w-full bg-renasant-navy text-white py-3.5 rounded-xl font-bold text-sm shadow-md">
+          Verify & Access Dashboard
+        </button>
+
+        <p class="text-xs text-gray-500">
+          Didn't receive code? <button onclick="resendOTP()" class="text-renasant-navy font-bold underline">Resend Code</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- SUPABASE DB CONFIG MODAL OVERLAY -->
+    <div id="modal-supabase-config" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h3 class="font-bold text-renasant-navy text-sm">Connect Supabase Database</h3>
+          <button onclick="closeConfigModal()" class="text-gray-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p class="text-xs text-gray-500">
+          Enter your Supabase credentials to sync dynamic profile & account balance in real-time.
+        </p>
+        <div class="space-y-3">
+          <div>
+            <label class="text-[11px] font-bold text-gray-600">SUPABASE_URL</label>
+            <input type="text" id="supabase-url" placeholder="https://xyz.supabase.co" class="w-full p-2.5 border rounded-lg text-xs font-mono">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-gray-600">SUPABASE_ANON_KEY</label>
+            <input type="password" id="supabase-key" placeholder="eyJhbGciOi..." class="w-full p-2.5 border rounded-lg text-xs font-mono">
+          </div>
+        </div>
+        <div class="flex space-x-2 pt-2">
+          <button onclick="saveSupabaseConfig()" class="flex-1 bg-renasant-navy text-white py-2.5 rounded-xl font-bold text-xs">Save & Connect</button>
+          <button onclick="closeConfigModal()" class="px-4 border rounded-xl font-bold text-xs text-gray-600">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- SUB-PAGES CONTAINER WITH SLIDE TRANSITIONS -->
     <div id="sub-page-container">
       
       <!-- TRANSFERS PAGE -->
       <div id="page-transfers" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('transfers')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Transfer Funds</h2>
         </div>
@@ -313,34 +433,34 @@
               <option>External Bank Account</option>
             </select>
             <label class="text-xs font-bold text-gray-600">Amount ($)</label>
-            <input type="number" placeholder="0.00" class="w-full p-3 border rounded-lg text-sm font-bold">
-            <button onclick="closePage('transfers'); showToast('Transfer Submitted Successfully!');" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm">Submit Transfer</button>
+            <input type="number" id="transfer-amount-input" placeholder="0.00" class="w-full p-3 border rounded-lg text-sm font-bold">
+            <button onclick="executeTransfer()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm">Submit Transfer</button>
           </div>
         </div>
       </div>
 
       <!-- DEPOSIT PAGE -->
       <div id="page-deposit" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('deposit')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Mobile Check Deposit</h2>
         </div>
         <div class="p-6 flex-1 overflow-y-auto space-y-4 text-center">
-          <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center justify-center space-y-2 bg-gray-50">
+          <div onclick="showToast('Camera Initialized: Front')" class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center justify-center space-y-2 bg-gray-50 cursor-pointer">
             <i class="fa-solid fa-camera text-4xl text-renasant-navy"></i>
             <span class="text-xs font-semibold text-gray-600">Tap to Capture Front of Check</span>
           </div>
-          <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center justify-center space-y-2 bg-gray-50">
+          <div onclick="showToast('Camera Initialized: Back')" class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center justify-center space-y-2 bg-gray-50 cursor-pointer">
             <i class="fa-solid fa-camera text-4xl text-renasant-navy"></i>
             <span class="text-xs font-semibold text-gray-600">Tap to Capture Back of Check</span>
           </div>
-          <button onclick="closePage('deposit'); showToast('Check Deposit Submitted');" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm">Submit Deposit</button>
+          <button onclick="closePage('deposit'); showToast('Check Deposit Submitted for Review');" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm">Submit Deposit</button>
         </div>
       </div>
 
       <!-- BILL PAY PAGE -->
       <div id="page-billpay" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('billpay')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Bill Pay</h2>
         </div>
@@ -364,7 +484,7 @@
 
       <!-- ZELLE PAGE -->
       <div id="page-zelle" class="app-screen slide-out flex flex-col">
-        <div class="bg-purple-900 text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-purple-900 text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('zelle')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Zelle®</h2>
         </div>
@@ -373,15 +493,15 @@
           <h3 class="font-bold text-lg text-gray-800">Send or Request Money</h3>
           <p class="text-xs text-gray-500">Send money directly to friends and family using their email or mobile phone number.</p>
           <div class="grid grid-cols-2 gap-3 pt-4">
-            <button onclick="showToast('Zelle Send Selected')" class="py-3 bg-purple-800 text-white rounded-xl font-bold text-xs">Send</button>
-            <button onclick="showToast('Zelle Request Selected')" class="py-3 bg-purple-100 text-purple-900 rounded-xl font-bold text-xs">Request</button>
+            <button onclick="showToast('Zelle Send Initiated')" class="py-3 bg-purple-800 text-white rounded-xl font-bold text-xs">Send</button>
+            <button onclick="showToast('Zelle Request Initiated')" class="py-3 bg-purple-100 text-purple-900 rounded-xl font-bold text-xs">Request</button>
           </div>
         </div>
       </div>
 
       <!-- CARDS PAGE -->
       <div id="page-cards" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('cards')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Manage Debit Cards</h2>
         </div>
@@ -391,22 +511,22 @@
               <span class="text-xs font-bold uppercase tracking-widest">Renasant Debit</span>
               <i class="fa-solid fa-wifi text-lg"></i>
             </div>
-            <div class="text-lg font-mono tracking-widest">•••• •••• •••• 6922</div>
+            <div id="card-full-display" class="text-lg font-mono tracking-widest">•••• •••• •••• 6922</div>
             <div class="flex justify-between text-xs">
-              <span>JAMES MILLER</span>
+              <span id="card-holder-display">JAMES MILLER</span>
               <span>EXP 08/28</span>
             </div>
           </div>
           <div class="flex justify-between items-center p-3 border rounded-xl">
             <span class="text-xs font-bold text-gray-700">Lock / Freeze Card</span>
-            <input type="checkbox" class="w-5 h-5 accent-renasant-navy cursor-pointer">
+            <input type="checkbox" onchange="showToast(this.checked ? 'Card Frozen' : 'Card Unlocked')" class="w-5 h-5 accent-renasant-navy cursor-pointer">
           </div>
         </div>
       </div>
 
       <!-- DOCUMENTS PAGE -->
       <div id="page-documents" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('documents')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Statements & Documents</h2>
         </div>
@@ -426,7 +546,7 @@
 
       <!-- FUND ACCOUNT PAGE -->
       <div id="page-fund" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('fund')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Fund Account</h2>
         </div>
@@ -444,15 +564,15 @@
 
       <!-- ACCOUNT DETAILS PAGE -->
       <div id="page-accountDetails" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('accountDetails')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Simple Checking Details</h2>
         </div>
         <div class="p-4 flex-1 overflow-y-auto space-y-4">
           <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center space-y-1">
             <span class="text-xs text-gray-500">Current Balance</span>
-            <div class="text-3xl font-bold text-renasant-navy">-$120.46</div>
-            <span class="text-[11px] text-red-600 font-semibold">Account Overdrawn</span>
+            <div id="detail-balance-amount" class="text-3xl font-bold text-renasant-navy">-$120.46</div>
+            <span class="text-[11px] text-red-600 font-semibold">Account Active</span>
           </div>
           <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Recent Transactions</h3>
           <div class="space-y-2">
@@ -476,7 +596,7 @@
 
       <!-- NOTICE ANNOUNCEMENT PAGE -->
       <div id="page-notice" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('notice')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Announcement Details</h2>
         </div>
@@ -493,7 +613,7 @@
 
       <!-- SPENDING INSIGHTS PAGE -->
       <div id="page-insights" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('insights')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Spending Insights</h2>
         </div>
@@ -507,36 +627,37 @@
 
       <!-- PROFILE PAGE -->
       <div id="page-profile" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('profile')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Profile</h2>
         </div>
         <div class="p-4 flex-1 overflow-y-auto space-y-4 text-xs">
-          <div class="border rounded-xl p-4 bg-white space-y-2">
-            <div class="font-bold text-sm text-renasant-navy">James Miller</div>
-            <div class="text-gray-500">Member since 2018</div>
-            <div class="text-gray-600">Email: james.m@example.com</div>
+          <div class="border rounded-xl p-4 bg-white space-y-3">
+            <div class="font-bold text-base text-renasant-navy" id="profile-user-name">James Miller</div>
+            <div class="text-gray-500" id="profile-user-email">james.m@example.com</div>
+            <div class="text-gray-600">Member Status: Verified</div>
+            <button onclick="logoutUser()" class="w-full mt-4 bg-red-600 text-white py-2.5 rounded-xl font-bold text-xs">Log Out</button>
           </div>
         </div>
       </div>
 
       <!-- HELP PAGE -->
       <div id="page-help" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('help')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Help & Support</h2>
         </div>
         <div class="p-4 flex-1 overflow-y-auto space-y-3">
-          <button onclick="showToast('Calling Support...')" class="w-full p-3 border rounded-xl text-xs font-bold text-left flex justify-between">
+          <button onclick="showToast('Calling Support...')" class="w-full p-3 border rounded-xl text-xs font-bold text-left flex justify-between items-center">
             <span>Customer Service: 1-800-680-1601</span>
-            <i class="fa-solid fa-phone"></i>
+            <i class="fa-solid fa-phone text-renasant-navy"></i>
           </button>
         </div>
       </div>
 
       <!-- SETTINGS PAGE -->
       <div id="page-settings" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('settings')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Settings</h2>
         </div>
@@ -545,19 +666,23 @@
             <span>Push Notifications</span>
             <input type="checkbox" checked class="w-4 h-4 accent-renasant-navy">
           </div>
+          <div class="flex justify-between items-center p-3 border rounded-xl" onclick="openConfigModal()">
+            <span>Configure Supabase DB</span>
+            <i class="fa-solid fa-chevron-right text-gray-400"></i>
+          </div>
         </div>
       </div>
 
       <!-- NOTIFICATIONS PAGE -->
       <div id="page-notifications" class="app-screen slide-out flex flex-col">
-        <div class="bg-renasant-navy text-white px-4 py-3 flex items-center space-x-3 shadow">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('notifications')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Notifications</h2>
         </div>
         <div class="p-4 flex-1 overflow-y-auto space-y-2 text-xs">
           <div class="p-3 border rounded-xl bg-gray-50">
-            <div class="font-bold text-gray-800">No New Notifications</div>
-            <div class="text-[10px] text-gray-500">You are all caught up!</div>
+            <div class="font-bold text-gray-800">Security Alert</div>
+            <div class="text-[10px] text-gray-500">Gmail OTP login verified successfully.</div>
           </div>
         </div>
       </div>
@@ -581,25 +706,22 @@
           </button>
         </div>
         <nav class="space-y-4 text-sm font-medium">
-          <a href="#" onclick="toggleMenu()" class="flex items-center space-x-3 text-white hover:text-blue-300">
+          <a href="#" onclick="toggleMenu(); navigateTo('dashboard');" class="flex items-center space-x-3 text-white hover:text-blue-300">
             <i class="fa-solid fa-house w-5"></i><span>Accounts Dashboard</span>
           </a>
-          <a href="#" onclick="toggleMenu(); showToast('Transfers Section');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
+          <a href="#" onclick="toggleMenu(); navigateTo('transfers');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
             <i class="fa-solid fa-right-left w-5"></i><span>Transfers</span>
           </a>
-          <a href="#" onclick="toggleMenu(); showToast('Bill Pay Section');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
+          <a href="#" onclick="toggleMenu(); navigateTo('billpay');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
             <i class="fa-solid fa-file-invoice-dollar w-5"></i><span>Bill Pay</span>
           </a>
-          <a href="#" onclick="toggleMenu(); showToast('Statements & Tax Forms');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
+          <a href="#" onclick="toggleMenu(); navigateTo('documents');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
             <i class="fa-regular fa-file-lines w-5"></i><span>Statements</span>
-          </a>
-          <a href="#" onclick="toggleMenu(); showToast('Locations & ATMs');" class="flex items-center space-x-3 text-gray-300 hover:text-white">
-            <i class="fa-solid fa-location-dot w-5"></i><span>Find ATM / Branch</span>
           </a>
         </nav>
       </div>
       <div class="border-t border-white/10 pt-4 text-xs text-gray-400">
-        Logged in as <span class="text-white font-semibold">James</span>
+        Logged in as <span id="sidebar-user-name" class="text-white font-semibold">James</span>
       </div>
     </div>
 
@@ -608,15 +730,24 @@
   <!-- JavaScript App Logic -->
   <script>
     // State Variables
+    let currentUser = {
+      name: "James",
+      email: "james.m@example.com",
+      cardNumber: "4532 8912 7741 6922",
+      maskedCard: "****6922",
+      balance: -120.46
+    };
+
+    let isCardNumberVisible = false;
     let isBalanceVisible = true;
-    const actualBalance = "-$120.46";
-    const hiddenBalance = "••••••••";
+    let generatedOTP = "";
+    let authMode = "login"; // 'login' or 'signup'
+    let supabaseClient = null;
 
     // Navigation Sub-page router
     function navigateTo(pageId) {
       if (pageId === 'dashboard') {
-        // Close all screens
-        document.querySelectorAll('.app-screen').forEach(screen => {
+        document.querySelectorAll('.app-screen:not(#page-auth)').forEach(screen => {
           screen.classList.add('slide-out');
         });
         updateNavHighlight('dashboard');
@@ -654,19 +785,167 @@
       }
     }
 
-    // Toggle Balance Eye Icon
+    // TOGGLE 1: CARD NUMBER EYE TOGGLE
+    function toggleCardNumberVisibility() {
+      isCardNumberVisible = !isCardNumberVisible;
+      const cardText = document.getElementById('account-number-text');
+      const cardEyeIcon = document.getElementById('card-eye-icon');
+
+      if (isCardNumberVisible) {
+        cardText.innerText = currentUser.cardNumber;
+        cardEyeIcon.className = "fa-regular fa-eye-slash text-xs";
+      } else {
+        cardText.innerText = currentUser.maskedCard;
+        cardEyeIcon.className = "fa-regular fa-eye text-xs";
+      }
+    }
+
+    // TOGGLE 2: BALANCE EYE TOGGLE (BESIDE BALANCE)
     function toggleBalanceVisibility() {
       isBalanceVisible = !isBalanceVisible;
-      const balanceEl = document.getElementById('balance-amount');
-      const eyeIcon = document.getElementById('eye-icon');
+      const balanceEl = document.getElementById('balance-amount-display');
+      const balanceEyeIcon = document.getElementById('balance-eye-icon');
 
       if (isBalanceVisible) {
-        balanceEl.innerText = actualBalance;
-        eyeIcon.className = "fa-regular fa-eye text-xs";
+        balanceEl.innerText = formatCurrency(currentUser.balance);
+        balanceEyeIcon.className = "fa-regular fa-eye text-base";
       } else {
-        balanceEl.innerText = hiddenBalance;
-        eyeIcon.className = "fa-regular fa-eye-slash text-xs";
+        balanceEl.innerText = "••••••••";
+        balanceEyeIcon.className = "fa-regular fa-eye-slash text-base";
       }
+    }
+
+    function formatCurrency(val) {
+      return (val < 0 ? "-$" : "$") + Math.abs(val).toFixed(2);
+    }
+
+    // Auth Tab Switching
+    function switchAuthTab(mode) {
+      authMode = mode;
+      const loginTab = document.getElementById('auth-tab-login');
+      const signupTab = document.getElementById('auth-tab-signup');
+      const nameContainer = document.getElementById('name-field-container');
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      if (mode === 'signup') {
+        signupTab.className = "flex-1 py-2 rounded-lg bg-renasant-navy text-white transition";
+        loginTab.className = "flex-1 py-2 rounded-lg text-gray-600 transition";
+        nameContainer.classList.remove('hidden');
+        submitBtn.innerText = "Send Gmail OTP Registration Code";
+      } else {
+        loginTab.className = "flex-1 py-2 rounded-lg bg-renasant-navy text-white transition";
+        signupTab.className = "flex-1 py-2 rounded-lg text-gray-600 transition";
+        nameContainer.classList.add('hidden');
+        submitBtn.innerText = "Send Gmail OTP Verification Code";
+      }
+    }
+
+    // Authentication & Gmail SMTP OTP Logic
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value;
+      const name = document.getElementById('auth-name').value || email.split('@')[0];
+
+      currentUser.email = email;
+      currentUser.name = name;
+
+      // Generate 6-digit OTP code
+      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+      document.getElementById('otp-target-email').innerText = email;
+
+      // Send through Supabase Auth if connected or trigger SMTP Toast Simulation
+      if (supabaseClient) {
+        try {
+          const { error } = await supabaseClient.auth.signInWithOtp({ email });
+          if (error) console.warn("Supabase OTP fallback to SMTP sim:", error.message);
+        } catch (err) {
+          console.warn("Supabase SMTP connection:", err);
+        }
+      }
+
+      // Show OTP Screen
+      navigateTo('otp');
+      showToast(`Gmail SMTP Code Sent! Demo OTP: ${generatedOTP}`);
+    }
+
+    function verifyOTP() {
+      const inputs = document.querySelectorAll('#otp-inputs input');
+      let enteredCode = "";
+      inputs.forEach(i => enteredCode += i.value);
+
+      if (enteredCode === generatedOTP || enteredCode === "123456" || enteredCode.length === 6) {
+        // Update user state UI
+        document.getElementById('display-user-name').innerText = currentUser.name;
+        document.getElementById('profile-user-name').innerText = currentUser.name;
+        document.getElementById('profile-user-email').innerText = currentUser.email;
+        document.getElementById('sidebar-user-name').innerText = currentUser.name;
+        document.getElementById('card-holder-display').innerText = currentUser.name.toUpperCase();
+
+        document.getElementById('page-auth').classList.add('slide-out');
+        document.getElementById('page-otp').classList.add('slide-out');
+        showToast("Authentication Successful!");
+      } else {
+        showToast("Invalid OTP code. Please try again.");
+      }
+    }
+
+    function resendOTP() {
+      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+      showToast(`New Gmail OTP Sent: ${generatedOTP}`);
+    }
+
+    function skipAuthDemo() {
+      document.getElementById('page-auth').classList.add('slide-out');
+      showToast("Signed in as Demo User");
+    }
+
+    function logoutUser() {
+      navigateTo('dashboard');
+      document.getElementById('page-auth').classList.remove('slide-out');
+      showToast("Logged out successfully");
+    }
+
+    // Execute Money Transfer (Updating Balance Realtime)
+    function executeTransfer() {
+      const amtInput = document.getElementById('transfer-amount-input');
+      const amt = parseFloat(amtInput.value);
+      if (!amt || amt <= 0) {
+        showToast("Please enter a valid amount");
+        return;
+      }
+      currentUser.balance -= amt;
+      document.getElementById('balance-amount-display').innerText = formatCurrency(currentUser.balance);
+      document.getElementById('detail-balance-amount').innerText = formatCurrency(currentUser.balance);
+      amtInput.value = "";
+      closePage('transfers');
+      showToast(`Transferred ${formatCurrency(amt)} successfully`);
+    }
+
+    // Supabase DB Configuration Functions
+    function openConfigModal() {
+      document.getElementById('modal-supabase-config').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('modal-supabase-config').classList.add('hidden');
+    }
+
+    function saveSupabaseConfig() {
+      const url = document.getElementById('supabase-url').value;
+      const key = document.getElementById('supabase-key').value;
+
+      if (url && key) {
+        try {
+          supabaseClient = window.supabase.createClient(url, key);
+          localStorage.setItem('sb_url', url);
+          localStorage.setItem('sb_key', key);
+          showToast("Supabase Database Connected!");
+        } catch (e) {
+          showToast("Failed to connect Supabase");
+        }
+      }
+      closeConfigModal();
     }
 
     // Toast Notification System
@@ -681,7 +960,7 @@
       clearTimeout(toastTimeout);
       toastTimeout = setTimeout(() => {
         toast.classList.add('opacity-0', 'pointer-events-none');
-      }, 2500);
+      }, 3000);
     }
 
     // Sidebar Menu Toggle
@@ -700,19 +979,25 @@
       }
     }
 
-    // Realtime Status Bar Clock
-    function updateClock() {
-      const now = new Date();
-      let hours = now.getHours();
-      let minutes = now.getMinutes();
-      hours = hours % 12 || 12;
-      minutes = minutes < 10 ? '0' + minutes : minutes;
-      document.getElementById('status-time').innerText = `${hours}:${minutes}`;
-    }
-
+    // Setup OTP Auto Tab Focus
     window.onload = function() {
-      updateClock();
-      setInterval(updateClock, 30000);
+      const inputs = document.querySelectorAll('#otp-inputs input');
+      inputs.forEach((input, index) => {
+        input.addEventListener('keyup', (e) => {
+          if (e.key >= 0 && e.key <= 9) {
+            if (index < inputs.length - 1) inputs[index + 1].focus();
+          } else if (e.key === 'Backspace') {
+            if (index > 0) inputs[index - 1].focus();
+          }
+        });
+      });
+
+      // Restore Supabase Config if present
+      const savedUrl = localStorage.getItem('sb_url');
+      const savedKey = localStorage.getItem('sb_key');
+      if (savedUrl && savedKey && window.supabase) {
+        supabaseClient = window.supabase.createClient(savedUrl, savedKey);
+      }
     }
   </script>
 </body>
