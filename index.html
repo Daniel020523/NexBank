@@ -97,7 +97,7 @@
         <div class="bg-gradient-to-b from-renasant-navyGradientStart to-renasant-navyGradientEnd text-white p-4">
           <div class="flex justify-between items-start">
             <div>
-              <h2 onclick="navigateTo('accountDetails')" class="text-lg font-semibold tracking-wide cursor-pointer hover:underline">Simple Checking</h2>
+              <h2 onclick="navigateTo('accountDetails')" class="text-lg font-semibold tracking-wide cursor-pointer hover:underline">Checking</h2>
               <div class="flex items-center space-x-2 mt-0.5 text-xs text-gray-300">
                 <span id="account-number-text">—</span>
                 <button onclick="toggleCardNumberVisibility()" class="focus:outline-none hover:text-white transition p-1">
@@ -266,7 +266,7 @@
         <div class="p-4 flex-1 overflow-y-auto space-y-4">
           <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
             <label class="text-xs font-bold text-gray-600">From Account</label>
-            <div id="transfer-from" class="p-3 bg-white border rounded-lg text-sm font-semibold text-renasant-navy">Simple Checking</div>
+            <div id="transfer-from" class="p-3 bg-white border rounded-lg text-sm font-semibold text-renasant-navy">Checking</div>
             <label class="text-xs font-bold text-gray-600">To Account</label>
             <select class="w-full p-3 bg-white border rounded-lg text-sm font-semibold text-gray-700">
               <option>Savings Account</option>
@@ -327,10 +327,14 @@
       <!-- ZELLE SEND -->
       <div id="page-zellesend" class="app-screen slide-out flex flex-col">
         <div class="bg-purple-900 text-white px-4 py-3.5 flex items-center space-x-3 shadow">
-          <button onclick="closePage('zellesend')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <button onclick="zelleBack()" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold" id="zelle-title">Send with Zelle®</h2>
         </div>
         <div class="p-5 flex-1 overflow-y-auto space-y-4">
+          <div class="flex bg-gray-200 rounded-xl p-1 text-xs font-bold">
+            <button id="zelle-tab-send" onclick="setZelleMode('send')" class="flex-1 py-2 rounded-lg bg-purple-800 text-white transition">Send</button>
+            <button id="zelle-tab-request" onclick="setZelleMode('request')" class="flex-1 py-2 rounded-lg text-gray-600 transition">Request</button>
+          </div>
           <div id="zelle-step-tag" class="space-y-3">
             <label class="text-xs font-bold text-gray-600">Recipient's Zelle Tag</label>
             <input type="text" id="zelle-tag-input" placeholder="Enter Zelle tag" autocapitalize="none" autocomplete="off" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-purple-800">
@@ -394,7 +398,7 @@
       <div id="page-accountDetails" class="app-screen slide-out flex flex-col">
         <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
           <button onclick="closePage('accountDetails')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
-          <h2 class="text-base font-bold">Simple Checking Details</h2>
+          <h2 class="text-base font-bold">Checking Details</h2>
         </div>
         <div class="p-4 flex-1 overflow-y-auto space-y-4">
           <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center space-y-1">
@@ -578,7 +582,7 @@
       document.getElementById('balance-amount-display').innerText = shown;
       document.getElementById('detail-balance-amount').innerText = shown;
       document.getElementById('balance-eye-icon').className = isBalanceVisible ? 'fa-regular fa-eye text-base' : 'fa-regular fa-eye-slash text-base';
-      document.getElementById('transfer-from').innerText = 'Simple Checking' + (last4 ? ` (****${last4})` : '');
+      document.getElementById('transfer-from').innerText = 'Checking' + (last4 ? ` (****${last4})` : '');
       document.getElementById('card-full-display').innerText = '•••• •••• •••• ' + (last4 || '••••');
       document.getElementById('card-holder-display').innerText = currentUser.name.toUpperCase();
       document.getElementById('profile-user-name').innerText = currentUser.name;
@@ -799,19 +803,35 @@
 
     let zelleMode = 'send';
 
-    function openZelleSend(mode) {
+    function setZelleMode(mode) {
       zelleMode = mode === 'request' ? 'request' : 'send';
       const req = zelleMode === 'request';
       document.getElementById('zelle-title').innerText = req ? 'Request with Zelle®' : 'Send with Zelle®';
       document.getElementById('zelle-to-label').innerText = req ? 'Requesting from' : 'Sending to';
       document.getElementById('zelle-action-btn').innerText = req ? 'Request Money' : 'Send Money';
-      document.getElementById('zelle-tag-input').placeholder = req ? "Enter the Zelle tag to request from" : 'Enter Zelle tag';
+      document.getElementById('zelle-tag-input').placeholder = req ? 'Enter the Zelle tag to request from' : 'Enter Zelle tag';
+      const on = 'flex-1 py-2 rounded-lg bg-purple-800 text-white transition';
+      const off = 'flex-1 py-2 rounded-lg text-gray-600 transition';
+      document.getElementById('zelle-tab-send').className = req ? off : on;
+      document.getElementById('zelle-tab-request').className = req ? on : off;
       zelleRecipient = '';
-      document.getElementById('zelle-tag-input').value = '';
       document.getElementById('zelle-amount-input').value = '';
       document.getElementById('zelle-step-tag').classList.remove('hidden');
       document.getElementById('zelle-step-amount').classList.add('hidden');
+    }
+
+    function openZelleSend(mode) {
+      document.getElementById('zelle-tag-input').value = '';
+      setZelleMode(mode);
       navigateTo('zellesend');
+    }
+
+    function zelleBack() {
+      if (!document.getElementById('zelle-step-amount').classList.contains('hidden')) {
+        setZelleMode(zelleMode);
+      } else {
+        closePage('zellesend');
+      }
     }
 
     async function verifyZelleTag() {
