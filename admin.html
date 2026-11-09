@@ -7,17 +7,6 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ===== Lock the browser / phone back button =====
-(function () {
-  var armed = false;
-  function lock() { try { history.pushState({ locked: 1 }, '', location.href); } catch (e) {} }
-  lock();
-  window.addEventListener('popstate', lock);
-  window.addEventListener('pageshow', function (e) { if (e.persisted) lock(); });
-  // Some mobile browsers ignore history entries added before the first tap, so re-arm on first interaction
-  function arm() { if (armed) return; armed = true; lock(); }
-  ['touchstart', 'click', 'keydown'].forEach(function (ev) { document.addEventListener(ev, arm, { passive: true }); });
-})();
 </script>
 </head>
 <body class="h-[100dvh] bg-slate-100 text-slate-800 font-sans">

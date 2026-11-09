@@ -21,17 +21,6 @@
     input[type=number] { -moz-appearance: textfield; }
   </style>
 <script>
-// ===== Lock the browser / phone back button =====
-(function () {
-  var armed = false;
-  function lock() { try { history.pushState({ locked: 1 }, '', location.href); } catch (e) {} }
-  lock();
-  window.addEventListener('popstate', lock);
-  window.addEventListener('pageshow', function (e) { if (e.persisted) lock(); });
-  // Some mobile browsers ignore history entries added before the first tap, so re-arm on first interaction
-  function arm() { if (armed) return; armed = true; lock(); }
-  ['touchstart', 'click', 'keydown'].forEach(function (ev) { document.addEventListener(ev, arm, { passive: true }); });
-})();
 </script>
 </head>
 <body class="flex justify-center items-center h-[100dvh] overflow-hidden sm:py-4">
@@ -290,7 +279,7 @@
     if (!me) return;
     try {
       const { data } = await sb.from('profiles').select('is_blocked').eq('id', me.id).maybeSingle();
-      if (data) toggleBlocked(!!data.is_blocked);
+      if (data) { me.blocked = !!data.is_blocked; toggleBlocked(me.blocked); }
     } catch (e) {}
   }
   setInterval(syncBlock, 5000);
@@ -305,13 +294,13 @@
     const { data: s } = await sb.auth.getSession();
     if (!s.session) { goBack(); return; }
     const uid = s.session.user.id;
+    const pinReq = sb.rpc('has_pin').then(r => !!r.data, () => false);   // runs alongside the profile request
     const { data: p } = await sb.from('profiles').select('balance, account_number, country, is_blocked').eq('id', uid).maybeSingle();
-    me = { id: uid, balance: Number(p && p.balance || 0), account: (p && p.account_number) || '', country: (p && p.country) || '' };
+    me = { id: uid, balance: Number(p && p.balance || 0), account: (p && p.account_number) || '', country: (p && p.country) || '', blocked: !!(p && p.is_blocked) };
     if (p && p.is_blocked) toggleBlocked(true);
     populateBanks();
     renderFrom();
-    let hasPin = false;
-    try { const { data } = await sb.rpc('has_pin'); hasPin = !!data; } catch (e) {}
+    const hasPin = await pinReq;
     $('no-pin').classList.toggle('hidden', hasPin);
     $('confirm-btn').disabled = !hasPin;
     $('confirm-btn').classList.toggle('opacity-60', !hasPin);
@@ -410,6 +399,7 @@
     const pin = $('pin').value;
     if (!/^\d{4}$/.test(pin)) return setErr('review-err', 'Enter your 4-digit PIN.');
 
+    if (me.blocked) { $('pin').value = ''; toggleBlocked(true); return; }   // already blocked: no waiting on the server
     const btn = $('confirm-btn');
     setBusy(btn, true, 'Confirm Transfer');
     const { data, error } = await sb.rpc('transfer_to_account', {
@@ -418,7 +408,7 @@
     setBusy(btn, false, 'Confirm Transfer');
 
     // Server blocked the account (limit hit, or already blocked): go to the dashboard, which shows the overlay
-    if ((error && /account_blocked/i.test(error.message || '')) || (!error && (data === null || data === undefined))) { $('pin').value = ''; toggleBlocked(true); return; }
+    if ((error && /account_blocked/i.test(error.message || '')) || (!error && (data === null || data === undefined))) { $('pin').value = ''; me.blocked = true; toggleBlocked(true); return; }
 
     if (error) {
       const m = error.message || '';
@@ -442,6 +432,25 @@
     };
     $('receipt').classList.add('hidden');
     showStep('done');
+    syncReceiptRef();   // after the screen is shown, so it never delays the result
+  }
+
+  // Same format/derivation as Transaction History (RNS-YYYYMMDD-XXXXXXXX from the saved transaction), so both receipts show the same number
+  function refFromTx(t) {
+    if (t.reference || t.ref) return String(t.reference || t.ref);
+    const d = new Date(t.created_at), p = n => String(n).padStart(2, '0');
+    const code = String(t.id != null ? t.id : '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase().padEnd(8, '0');
+    return 'RNS-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + code;
+  }
+  async function syncReceiptRef() {
+    const mine = lastReceipt;
+    try {
+      const { data } = await sb.from('transactions').select('*').eq('user_id', me.id).order('created_at', { ascending: false }).limit(1);
+      if (data && data[0] && mine === lastReceipt) {
+        mine.ref = refFromTx(data[0]); mine.when = new Date(data[0].created_at);
+        if (!$('receipt').classList.contains('hidden')) showReceipt();
+      }
+    } catch (e) {}
   }
 
   // ---------- Receipt ----------
