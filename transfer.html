@@ -96,7 +96,7 @@
           <input id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••"
             oninput="this.value=this.value.replace(/\D/g,'')" class="w-full p-3 border-2 rounded-xl text-2xl font-bold text-center tracking-[0.6em] focus:outline-renasant-navy">
           <p id="no-pin" class="hidden text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
-            You haven't set a transaction PIN yet. <a href="renasant-bank.html" class="underline font-bold">Open Profile</a> to set one, then come back.
+            You haven't set a transaction PIN yet. <a href="index.html" class="underline font-bold">Open Profile</a> to set one, then come back.
           </p>
           <p id="review-err" class="hidden text-xs text-red-600 font-semibold text-center"></p>
           <button id="confirm-btn" onclick="submitTransfer()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md">Confirm Transfer</button>
@@ -124,7 +124,7 @@
   const SUPABASE_URL = 'https://tuuxyvxufxbyeeyrgebj.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_73R5E7vPBpMAU1gPo65zpQ_ejMCBDQv';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const HOME = 'renasant-bank.html';
+  const HOME = 'index.html';
   const WU = 'Western Union International Bank';   // the only bank that accepts admin-approved accounts
   const BANKS = {
     'United States': ['Bank of America','Chase','Wells Fargo','Citibank','U.S. Bank','Capital One','PNC Bank','Truist','TD Bank','Goldman Sachs Marcus','Ally Bank','Charles Schwab Bank','Regions Bank','Fifth Third Bank','Citizens Bank','KeyBank','Huntington Bank','Navy Federal Credit Union','USAA','Discover Bank','Renasant Bank'],
