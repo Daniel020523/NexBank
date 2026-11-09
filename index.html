@@ -100,9 +100,7 @@
               <h2 onclick="navigateTo('accountDetails')" class="text-lg font-semibold tracking-wide cursor-pointer hover:underline">Checking</h2>
               <div class="flex items-center space-x-2 mt-0.5 text-xs text-gray-300">
                 <span id="account-number-text">—</span>
-                <button onclick="toggleCardNumberVisibility()" class="focus:outline-none hover:text-white transition p-1">
-                  <i class="fa-regular fa-eye text-xs" id="card-eye-icon"></i>
-                </button>
+                
               </div>
             </div>
             <div class="text-right">
@@ -285,17 +283,19 @@
           <button onclick="closePage('deposit')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Mobile Check Deposit</h2>
         </div>
-        <div class="p-6 flex-1 overflow-y-auto space-y-4 text-center">
-          <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center space-y-2 bg-gray-50">
-            <i class="fa-solid fa-camera text-4xl text-renasant-navy"></i>
-            <span class="text-xs font-semibold text-gray-600">Capture Front of Check</span>
+        <div class="p-5 flex-1 overflow-y-auto space-y-4 text-center pb-24">
+          <input type="number" id="deposit-amount" placeholder="Check amount ($)" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy">
+          <div onclick="openCamera('front')" class="relative h-36 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50 cursor-pointer overflow-hidden flex flex-col items-center justify-center space-y-2">
+            <img id="dep-front-img" class="hidden absolute inset-0 w-full h-full object-cover" alt="Front of check">
+            <i class="fa-solid fa-camera text-3xl text-renasant-navy"></i><span class="text-xs font-semibold text-gray-600">Tap to Capture Front of Check</span>
           </div>
-          <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center space-y-2 bg-gray-50">
-            <i class="fa-solid fa-camera text-4xl text-renasant-navy"></i>
-            <span class="text-xs font-semibold text-gray-600">Capture Back of Check</span>
+          <div onclick="openCamera('back')" class="relative h-36 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50 cursor-pointer overflow-hidden flex flex-col items-center justify-center space-y-2">
+            <img id="dep-back-img" class="hidden absolute inset-0 w-full h-full object-cover" alt="Back of check">
+            <i class="fa-solid fa-camera text-3xl text-renasant-navy"></i><span class="text-xs font-semibold text-gray-600">Tap to Capture Back of Check</span>
           </div>
-          <button onclick="closePage('deposit')" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm">Submit Deposit</button>
+          <button onclick="submitDeposit()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm">Submit Deposit</button>
         </div>
+        <input type="file" id="dep-file" accept="image/*" capture="environment" class="hidden" onchange="onDepositFile(this)">
       </div>
 
       <!-- BILL PAY -->
@@ -364,7 +364,7 @@
               <i class="fa-solid fa-wifi text-lg"></i>
             </div>
             <div id="card-full-display" class="text-lg font-mono tracking-widest">•••• •••• •••• ••••</div>
-            <div class="text-xs" id="card-holder-display">CARDHOLDER</div>
+            <div class="flex justify-between items-end text-xs"><span id="card-holder-display" class="font-semibold tracking-wide">CARDHOLDER</span><span class="text-right leading-tight"><span class="block text-[8px] text-blue-200">EXPIRES</span><span id="card-expiry-display" class="font-mono text-sm">--/--</span></span></div>
           </div>
           <div class="flex justify-between items-center p-3 border rounded-xl">
             <span class="text-xs font-bold text-gray-700">Lock / Freeze Card</span>
@@ -379,7 +379,7 @@
           <button onclick="closePage('documents')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Statements & Documents</h2>
         </div>
-        <div class="p-6 flex-1 text-center text-xs text-gray-500">No statements available yet.</div>
+        <div id="statement-list" class="flex-1 overflow-y-auto p-4 pb-24 space-y-2 text-xs"></div>
       </div>
 
       <!-- FUND ACCOUNT -->
@@ -406,7 +406,7 @@
             <div id="detail-balance-amount" class="text-3xl font-normal text-renasant-navy">••••••••</div>
           </div>
           <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Recent Transactions</h3>
-          <div class="text-xs text-gray-500 text-center py-4">No transactions yet.</div>
+          <div id="recent-transactions" class="space-y-2 pb-20 text-xs"></div>
         </div>
       </div>
 
@@ -438,15 +438,48 @@
           <button onclick="closePage('profile')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <h2 class="text-base font-bold">Profile</h2>
         </div>
-        <div class="p-4 flex-1 overflow-y-auto text-xs">
-          <div class="border rounded-xl p-4 bg-white space-y-2">
-            <div class="font-bold text-base text-renasant-navy" id="profile-user-name"></div>
-            <div class="text-gray-600" id="profile-user-username"></div>
-            <div class="text-gray-500" id="profile-user-email"></div>
-            <div class="text-gray-600" id="profile-user-dob"></div>
-            <div class="text-gray-600" id="profile-user-country"></div>
-            <div class="text-gray-600">Member Status: Verified</div>
-            <button onclick="logoutUser()" class="w-full mt-4 bg-red-600 text-white py-2.5 rounded-xl font-bold text-xs">Log Out</button>
+        <div class="flex-1 overflow-y-auto pb-24 bg-slate-50">
+          <div class="bg-renasant-navy text-white px-4 pb-6 pt-3 text-center">
+            <div id="profile-avatar" class="w-20 h-20 rounded-full bg-white/20 mx-auto flex items-center justify-center text-3xl font-semibold"></div>
+            <div class="font-semibold text-lg mt-3" id="profile-user-name"></div>
+            <div class="text-xs text-blue-200" id="profile-user-username"></div>
+            <span class="inline-flex items-center space-x-1 mt-2 px-2.5 py-0.5 rounded-full bg-green-500/20 text-green-200 text-[11px] font-semibold"><i class="fa-solid fa-circle-check"></i><span>Email verified</span></span>
+          </div>
+          <div class="p-4 space-y-4 text-xs">
+            <div>
+              <h3 class="px-1 mb-1.5 font-bold text-gray-500">Account</h3>
+              <div class="border rounded-xl divide-y bg-white">
+                <div class="flex justify-between p-3"><span class="text-gray-500">Checking account no.</span><span class="font-semibold font-mono text-gray-800" id="profile-account"></span></div>
+                <div class="flex justify-between p-3"><span class="text-gray-500">Debit card expires</span><span class="font-semibold font-mono text-gray-800" id="profile-card-exp"></span></div>
+                <div class="flex justify-between p-3"><span class="text-gray-500">Member since</span><span class="font-semibold text-gray-800" id="profile-since"></span></div>
+              </div>
+            </div>
+            <div>
+              <h3 class="px-1 mb-1.5 font-bold text-gray-500">Personal details</h3>
+              <div class="border rounded-xl divide-y bg-white">
+                <div class="flex justify-between p-3"><span class="text-gray-500">Email</span><span class="font-semibold text-gray-800" id="profile-user-email"></span></div>
+                <div class="flex justify-between p-3"><span class="text-gray-500">Date of birth</span><span class="font-semibold text-gray-800" id="profile-user-dob"></span></div>
+                <div class="flex justify-between p-3"><span class="text-gray-500">Country</span><span class="font-semibold text-gray-800" id="profile-user-country"></span></div>
+              </div>
+            </div>
+            <div>
+              <h3 class="px-1 mb-1.5 font-bold text-gray-500">Security</h3>
+              <div class="border rounded-xl bg-white p-3 space-y-3">
+                <div class="flex justify-between items-center">
+                  <div><div class="font-bold text-sm text-renasant-navy">Transaction PIN</div><div class="text-gray-500">Used to approve transfers</div></div>
+                  <div class="text-right space-y-1"><div id="pin-status" class="text-[11px] font-semibold"></div>
+                    <button id="pin-toggle-btn" onclick="togglePinForm()" class="px-3 py-1 rounded-lg border border-renasant-navy text-renasant-navy font-bold"></button></div>
+                </div>
+                <div id="pin-form" class="hidden space-y-2">
+                  <input type="password" id="pin-current" inputmode="numeric" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')" placeholder="Current PIN" autocomplete="off" class="hidden w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy text-center tracking-widest">
+                  <input type="password" id="pin-new" inputmode="numeric" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')" placeholder="New 4-digit PIN" autocomplete="off" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy text-center tracking-widest">
+                  <input type="password" id="pin-confirm" inputmode="numeric" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')" placeholder="Confirm PIN" autocomplete="off" class="w-full p-3 border rounded-xl text-sm font-semibold focus:outline-renasant-navy text-center tracking-widest">
+                  <button id="pin-save-btn" onclick="savePin()" class="w-full bg-renasant-navy text-white py-2.5 rounded-xl font-bold text-xs">Save PIN</button>
+                </div>
+              </div>
+            </div>
+            <button onclick="openChat()" class="w-full p-3 border rounded-xl bg-white font-bold text-renasant-navy flex justify-between items-center"><span>Chat with Support</span><i class="fa-regular fa-comments"></i></button>
+            <button onclick="logoutUser()" class="w-full bg-red-600 text-white py-2.5 rounded-xl font-bold text-xs">Log Out</button>
           </div>
         </div>
       </div>
@@ -458,9 +491,25 @@
           <h2 class="text-base font-bold">Help & Support</h2>
         </div>
         <div class="p-4 flex-1 overflow-y-auto space-y-3">
+          <button onclick="openChat()" class="w-full p-3 border rounded-xl text-xs font-bold flex justify-between items-center bg-blue-50 text-renasant-navy">
+            <span>Chat with Support</span><i class="fa-regular fa-comments"></i>
+          </button>
           <a href="tel:18006801601" class="w-full p-3 border rounded-xl text-xs font-bold flex justify-between items-center">
             <span>Customer Service: 1-800-680-1601</span><i class="fa-solid fa-phone text-renasant-navy"></i>
           </a>
+        </div>
+      </div>
+
+      <!-- SUPPORT CHAT -->
+      <div id="page-chat" class="app-screen slide-out flex flex-col">
+        <div class="bg-renasant-navy text-white px-4 py-3.5 flex items-center space-x-3 shadow">
+          <button onclick="closePage('chat')" class="text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 class="text-base font-bold">Chat with Support</h2>
+        </div>
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50"></div>
+        <div class="p-3 pb-20 border-t bg-white flex space-x-2">
+          <input type="text" id="chat-input" placeholder="Type your message..." onkeydown="if(event.key==='Enter')sendChat()" class="flex-1 p-3 border rounded-xl text-sm focus:outline-renasant-navy">
+          <button onclick="sendChat()" class="bg-renasant-navy text-white px-4 rounded-xl"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
 
@@ -485,6 +534,20 @@
           <h2 class="text-base font-bold">Notifications</h2>
         </div>
         <div class="p-6 flex-1 text-center text-xs text-gray-500">You have no notifications.</div>
+      </div>
+    </div>
+
+    <!-- Camera (above everything) -->
+    <div id="camera-overlay" class="hidden absolute inset-0 bg-black z-[60] flex flex-col">
+      <div class="relative flex-1 min-h-0">
+        <video id="camera-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
+        <div class="absolute inset-x-6 top-1/4 bottom-1/4 border-2 border-white/70 rounded-xl pointer-events-none"></div>
+        <p id="camera-hint" class="absolute top-4 inset-x-0 text-center text-white text-xs font-semibold">Fit the check inside the frame</p>
+      </div>
+      <div class="flex justify-between items-center px-8 py-5 bg-black">
+        <button onclick="closeCamera()" class="text-white text-sm font-semibold w-16 text-left">Cancel</button>
+        <button onclick="capturePhoto()" aria-label="Capture" class="w-16 h-16 rounded-full bg-white border-4 border-gray-400"></button>
+        <span class="w-16"></span>
       </div>
     </div>
 
@@ -522,10 +585,10 @@
     const supabaseClient = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-    const PROTECTED = ['transfers','deposit','billpay','zelle','zellesend','cards','documents','fund','accountDetails','insights','profile','notifications','settings'];
+    const PROTECTED = ['transfers','deposit','billpay','zelle','zellesend','chat','cards','documents','fund','accountDetails','insights','profile','notifications','settings'];
     const COUNTRIES = ['United States','Canada','Mexico','United Kingdom','Ireland','France','Germany','Spain','Italy','Portugal','Netherlands','Belgium','Switzerland','Sweden','Norway','Denmark','Finland','Poland','Greece','Turkey','Israel','United Arab Emirates','Saudi Arabia','Egypt','Nigeria','Ghana','Kenya','South Africa','India','Pakistan','Bangladesh','China','Japan','South Korea','Philippines','Vietnam','Thailand','Indonesia','Malaysia','Singapore','Australia','New Zealand','Brazil','Argentina','Chile','Colombia','Peru','Jamaica','Dominican Republic','Other'];
 
-    const PARENT_PAGE = { zellesend: 'zelle' };
+    const PARENT_PAGE = { zellesend: 'zelle', chat: 'help' };
 
     let currentUser = null; // { id, name, email, dob, country, accountNumber, balance }
     let isCardNumberVisible = false;
@@ -536,6 +599,7 @@
 
     // ---------- Navigation (dashboard is always the home) ----------
     function navigateTo(pageId) {
+      if (pageId !== 'deposit') closeCamera();
       if (pageId === 'dashboard') {
         document.querySelectorAll('.app-screen').forEach(s => s.classList.add('slide-out'));
         updateNavHighlight('dashboard');
@@ -555,6 +619,7 @@
           if (!keep.includes(sc.id)) sc.classList.add('slide-out');
         });
         page.classList.remove('slide-out');
+        if (['documents','accountDetails','profile'].includes(pageId)) refreshAccount();
         updateNavHighlight(PARENT_PAGE[pageId] || pageId);
       }
     }
@@ -587,8 +652,7 @@
       const acct = currentUser.accountNumber;
       const last4 = acct ? acct.slice(-4) : null;
       document.getElementById('account-number-text').innerText = acct ? '****' + last4 : 'Account pending';
-      isCardNumberVisible = false;
-      document.getElementById('card-eye-icon').className = 'fa-regular fa-eye text-xs';
+      document.getElementById('card-expiry-display').innerText = currentUser.cardExpiry || '--/--';
       const shown = isBalanceVisible ? formatCurrency(currentUser.balance) : '••••••••';
       document.getElementById('balance-amount-display').innerText = shown;
       document.getElementById('detail-balance-amount').innerText = shown;
@@ -597,21 +661,19 @@
       document.getElementById('card-full-display').innerText = '•••• •••• •••• ' + (last4 || '••••');
       document.getElementById('card-holder-display').innerText = currentUser.name.toUpperCase();
       document.getElementById('profile-user-name').innerText = currentUser.name;
-      document.getElementById('profile-user-username').innerText = 'Client ID: ' + (currentUser.username || '');
+      document.getElementById('profile-avatar').innerText = currentUser.name.trim().charAt(0).toUpperCase();
+      document.getElementById('profile-user-username').innerText = currentUser.username ? 'Client ID: ' + currentUser.username : '';
       document.getElementById('profile-user-email').innerText = currentUser.email;
-      document.getElementById('profile-user-dob').innerText = currentUser.dob ? 'Date of Birth: ' + currentUser.dob : '';
-      document.getElementById('profile-user-country').innerText = currentUser.country ? 'Country: ' + currentUser.country : '';
+      document.getElementById('profile-user-dob').innerText = currentUser.dob || '—';
+      document.getElementById('profile-user-country').innerText = currentUser.country || '—';
+      document.getElementById('profile-since').innerText = currentUser.since ? new Date(currentUser.since).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—';
+      document.getElementById('profile-account').innerText = acct ? '****' + last4 : 'Pending';
+      document.getElementById('profile-card-exp').innerText = currentUser.cardExpiry || '--/--';
+      updatePinUI();
     }
 
     function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function formatCurrency(v) { return (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-
-    function toggleCardNumberVisibility() {
-      if (!isLoggedIn() || !currentUser.accountNumber) return;
-      isCardNumberVisible = !isCardNumberVisible;
-      document.getElementById('account-number-text').innerText = isCardNumberVisible ? currentUser.accountNumber : '****' + currentUser.accountNumber.slice(-4);
-      document.getElementById('card-eye-icon').className = isCardNumberVisible ? 'fa-regular fa-eye-slash text-xs' : 'fa-regular fa-eye text-xs';
-    }
 
     function toggleBalanceVisibility() {
       if (!isLoggedIn()) return;
@@ -780,15 +842,21 @@
         dob: (profile && profile.dob) || meta.dob || '',
         country: (profile && profile.country) || meta.country || '',
         accountNumber: (profile && profile.account_number) || '',
-        balance: Number((profile && profile.balance) || 0)
+        balance: Number((profile && profile.balance) || 0),
+        cardExpiry: (profile && profile.card_expiry) || '',
+        since: (profile && profile.created_at) || user.created_at,
+        hasPin: false
       };
+      try { const { data: hp } = await supabaseClient.rpc('has_pin'); currentUser.hasPin = !!hp; } catch (e) {}
       isBalanceVisible = false;
       renderState();
+      loadTransactions();
     }
 
     async function logoutUser() {
       if (supabaseClient) await supabaseClient.auth.signOut();
       currentUser = null;
+      ['statement-list', 'recent-transactions', 'chat-messages'].forEach(id => document.getElementById(id).innerHTML = '');
       isBalanceVisible = false;
       renderState();
       navigateTo('dashboard');
@@ -804,6 +872,7 @@
       if (error) { showToast(/insufficient/i.test(error.message) ? 'Insufficient funds' : 'Transfer failed. Please try again.'); return; }
       currentUser.balance = Number(data);
       renderState();
+      loadTransactions();
       input.value = '';
       closePage('transfers');
       showToast(`Transferred ${formatCurrency(amt)} successfully`);
@@ -878,9 +947,190 @@
       }
       currentUser.balance = Number(data);
       renderState();
+      loadTransactions();
       closePage('zellesend');
       showToast(`Sent ${formatCurrency(amt)} with Zelle`);
     }
+
+    // ---------- Transactions / statements ----------
+    function txRow(t) {
+      const amt = Number(t.amount);
+      const date = new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const pending = t.status === 'pending' ? ' • Pending' : '';
+      return `<div class="flex justify-between items-center p-3 border rounded-xl bg-white">
+        <div><div class="font-bold text-gray-800">${escapeHtml(t.description)}</div><div class="text-[10px] text-gray-500">${date}${pending}</div></div>
+        <span class="font-bold ${amt > 0 ? 'text-green-700' : 'text-red-600'}">${amt > 0 ? '+' : '-'}${formatCurrency(Math.abs(amt))}</span></div>`;
+    }
+
+    async function loadTransactions() {
+      if (!supabaseClient || !currentUser) return;
+      const { data } = await supabaseClient.from('transactions').select('*').order('created_at', { ascending: false }).limit(2000);
+      const list = data || [];
+      const empty = '<div class="text-center text-gray-500 py-6">No transactions yet.</div>';
+      document.getElementById('recent-transactions').innerHTML = list.length ? list.slice(0, 10).map(txRow).join('') : empty;
+
+      const groups = {};
+      list.forEach(t => { const k = new Date(t.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); (groups[k] = groups[k] || []).push(t); });
+      const head = `<div class="p-3 rounded-xl bg-blue-50 border border-blue-100 font-semibold text-renasant-navy">Checking ${currentUser.accountNumber ? '• ****' + escapeHtml(currentUser.accountNumber.slice(-4)) : ''}<div class="text-[10px] font-normal text-gray-500">${list.length} transaction${list.length === 1 ? '' : 's'} on this account</div></div>`;
+      const months = Object.entries(groups).map(([m, items]) => {
+        const cr = items.reduce((a, t) => a + Math.max(0, Number(t.amount)), 0);
+        const dr = items.reduce((a, t) => a + Math.max(0, -Number(t.amount)), 0);
+        return `<div class="pt-2"><div class="flex justify-between items-baseline px-1 pb-1.5"><span class="font-bold text-gray-700 text-sm">${m}</span><span class="text-[10px] text-gray-500">In ${formatCurrency(cr)} · Out ${formatCurrency(dr)}</span></div><div class="space-y-2">${items.map(txRow).join('')}</div></div>`;
+      }).join('');
+      document.getElementById('statement-list').innerHTML = head + (list.length ? months : empty);
+    }
+
+    async function refreshAccount() {
+      if (!supabaseClient || !currentUser) return;
+      try {
+        const { data } = await supabaseClient.from('profiles').select('balance').eq('id', currentUser.id).maybeSingle();
+        if (data) { currentUser.balance = Number(data.balance || 0); renderState(); }
+      } catch (e) {}
+      loadTransactions();
+    }
+
+    // ---------- Check deposit camera ----------
+    let depositImages = { front: null, back: null }, camStream = null, camSide = null;
+
+    function toJpeg(src, w, h) {
+      const r = Math.min(1, 1000 / Math.max(w, h));
+      const c = document.createElement('canvas');
+      c.width = Math.round(w * r); c.height = Math.round(h * r);
+      c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+      return c.toDataURL('image/jpeg', 0.6);
+    }
+
+    function setDepositImage(side, url) {
+      depositImages[side] = url;
+      const img = document.getElementById('dep-' + side + '-img');
+      img.src = url; img.classList.remove('hidden');
+    }
+
+    async function openCamera(side) {
+      camSide = side;
+      const picker = () => document.getElementById('dep-file').click();
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showToast('Live camera unavailable. Opening photo picker.'); picker(); return; }
+      try {
+        closeCamera();
+        camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+        const v = document.getElementById('camera-video');
+        v.srcObject = camStream;
+        document.getElementById('camera-overlay').classList.remove('hidden');
+        try { await v.play(); } catch (e) {}
+      } catch (e) {
+        showToast(e && e.name === 'NotAllowedError' ? 'Camera blocked. Allow camera access in browser settings.' : 'Could not start camera. Opening photo picker.');
+        picker();
+      }
+    }
+
+    function closeCamera() {
+      if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+      const o = document.getElementById('camera-overlay');
+      if (o) o.classList.add('hidden');
+    }
+
+    function capturePhoto() {
+      const v = document.getElementById('camera-video');
+      if (!v.videoWidth) return;
+      setDepositImage(camSide, toJpeg(v, v.videoWidth, v.videoHeight));
+      closeCamera();
+    }
+
+    function onDepositFile(input) {
+      const f = input.files[0];
+      if (!f) return;
+      const img = new Image();
+      img.onload = () => setDepositImage(camSide, toJpeg(img, img.width, img.height));
+      img.src = URL.createObjectURL(f);
+      input.value = '';
+    }
+
+    async function submitDeposit() {
+      const amt = parseFloat(document.getElementById('deposit-amount').value);
+      if (!amt || amt <= 0) { showToast('Enter the check amount'); return; }
+      if (!depositImages.front || !depositImages.back) { showToast('Capture both sides of the check'); return; }
+      const { error } = await supabaseClient.rpc('submit_deposit', { p_amount: amt, p_front: depositImages.front, p_back: depositImages.back });
+      if (error) { showToast('Deposit failed. Please try again.'); return; }
+      depositImages = { front: null, back: null };
+      ['front', 'back'].forEach(sd => { const i = document.getElementById('dep-' + sd + '-img'); i.src = ''; i.classList.add('hidden'); });
+      document.getElementById('deposit-amount').value = '';
+      closePage('deposit');
+      loadTransactions();
+      showToast('Deposit submitted for review');
+    }
+
+    // ---------- PIN ----------
+    function updatePinUI() {
+      const has = !!(currentUser && currentUser.hasPin);
+      document.getElementById('pin-status').innerText = has ? 'PIN is set' : 'No PIN set';
+      document.getElementById('pin-status').className = 'text-[11px] font-semibold ' + (has ? 'text-green-700' : 'text-amber-600');
+      document.getElementById('pin-current').classList.toggle('hidden', !has);
+      document.getElementById('pin-toggle-btn').innerText = has ? 'Change' : 'Set PIN';
+      document.getElementById('pin-save-btn').innerText = has ? 'Save new PIN' : 'Save PIN';
+    }
+
+    function togglePinForm(show) {
+      const f = document.getElementById('pin-form');
+      f.classList.toggle('hidden', show === undefined ? !f.classList.contains('hidden') : !show);
+    }
+
+    async function savePin() {
+      const cur = document.getElementById('pin-current').value;
+      const pin = document.getElementById('pin-new').value;
+      const conf = document.getElementById('pin-confirm').value;
+      if (currentUser.hasPin && !/^[0-9]{4}$/.test(cur)) { showToast('Enter your current PIN'); return; }
+      if (!/^[0-9]{4}$/.test(pin)) { showToast('PIN must be 4 digits'); return; }
+      if (pin !== conf) { showToast('PINs do not match'); return; }
+      const { data, error } = await supabaseClient.rpc('set_pin', { p_new: pin, p_current: currentUser.hasPin ? cur : null });
+      if (error) { showToast('Could not save PIN'); return; }
+      if (data === 'incorrect') { showToast('Incorrect current PIN'); return; }
+      if (data === 'locked') { showToast('Too many attempts. Try again in 15 minutes.'); return; }
+      currentUser.hasPin = true;
+      ['pin-current', 'pin-new', 'pin-confirm'].forEach(id => document.getElementById(id).value = '');
+      togglePinForm(false);
+      updatePinUI();
+      showToast('PIN saved');
+    }
+
+    // Ready for transfers: call `if (!(await verifyPin(pin))) return;` before moving money.
+    async function verifyPin(pin) {
+      const { data, error } = await supabaseClient.rpc('verify_pin', { p_pin: String(pin) });
+      return !error && data === true;
+    }
+
+    // ---------- Support chat ----------
+    let chatCount = -1;
+
+    function openChat() { chatCount = -1; navigateTo('chat'); loadChat(); }
+
+    async function loadChat() {
+      if (!supabaseClient || !currentUser) return;
+      const { data } = await supabaseClient.from('support_messages').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: true });
+      const list = data || [];
+      if (list.length === chatCount) return;
+      chatCount = list.length;
+      const box = document.getElementById('chat-messages');
+      box.innerHTML = list.length ? list.map(m => {
+        const mine = m.sender === 'user';
+        return `<div class="flex ${mine ? 'justify-end' : 'justify-start'}"><div class="max-w-[80%] px-3 py-2 rounded-2xl text-sm ${mine ? 'bg-renasant-navy text-white' : 'bg-white border text-gray-800'}">${escapeHtml(m.body)}</div></div>`;
+      }).join('') : '<div class="text-center text-xs text-gray-500 py-6">Hi! How can we help you today?</div>';
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function sendChat() {
+      const input = document.getElementById('chat-input');
+      const body = input.value.trim();
+      if (!body) return;
+      input.value = '';
+      const { error } = await supabaseClient.from('support_messages').insert({ user_id: currentUser.id, sender: 'user', body });
+      if (error) { input.value = body; showToast('Message failed to send'); return; }
+      loadChat();
+    }
+
+    setInterval(() => {
+      const pg = document.getElementById('page-chat');
+      if (currentUser && pg && !pg.classList.contains('slide-out')) loadChat();
+    }, 4000);
 
     // ---------- UI helpers ----------
     let toastTimeout;
