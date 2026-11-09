@@ -525,6 +525,8 @@
     const PROTECTED = ['transfers','deposit','billpay','zelle','zellesend','cards','documents','fund','accountDetails','insights','profile','notifications','settings'];
     const COUNTRIES = ['United States','Canada','Mexico','United Kingdom','Ireland','France','Germany','Spain','Italy','Portugal','Netherlands','Belgium','Switzerland','Sweden','Norway','Denmark','Finland','Poland','Greece','Turkey','Israel','United Arab Emirates','Saudi Arabia','Egypt','Nigeria','Ghana','Kenya','South Africa','India','Pakistan','Bangladesh','China','Japan','South Korea','Philippines','Vietnam','Thailand','Indonesia','Malaysia','Singapore','Australia','New Zealand','Brazil','Argentina','Chile','Colombia','Peru','Jamaica','Dominican Republic','Other'];
 
+    const PARENT_PAGE = { zellesend: 'zelle' };
+
     let currentUser = null; // { id, name, email, dob, country, accountNumber, balance }
     let isCardNumberVisible = false;
     let isBalanceVisible = false;
@@ -545,7 +547,16 @@
         return;
       }
       const page = document.getElementById('page-' + pageId);
-      if (page) { page.classList.remove('slide-out'); updateNavHighlight(pageId); }
+      if (page) {
+        // Close every other open screen (except this page's parent) so nothing stays stacked on top
+        const keep = ['page-' + pageId];
+        if (PARENT_PAGE[pageId]) keep.push('page-' + PARENT_PAGE[pageId]);
+        document.querySelectorAll('.app-screen').forEach(sc => {
+          if (!keep.includes(sc.id)) sc.classList.add('slide-out');
+        });
+        page.classList.remove('slide-out');
+        updateNavHighlight(PARENT_PAGE[pageId] || pageId);
+      }
     }
 
     function closePage(pageId) {
