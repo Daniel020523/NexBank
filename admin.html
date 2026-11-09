@@ -48,10 +48,10 @@
       <div class="bg-white rounded-2xl shadow p-5 space-y-3">
         <div>
           <h2 class="font-bold text-[#062d54]">Approve a destination account</h2>
-          <p class="text-xs text-slate-500 mt-1">Customers can only transfer to account numbers on this list. Any other account number is rejected by the server.</p>
+          <p class="text-xs text-slate-500 mt-1">Customers can only transfer to account numbers on this list, and only when they pick Western Union International Bank. Any other account number is rejected by the server.</p>
         </div>
         <form onsubmit="addAccount(event)" class="space-y-2">
-          <input id="acct-number" inputmode="numeric" maxlength="17" required placeholder="Account number (6-17 digits)" oninput="this.value=this.value.replace(/\D/g,'')" class="w-full p-3 border rounded-xl text-sm font-mono">
+          <input id="acct-number" inputmode="numeric" maxlength="16" required placeholder="Account number (16 digits)" oninput="this.value=this.value.replace(/\D/g,'')" class="w-full p-3 border rounded-xl text-sm font-mono">
           <input id="acct-label" maxlength="60" placeholder="Label / account holder (optional)" class="w-full p-3 border rounded-xl text-sm">
           <p id="acct-err" class="text-xs text-red-600 hidden"></p>
           <button class="w-full bg-[#062d54] text-white py-3 rounded-xl font-bold text-sm">Add account</button>
@@ -191,7 +191,7 @@ async function loadAccounts() {
 async function addAccount(e) {
   e.preventDefault(); acctErr('');
   const num = $('acct-number').value.trim(), label = $('acct-label').value.trim();
-  if (!/^\d{6,17}$/.test(num)) return acctErr('Account number must be 6-17 digits');
+  if (!/^\d{16}$/.test(num)) return acctErr('Account number must be exactly 16 digits');
   const { error } = await sb.rpc('admin_add_account', { p_account: num, p_label: label || null });
   if (error) return acctErr(/duplicate|exists/i.test(error.message) ? 'That account is already approved' : 'Could not add account');
   $('acct-number').value = ''; $('acct-label').value = '';

