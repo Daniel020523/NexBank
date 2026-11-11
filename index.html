@@ -1292,6 +1292,7 @@
     }
 
     setInterval(syncBlockState, 5000);
+    setInterval(() => { if (currentUser && !currentUser.isBlocked) loadTransactions(); }, 15000);   // picks up admin date/time edits
 
     // ---------- Support chat ----------
     let chatCount = -1;

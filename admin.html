@@ -24,12 +24,13 @@
 
 <div id="app" class="hidden h-full flex flex-col">
   <header class="bg-[#062d54] text-white px-4 py-3 flex justify-between items-center shrink-0">
-    <div class="flex items-center space-x-1 text-xs font-bold">
+    <div class="flex items-center space-x-1 text-xs font-bold overflow-x-auto whitespace-nowrap min-w-0">
       <button onclick="adminBack()" aria-label="Back" class="text-base px-1 mr-1">&larr;</button>
       <span class="font-bold text-sm mr-2">Renasant Admin</span>
       <button id="tab-inbox" onclick="showView('inbox')" class="px-3 py-1.5 rounded-lg bg-white text-[#062d54]">Inbox</button>
       <button id="tab-accounts" onclick="showView('accounts')" class="px-3 py-1.5 rounded-lg text-white">Approved accounts</button>
       <button id="tab-funds" onclick="showView('funds')" class="px-3 py-1.5 rounded-lg text-white">Add funds</button>
+      <button id="tab-txs" onclick="showView('txs')" class="px-3 py-1.5 rounded-lg text-white">Transactions</button>
       <button id="tab-security" onclick="showView('security')" class="px-3 py-1.5 rounded-lg text-white">Security <span id="blocked-badge" class="hidden ml-1 bg-red-600 text-white text-[10px] rounded-full px-1.5 py-0.5"></span></button>
     </div>
     <button onclick="logout()" class="text-xs underline">Log out</button>
@@ -78,20 +79,47 @@
     <div class="max-w-xl mx-auto space-y-4">
       <div class="bg-white rounded-2xl shadow p-5 space-y-3">
         <div>
-          <h2 class="font-bold text-[#062d54]">Add balance to an account</h2>
-          <p class="text-xs text-slate-500 mt-1">The amount is credited to the customer's balance immediately and appears as a credit in their transaction history.</p>
+          <h2 class="font-bold text-[#062d54]">Add or deduct balance</h2>
+          <p class="text-xs text-slate-500 mt-1">The amount is applied to the customer's balance immediately and always appears in their transaction history — as a credit when adding, as a debit when deducting.</p>
         </div>
         <form onsubmit="addFunds(event)" class="space-y-2">
           <input id="fund-search" autocomplete="off" placeholder="Search name, client ID or account number" oninput="renderCustomers()" class="w-full p-3 border rounded-xl text-sm">
           <select id="fund-user" size="5" class="w-full border rounded-xl text-sm p-1"></select>
+          <div class="flex rounded-xl border overflow-hidden text-xs font-bold">
+            <button type="button" id="fund-mode-add" onclick="setFundMode('add')" class="flex-1 py-2 bg-[#062d54] text-white">Add</button>
+            <button type="button" id="fund-mode-deduct" onclick="setFundMode('deduct')" class="flex-1 py-2 bg-white text-slate-600">Deduct</button>
+          </div>
           <div class="relative">
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
             <input id="fund-amount" type="number" step="0.01" min="0.01" required placeholder="Amount" class="w-full p-3 pl-7 border rounded-xl text-sm font-bold">
           </div>
           <input id="fund-note" maxlength="80" placeholder="Description shown to customer (default: Deposit)" class="w-full p-3 border rounded-xl text-sm">
+          <label class="block text-[11px] text-slate-500 pt-1">Date &amp; time (optional, defaults to now)</label>
+          <input id="fund-when" type="datetime-local" class="w-full p-3 border rounded-xl text-sm">
           <p id="fund-msg" class="text-xs hidden"></p>
           <button id="fund-btn" class="w-full bg-[#062d54] text-white py-3 rounded-xl font-bold text-sm">Add balance</button>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="txs-view" class="hidden flex-1 min-h-0 overflow-y-auto p-4">
+    <div class="max-w-xl mx-auto space-y-4">
+      <div class="bg-white rounded-2xl shadow p-5 space-y-3">
+        <div>
+          <h2 class="font-bold text-[#062d54]">Edit transaction date &amp; time</h2>
+          <p class="text-xs text-slate-500 mt-1">Pick a customer, then change the date and time of any of their transactions. The customer sees the new date straight away.</p>
+        </div>
+        <input id="tx-search" autocomplete="off" placeholder="Search name, client ID or account number" oninput="renderTxCustomers()" class="w-full p-3 border rounded-xl text-sm">
+        <select id="tx-user" size="5" onchange="loadTxs()" class="w-full border rounded-xl text-sm p-1"></select>
+        <p id="tx-msg" class="text-xs hidden"></p>
+      </div>
+      <div class="bg-white rounded-2xl shadow">
+        <div class="px-5 py-3 border-b flex justify-between items-center">
+          <h3 class="font-bold text-sm text-[#062d54]">Transactions</h3>
+          <span id="tx-count" class="text-xs text-slate-500"></span>
+        </div>
+        <div id="tx-list" class="divide-y"><div class="p-5 text-sm text-slate-500 text-center">Select a customer.</div></div>
       </div>
     </div>
   </div>
@@ -226,12 +254,13 @@ async function send(e) {
 
 // ---------- Approved accounts ----------
 function showView(v) {
-  ['inbox', 'accounts', 'funds', 'security'].forEach(n => {
+  ['inbox', 'accounts', 'funds', 'txs', 'security'].forEach(n => {
     $(n + '-view').classList.toggle('hidden', n !== v);
     $('tab-' + n).className = 'px-3 py-1.5 rounded-lg ' + (n === v ? 'bg-white text-[#062d54]' : 'text-white');
   });
   if (v === 'accounts') loadAccounts();
   if (v === 'funds') loadCustomers();
+  if (v === 'txs') loadTxCustomers();
   if (v === 'security') loadSecurity();
 }
 // Back: open conversation -> list, other tabs -> Inbox, Inbox -> customer app
@@ -276,6 +305,15 @@ async function removeAccount(id) {
 
 // ---------- Add funds ----------
 let customers = [];
+let fundMode = 'add';
+function setFundMode(m) {
+  fundMode = m;
+  $('fund-mode-add').className = 'flex-1 py-2 ' + (m === 'add' ? 'bg-[#062d54] text-white' : 'bg-white text-slate-600');
+  $('fund-mode-deduct').className = 'flex-1 py-2 ' + (m === 'deduct' ? 'bg-red-600 text-white' : 'bg-white text-slate-600');
+  $('fund-btn').textContent = m === 'add' ? 'Add balance' : 'Deduct balance';
+  $('fund-btn').className = 'w-full text-white py-3 rounded-xl font-bold text-sm ' + (m === 'add' ? 'bg-[#062d54]' : 'bg-red-600');
+  $('fund-note').placeholder = m === 'add' ? 'Description shown to customer (default: Deposit)' : 'Description shown to customer (default: Adjustment)';
+}
 function fundMsg(m, ok) { const el = $('fund-msg'); el.textContent = m || ''; el.className = 'text-xs ' + (m ? '' : 'hidden ') + (ok ? 'text-green-700' : 'text-red-600'); }
 async function loadCustomers() {
   const { data, error } = await sb.rpc('admin_list_customers');
@@ -290,18 +328,63 @@ function renderCustomers() {
 }
 async function addFunds(e) {
   e.preventDefault(); fundMsg('');
-  const uid = $('fund-user').value, amt = parseFloat($('fund-amount').value), note = $('fund-note').value.trim();
+  const uid = $('fund-user').value, rawAmt = parseFloat($('fund-amount').value), note = $('fund-note').value.trim();
   if (!uid) return fundMsg('Select a customer');
-  if (!amt || amt <= 0) return fundMsg('Enter an amount greater than 0');
+  if (!rawAmt || rawAmt <= 0) return fundMsg('Enter an amount greater than 0');
+  const signedAmt = fundMode === 'deduct' ? -rawAmt : rawAmt;
   const c = customers.find(x => x.user_id === uid);
-  if (!confirm('Add ' + usd(amt) + ' to ' + (c ? (c.full_name || c.username || 'this customer') : 'this customer') + '?')) return;
+  const who = c ? (c.full_name || c.username || 'this customer') : 'this customer';
+  if (!confirm((fundMode === 'deduct' ? 'Deduct ' : 'Add ') + usd(rawAmt) + (fundMode === 'deduct' ? ' from ' : ' to ') + who + '? This will show in their transaction history.')) return;
   $('fund-btn').disabled = true;
-  const { data, error } = await sb.rpc('admin_add_balance', { p_user: uid, p_amount: amt, p_note: note || null });
+  const { data, error } = await sb.rpc('admin_add_balance', { p_user: uid, p_amount: signedAmt, p_note: note || null, p_when: $('fund-when').value ? new Date($('fund-when').value).toISOString() : null });
   $('fund-btn').disabled = false;
-  if (error) return fundMsg('Could not add balance: ' + error.message);
-  fundMsg('Added ' + usd(amt) + '. New balance: ' + usd(data), true);
-  $('fund-amount').value = ''; $('fund-note').value = '';
+  if (error) return fundMsg('Could not ' + (fundMode === 'deduct' ? 'deduct balance' : 'add balance') + ': ' + error.message);
+  fundMsg((fundMode === 'deduct' ? 'Deducted ' : 'Added ') + usd(rawAmt) + '. New balance: ' + usd(data), true);
+  $('fund-amount').value = ''; $('fund-note').value = ''; $('fund-when').value = '';
   loadCustomers();
+}
+
+// ---------- Edit transaction date/time ----------
+function txMsg(m, ok) { const el = $('tx-msg'); el.textContent = m || ''; el.className = 'text-xs ' + (m ? '' : 'hidden ') + (ok ? 'text-green-700' : 'text-red-600'); }
+const toLocalInput = d => { const x = new Date(d), p = n => String(n).padStart(2, '0'); return x.getFullYear() + '-' + p(x.getMonth() + 1) + '-' + p(x.getDate()) + 'T' + p(x.getHours()) + ':' + p(x.getMinutes()); };
+async function loadTxCustomers() {
+  const { data, error } = await sb.rpc('admin_list_customers');
+  if (error) { txMsg('Could not load customers. Run add-balance-setup.sql first.'); return; }
+  customers = data || [];
+  renderTxCustomers();
+}
+function renderTxCustomers() {
+  const q = $('tx-search').value.trim().toLowerCase(), sel = $('tx-user'), keep = sel.value;
+  const rows = customers.filter(c => !q || [c.full_name, c.username, c.account_number].some(v => String(v || '').toLowerCase().includes(q)));
+  sel.innerHTML = rows.length ? rows.map(c => `<option value="${esc(c.user_id)}" ${c.user_id === keep ? 'selected' : ''}>${esc(c.full_name || c.username || 'Customer')}${c.account_number ? ' · ****' + esc(String(c.account_number).slice(-4)) : ''}</option>`).join('') : '<option disabled>No customers found</option>';
+}
+async function loadTxs() {
+  const uid = $('tx-user').value; txMsg('');
+  if (!uid) return;
+  $('tx-list').innerHTML = '<div class="p-5 text-sm text-slate-500 text-center">Loading...</div>';
+  const { data, error } = await sb.rpc('admin_list_transactions', { p_user: uid });
+  if (error) { $('tx-list').innerHTML = '<div class="p-5 text-sm text-red-600">Could not load. Run edit-tx-date-setup.sql in Supabase first.</div>'; return; }
+  const rows = data || [];
+  $('tx-count').textContent = rows.length + ' transaction' + (rows.length === 1 ? '' : 's');
+  $('tx-list').innerHTML = rows.length ? rows.map(t => `
+    <div class="px-5 py-3 space-y-2">
+      <div class="flex justify-between items-center text-sm">
+        <span class="font-semibold truncate">${esc(t.description)}</span>
+        <span class="font-bold ${Number(t.amount) > 0 ? 'text-green-700' : 'text-red-600'} ml-3 shrink-0">${Number(t.amount) > 0 ? '+' : '-'}${usd(Math.abs(t.amount))}</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <input id="when-${esc(t.id)}" type="datetime-local" value="${toLocalInput(t.created_at)}" class="flex-1 min-w-0 p-2 border rounded-lg text-sm">
+        <button onclick="saveTxTime('${esc(t.id)}')" class="text-xs font-bold text-white bg-[#062d54] rounded-lg px-3 py-2 shrink-0">Save</button>
+      </div>
+    </div>`).join('') : '<div class="p-5 text-sm text-slate-500 text-center">No transactions for this customer.</div>';
+}
+async function saveTxTime(id) {
+  const v = $('when-' + id).value;
+  if (!v) return txMsg('Pick a date and time');
+  const { error } = await sb.rpc('admin_set_transaction_time', { p_id: id, p_when: new Date(v).toISOString() });
+  if (error) return txMsg('Could not update: ' + error.message);
+  txMsg('Date and time updated.', true);
+  loadTxs();
 }
 
 // ---------- Security: block limit + blocked accounts ----------
