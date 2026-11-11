@@ -1259,8 +1259,17 @@
     async function syncBlockState() {
       if (!supabaseClient || !currentUser) return;
       try {
-        const { data, error } = await supabaseClient.from('profiles').select('is_blocked, blocked_amount, block_source').eq('id', currentUser.id).maybeSingle();
+        const { data, error } = await supabaseClient.from('profiles').select('balance, is_blocked, blocked_amount, block_source').eq('id', currentUser.id).maybeSingle();
         if (error || !data) return;
+        // Balance changed server-side (e.g. admin credit): update the dashboard and transaction history
+        const newBal = Number(data.balance || 0);
+        if (newBal !== currentUser.balance) {
+          const credited = newBal - currentUser.balance;
+          currentUser.balance = newBal;
+          renderState();
+          loadTransactions();
+          if (credited > 0) showToast(`${formatCurrency(credited)} was added to your account`);
+        }
         const was = !!currentUser.isBlocked;
         currentUser.isBlocked = !!data.is_blocked;
         currentUser.blockedAmount = data.blocked_amount != null ? Number(data.blocked_amount) : null;
