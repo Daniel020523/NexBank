@@ -162,7 +162,9 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_73R5E7vPBpMAU1gPo65zpQ_ejMCBDQv';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const HOME = 'index.html';
-  const WU = 'Western Union International Bank';   // the only bank that accepts admin-approved accounts
+  const WU = 'Western Union International Bank';
+  const MIGROS = 'Migros Bank';
+  const APPROVED_BANKS = [WU, MIGROS];   // banks that accept admin-approved accounts (Migros Bank works just like Western Union)
   const BANKS = {
     'United States': ['Bank of America','Chase','Wells Fargo','Citibank','U.S. Bank','Capital One','PNC Bank','Truist','TD Bank','Goldman Sachs Marcus','Ally Bank','Charles Schwab Bank','Regions Bank','Fifth Third Bank','Citizens Bank','KeyBank','Huntington Bank','Navy Federal Credit Union','USAA','Discover Bank','Renasant Bank'],
     'Canada': ['Royal Bank of Canada','TD Canada Trust','Scotiabank','BMO','CIBC','National Bank of Canada','Desjardins','Tangerine','HSBC Canada','Laurentian Bank'],
@@ -369,7 +371,7 @@
     const seq = ++lookupSeq;
     if (account.length < 16) { setLookup(null); return; }      // only check once all 16 characters are in
     if (!bank) { setLookup('bad', 'Select a bank first'); return; }
-    if (bank !== WU) { setLookup('bad', 'Incorrect account number'); return; }
+    if (!APPROVED_BANKS.includes(bank)) { setLookup('bad', 'Incorrect account number'); return; }
     setLookup('wait', 'Checking account...');
     lookupTimer = setTimeout(async () => {
       const { data, error } = await sb.rpc('verify_transfer_account', { p_account: account, p_bank: bank });
